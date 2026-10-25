@@ -129,6 +129,11 @@ export const supabaseApi: Api = {
     });
     if (error) throw toApiError(error);
   },
+  async signUpWithEmail(email, password) {
+    const { data, error } = await db().auth.signUp({ email, password, options: { emailRedirectTo: `${window.location.origin}/auth/callback` } });
+    if (error) throw toApiError(error);
+    return !!data.session;
+  },
   async signInWithEmail(email, password) {
     const { error } = await db().auth.signInWithPassword({ email, password });
     if (error) throw new ApiError('login_failed', 'That email and password don’t match.');

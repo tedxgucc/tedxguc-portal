@@ -288,6 +288,7 @@ export const demoApi: Api = {
   async getMe() { return currentMe(); },
   async signInWithGoogle() { fail('demo_login'); },
   async signInWithEmail() { fail('demo_login'); },
+  async signUpWithEmail() { fail('demo_login'); return false; },
   async sendPasswordReset() { await wait(300); },
   async signOut() {
     document.cookie = `${DEMO_COOKIE}=; path=/; max-age=0; samesite=lax`;

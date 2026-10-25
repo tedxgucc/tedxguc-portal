@@ -92,6 +92,8 @@ export interface Api {
   // ----- Accounts -----
   getMe(): Promise<Me | null>;
   signInWithGoogle(): Promise<void>;
+  /** Invited people set their own password the first time. Returns false if Supabase still wants an email confirmation. */
+  signUpWithEmail(email: string, password: string): Promise<boolean>;
   signInWithEmail(email: string, password: string): Promise<void>;
   sendPasswordReset(email: string): Promise<void>;
   signOut(everywhere?: boolean): Promise<void>;

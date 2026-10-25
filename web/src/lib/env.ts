@@ -2,6 +2,8 @@
 // picker instead of login, and nothing is saved beyond this browser tab.
 export const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
 export const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '';
+// Google sign-in shows only once it is set up in Supabase.
+export const GOOGLE_LOGIN = process.env.NEXT_PUBLIC_GOOGLE_LOGIN === 'on';
 export const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
 export const DEMO = !SUPABASE_URL || !SUPABASE_ANON_KEY;
 

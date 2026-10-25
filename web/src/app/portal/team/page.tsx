@@ -143,7 +143,7 @@ function InviteModal({ open, onClose, onSent }: { open: boolean; onClose: () => 
         team_id: role === 'executive' || role === 'associate' ? teamId : null,
         division_id: role === 'curator' ? divisionId : null,
       });
-      toast('ok', 'Invite sent.', `${e} can log in for the next 7 days.`);
+      toast('ok', 'Invite added.', `Tell ${e} to open the portal login, tap “Set your password” and use this email. It works for 7 days.`);
       setEmail('');
       onSent();
     } catch (x) {
