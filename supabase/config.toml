@@ -1,0 +1,53 @@
+# Supabase CLI settings for local development (`supabase start`).
+# The hosted project needs the same settings in its dashboard; see README.
+
+project_id = "tedxguc-portal"
+
+[api]
+# "private" (the role-check helpers) is deliberately not exposed.
+schemas = ["public"]
+
+[db]
+major_version = 17
+
+[db.seed]
+enabled = true
+sql_paths = ["./seed.sql"]
+
+[auth]
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000/auth/callback"]
+enable_signup = true
+jwt_expiry = 3600
+
+[auth.email]
+enable_signup = true
+enable_confirmations = true
+
+# FR-2.1: Google sign-in. The GUC-domain rule is enforced by the hook below.
+[auth.external.google]
+enabled = true
+client_id = "env(SUPABASE_AUTH_GOOGLE_CLIENT_ID)"
+secret = "env(SUPABASE_AUTH_GOOGLE_SECRET)"
+
+# FR-2.1 / FR-2.3: invite-only accounts, GUC domains for Google.
+[auth.hook.before_user_created]
+enabled = true
+uri = "pg-functions://postgres/public/hook_before_user_created"
+
+# Guests call these without logging in.
+[functions.public-forms]
+verify_jwt = false
+
+[functions.calendar-ics]
+verify_jwt = false
+
+[functions.staff-actions]
+verify_jwt = true
+
+[functions.finance-docs]
+verify_jwt = true
+
+# Called by Supabase Cron with the service role key.
+[functions.maintenance]
+verify_jwt = true

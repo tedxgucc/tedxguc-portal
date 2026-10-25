@@ -1,0 +1,85 @@
+/* Design system first; its tx- classes outrank Tailwind's element reset. */
+@import './tokens.css';
+@import './bundle.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Self-hosted fonts from next/font come first in each stack. */
+:root {
+  --font-display: var(--font-anton), "Anton", "Bebas Neue", Impact, "Arial Narrow", sans-serif;
+  --font-sans: var(--font-inter), "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-mono: var(--font-jetbrains), "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme: dark;
+}
+[data-theme="light"] { color-scheme: light; }
+
+/* Tailwind's reset removes heading sizes; the design system's type classes set them. */
+h1, h2, h3, h4, p { margin: 0; }
+a { color: inherit; }
+.tx-link { color: var(--accent-ink); text-decoration: underline; text-underline-offset: 3px; }
+.tx-link:hover { text-decoration-thickness: 2px; }
+
+/* Show the lockup that matches the theme (white on dark, black on light). */
+[data-theme="light"] .on-dark { display: none !important; }
+:root:not([data-theme="light"]) .on-light { display: none !important; }
+
+/* Page transition (08 · Motion): incoming page slides up 16px and fades in. */
+@keyframes tx-page-in { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+.tx-page { animation: tx-page-in var(--dur-3) var(--ease-out) both; }
+
+/* Hero load: watermark settles, title wipes in left-to-right. */
+@keyframes tx-wm-in { from { opacity: 0; transform: translateY(-50%) scale(1.08); } to { opacity: 1; transform: translateY(-50%) scale(1); } }
+.tx-watermark.is-hero::before { animation: tx-wm-in var(--dur-4) var(--ease-out) both; }
+@keyframes tx-wipe { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+.tx-wipe { animation: tx-wipe var(--dur-3) var(--ease-out) 120ms both; }
+
+/* Toast entrance: 12px rise + fade over dur-2. */
+@keyframes tx-toast-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+.tx-toast { animation: tx-toast-in var(--dur-2) var(--ease-out) both; }
+
+/* Sheet / modal entrance. */
+@keyframes tx-sheet-in { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes tx-dialog-in { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: none; } }
+.tx-modal { animation: tx-sheet-in var(--dur-3) var(--ease-out) both; max-height: 90dvh; overflow-y: auto; }
+@media (min-width: 768px) { .tx-modal { animation-name: tx-dialog-in; animation-duration: var(--dur-2); } }
+
+/* Loading state: a 2px accent bar runs under the control (05 · Components). */
+@keyframes tx-loading { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+.is-loading { position: relative; overflow: hidden; }
+.is-loading::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--accent); animation: tx-loading 900ms var(--ease-in-out) infinite; }
+
+/* Skeleton rows while data loads. */
+.tx-skel { background: var(--surface-3); border-radius: var(--radius-1); }
+
+/* Check-in failure uses the same stamp in bad. */
+.tx-checkin__stamp.is-bad { background: var(--bad); color: var(--on-bad); }
+.tx-checkin__stamp.is-warn { background: var(--warn); color: var(--on-warn); }
+
+/* Portal layout: 248px sidebar on desktop, tab bar on mobile. */
+.tx-sidebar { display: none; }
+@media (min-width: 1024px) {
+  .tx-shell { display: grid; grid-template-columns: 248px 1fr; min-height: 100dvh; }
+  .tx-sidebar { display: flex; flex-direction: column; position: sticky; top: 0; height: 100dvh; border-right: 1px solid var(--line); background: var(--bg); overflow-y: auto; }
+  .tx-tabbar { display: none; }
+}
+.tx-sidebar a { display: flex; align-items: center; gap: var(--space-3); padding: 10px var(--space-4); color: var(--ink-2); text-decoration: none; font: 500 15px/20px var(--font-sans); border-left: 3px solid transparent; }
+.tx-sidebar a svg { width: 20px; height: 20px; }
+.tx-sidebar a:hover { background: var(--surface-1); color: var(--ink); }
+.tx-sidebar a.is-on { color: var(--ink); border-left-color: var(--accent); background: var(--surface-1); }
+
+/* Mobile kanban: columns become swipeable. */
+.tx-board { grid-auto-flow: column; grid-auto-columns: minmax(280px, 1fr); gap: var(--space-3); overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: var(--space-2); }
+.tx-board > .tx-col { scroll-snap-align: start; }
+
+/* Calendar month grid */
+.tx-month { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+.tx-month > div { background: var(--bg); min-height: 92px; padding: 4px; display: grid; align-content: start; gap: 3px; }
+.tx-month .is-other { background: var(--surface-1); }
+.tx-month .is-other .tx-month__d { color: var(--ink-3); }
+.tx-month .is-today .tx-month__d { background: var(--accent); color: var(--on-accent); }
+.tx-month__d { font: 700 12px/20px var(--font-sans); width: 22px; height: 20px; text-align: center; color: var(--ink-2); }
+@media (max-width: 767px) { .tx-month > div { min-height: 64px; } .tx-month .tx-pill { font-size: 10px; padding: 2px 4px; } }
+
+/* Utility: hide visually, keep for screen readers. */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }

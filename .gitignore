@@ -1,0 +1,9 @@
+node_modules/
+.env
+supabase/functions/.env
+supabase/.temp/
+supabase/.branches/
+.next/
+web/.env.local
+*.tsbuildinfo
+.claude/

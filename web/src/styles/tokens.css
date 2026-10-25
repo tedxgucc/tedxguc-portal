@@ -1,0 +1,238 @@
+/* TEDxGUC tokens — copied from the TEDxGUC design system (tokens.css, generated from tokens.json). Do not edit here. */
+:root, [data-theme="dark"] {
+  --bg: #000000; /* Page background. Pure black is the brand default; the X watermark and red bottom bar sit on it. */
+  --surface-1: #111111; /* Cards, list rows, nav bars on `bg`. */
+  --surface-2: #1a1a1a; /* Inputs, nested cards, hover on `surface-1`. */
+  --surface-3: #242424; /* Pressed rows, kanban column wells, skeletons. */
+  --line: #2a2a2a; /* Decorative hairlines and dividers only (no meaning). Heading rules use `ink` instead. */
+  --line-strong: #7a7a7a; /* Input and control borders; 3:1+ on every surface in both themes. */
+  --ink: #ffffff; /* Primary text and the thin rule beside section headings, on `bg` and every surface. */
+  --ink-2: #b8b8b8; /* Secondary text: descriptions, meta, table cells. 7:1+ on every surface. */
+  --ink-3: #8f8f8f; /* Captions, placeholders, timestamps. 4.5:1+ on every surface. */
+  --accent: #e62b1e; /* TEDx red (exact). Headlines 24px+, asterisk bullets, primary fills, active states, the X marks. As text only at 24px+ (4.73:1 on black, 4.44:1 on white). */
+  --accent-deep: #a3001b; /* Bottom bars, pressed primary buttons, X Access card face. White text on it is 8.16:1. */
+  --accent-ink: #ff5d52; /* Red text under 24px (links, error text, section labels) — 5.1:1+ on every surface. */
+  --on-accent: #ffffff; /* Text on `accent` fills. 4.44:1, so only at 18.66px bold / 24px+ (buttons set their label in `display` 20px for this reason). */
+  --watermark: #22050a; /* The giant faded X behind hero content. Decorative; never behind small text without a surface. */
+  --focus: #ffffff; /* Focus ring: 2px solid, 2px offset, on every control. Never red (red already means primary and absent). */
+  --scrim: rgba(0, 0, 0, 0.72); /* Overlay behind modals, sheets and game pop-ups. */
+  --ok: #3ddc84; /* Attended / approved / paid fill and icon. Always paired with a check icon and a word. */
+  --on-ok: #000000; /* Text on `ok` fills (11.8:1 dark, 5.4:1 light). */
+  --ok-tint: #0f2a1b; /* Soft background for approved rows and success toasts; text on it is `ok`. */
+  --bad: #ff5d52; /* Absent / rejected / error fill and icon. Lighter than `accent` in dark so a chip never reads as a brand button. */
+  --on-bad: #000000; /* Text on `bad` fills (6.9:1 dark, 6.1:1 light). */
+  --bad-tint: #2e0f0d; /* Soft background for rejected rows and error toasts; text on it is `bad`. */
+  --warn: #ffc530; /* Late / pending fill and icon. */
+  --on-warn: #000000; /* Text on `warn` fills (13.3:1 dark, 9.1:1 light). */
+  --warn-tint: #2d2408; /* Soft background for pending rows; text on it is `warn-ink`. */
+  --warn-ink: #ffc530; /* Yellow-family text on `warn-tint` and surfaces (light theme needs the darker ochre). */
+  --void: #9a9a9a; /* Excused / void / cancelled fill and icon. */
+  --on-void: #000000; /* Text on `void` fills (7.5:1 dark, 6.5:1 light). */
+  --void-tint: #262626; /* Soft background for excused rows; text on it is `ink-2`. */
+  --lvl-0: var(--ok); /* Absence level 0 — clear. Same as `ok`. */
+  --lvl-1: #ffc530; /* Absence level 1 — warning. Text on it: `on-lvl-1`. */
+  --on-lvl-1: #000000; /* Text on `lvl-1`. */
+  --lvl-2: #ff8a1f; /* Absence level 2 — meeting with curator. Text on it: `on-lvl-2`. */
+  --on-lvl-2: #000000; /* Text on `lvl-2` (8.9:1 dark, 5.3:1 light). */
+  --lvl-3: #ff5d52; /* Absence level 3 — final warning / review. Text on it: `on-lvl-3`. */
+  --on-lvl-3: #000000; /* Text on `lvl-3`. */
+  --div-talks: #5b9bff; /* Talks division (Coaching; Research & Production): tags, chart series, calendar team pills. Also passes as text on every surface. */
+  --div-ops: #2ed3c0; /* Operations division (Logistics & Planning; Partnerships). */
+  --div-od: #b194ff; /* Organizational Development (Associates' Experience; Associates' Development). */
+  --div-mc: #ff7ac6; /* Marketing & Coordination (Campaigns & Copyrights; Media & Design). */
+  --on-div: #000000; /* Text on any solid `div-*` fill. */
+  --game-ground: #e62b1e; /* Bonding-games layer: the pop-up's red slab. Same red, used as a big field instead of an accent. */
+  --game-ink: #000000; /* Hard-offset shadows and outlines in the games layer, on any theme. */
+  --game-paper: #ffffff; /* Game cards and answer tiles; text on it is `game-ink`. */
+  --shadow-pop: 0 24px 64px rgba(0, 0, 0, 0.7); /* Modals, sheets, toasts. Cards never get shadows — they separate by surface step. */
+  --shadow-game: 6px 6px 0 #000000; /* Hard offset shadow for game tiles and the game pop-up. */
+}
+[data-theme="light"] {
+  --bg: #ffffff;
+  --surface-1: #f5f4f2;
+  --surface-2: #eceae7;
+  --surface-3: #e2dfdb;
+  --line: #dedbd7;
+  --line-strong: #767676;
+  --ink: #0a0a0a;
+  --ink-2: #4a4a4a;
+  --ink-3: #5e5e5e;
+  --accent: #e62b1e;
+  --accent-deep: #a3001b;
+  --accent-ink: #c21b10;
+  --on-accent: #ffffff;
+  --watermark: #fbe9e8;
+  --focus: #0a0a0a;
+  --scrim: rgba(10, 10, 10, 0.48);
+  --ok: #137a43;
+  --on-ok: #ffffff;
+  --ok-tint: #e3f4ea;
+  --bad: #c21b10;
+  --on-bad: #ffffff;
+  --bad-tint: #fbe5e3;
+  --warn: #e8a200;
+  --on-warn: #0a0a0a;
+  --warn-tint: #fdf1d3;
+  --warn-ink: #7a4f00;
+  --void: #5e5e5e;
+  --on-void: #ffffff;
+  --void-tint: #eceae7;
+  --lvl-0: var(--ok);
+  --lvl-1: #e8a200;
+  --on-lvl-1: #0a0a0a;
+  --lvl-2: #b54a00;
+  --on-lvl-2: #ffffff;
+  --lvl-3: #c21b10;
+  --on-lvl-3: #ffffff;
+  --div-talks: #1a55bd;
+  --div-ops: #086b60;
+  --div-od: #6a42d6;
+  --div-mc: #a61e6e;
+  --on-div: #ffffff;
+  --game-ground: #e62b1e;
+  --game-ink: #000000;
+  --game-paper: #ffffff;
+  --shadow-pop: 0 16px 48px rgba(10, 10, 10, 0.18);
+}
+:root {
+  --space-1: 4px; /* Icon-to-label gap in chips. */
+  --space-2: 8px; /* Gap inside buttons and between chips. */
+  --space-3: 12px; /* Row padding (vertical) in lists and tables. */
+  --space-4: 16px; /* Card padding on mobile; mobile page gutter. */
+  --space-5: 24px; /* Card padding on desktop; gap between cards. */
+  --space-6: 32px; /* Desktop page gutter; gap between sections on mobile. */
+  --space-7: 48px; /* Gap between sections on desktop. */
+  --space-8: 64px; /* Hero top padding on mobile. */
+  --space-9: 96px; /* Hero top padding on desktop. */
+  --radius-0: 0px; /* Default. Buttons, cards, bars, tickets — TEDx is square-cornered. */
+  --radius-1: 2px; /* Inputs, chips, kanban cards (just enough to soften on phones). */
+  --radius-2: 4px; /* Modals, sheets, toasts. */
+  --radius-game: 20px; /* Bonding-games layer only: pop-ups, answer tiles. The one place corners get round. */
+  --radius-pill: 999px; /* Avatars, toggle tracks, game timers. */
+  --dur-1: 120ms; /* Press feedback, chip toggles. */
+  --dur-2: 200ms; /* Hovers, toasts in, dropdowns. */
+  --dur-3: 320ms; /* Page transitions, sheets. */
+  --dur-4: 520ms; /* Game pop-up entrance, check-in success. */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1); /* Things arriving: pages, toasts, sheets. */
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1); /* Things moving across the screen: tabs, countdown flips. */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); /* Games layer and the check-in stamp only — a small overshoot. */
+  --z-nav: 40; /* Sticky top bar and mobile tab bar. */
+  --z-toast: 60; /* Toasts. */
+  --z-modal: 80; /* Modals and sheets. */
+  --z-game: 90; /* Game pop-up — above everything. */
+  --font-display: "Anton", "Bebas Neue", Impact, "Arial Narrow", sans-serif;
+  --font-sans: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --text-display: 400 88px/0.9 var(--font-display); /* Hero titles, one per page. All caps. 64px under 768px. Red allowed. */
+  --text-h1: 400 56px/0.95 var(--font-display); /* Page titles. All caps. 44px on mobile. */
+  --text-h2: 400 40px/1 var(--font-display); /* Section titles with the thin rule beside them. 32px on mobile. */
+  --text-h3: 400 28px/1.05 var(--font-display); /* Card and panel titles. 24px on mobile. Smallest red-text heading allowed. */
+  --text-stat: 400 56px/1 var(--font-display); /* Big numbers: countdown digits, KPI tiles, leaderboard points. Tabular figures. */
+  --text-button: 400 20px/1 var(--font-display); /* Button labels — large text so white on `accent` passes AA. */
+  --text-h4: 700 20px/26px var(--font-sans); /* Item titles inside cards, modal titles. Sentence case. */
+  --text-body-lg: 400 18px/28px var(--font-sans); /* Intros and hero subcopy. */
+  --text-body: 400 16px/24px var(--font-sans); /* Default text. Never below 16px for inputs (stops iOS zoom). */
+  --text-body-sm: 400 14px/20px var(--font-sans); /* Dense UI: table cells, card meta. */
+  --text-label: 700 12px/16px var(--font-sans); /* All-caps section labels at the top of pages and over fields. */
+  --text-caption: 500 12px/16px var(--font-sans); /* Timestamps, helper text, legal line. */
+  --text-money: 600 20px/24px var(--font-sans); /* Balances and amounts in rows. Tabular figures, currency as a prefix. */
+  --text-code: 500 13px/18px var(--font-mono); /* Ticket numbers, fatora IDs, transfer references. */
+}
+.display {
+  font-family: var(--font-display);
+  font-size: 88px;
+  line-height: 0.9;
+  font-weight: 400;
+  letter-spacing: 0px;
+}
+.h1 {
+  font-family: var(--font-display);
+  font-size: 56px;
+  line-height: 0.95;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.h2 {
+  font-family: var(--font-display);
+  font-size: 40px;
+  line-height: 1;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.h3 {
+  font-family: var(--font-display);
+  font-size: 28px;
+  line-height: 1.05;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.stat {
+  font-family: var(--font-display);
+  font-size: 56px;
+  line-height: 1;
+  font-weight: 400;
+  letter-spacing: 0px;
+}
+.button {
+  font-family: var(--font-display);
+  font-size: 20px;
+  line-height: 1;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+.h4 {
+  font-family: var(--font-sans);
+  font-size: 20px;
+  line-height: 26px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+.body-lg {
+  font-family: var(--font-sans);
+  font-size: 18px;
+  line-height: 28px;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.body {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.body-sm {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.label {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+.caption {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+.money {
+  font-family: var(--font-sans);
+  font-size: 20px;
+  line-height: 24px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+.code {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
