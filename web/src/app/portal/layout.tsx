@@ -4,6 +4,7 @@ import { PortalMark } from '@/components/Brand';
 import { DemoBannerClient } from '@/components/portal/DemoBannerClient';
 import { PortalSidebar, PortalTabBar, PortalTopBar } from '@/components/portal/PortalChrome';
 import { PortalProvider } from '@/components/portal/PortalContext';
+import { BASE_PATH } from '@/lib/env';
 
 function Loading() {
   return (
@@ -17,7 +18,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
   // Offline door check-in needs the service worker (production builds only).
   useEffect(() => {
     if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
-      navigator.serviceWorker.register('/sw.js').catch(() => {});
+      navigator.serviceWorker.register(`${BASE_PATH}/sw.js`, { scope: `${BASE_PATH}/` }).catch(() => {});
     }
   }, []);
   return (

@@ -68,7 +68,7 @@ export default function Dashboard() {
 
       <div className="grid gap-s2 sm:grid-cols-2 lg:grid-cols-4 md:gap-s4">
         {next && (
-          <Link href={`/events/${next.slug}`} className="tx-card tx-card--red tx-kpi no-underline sm:col-span-2 lg:col-span-1">
+          <Link href={`/event?s=${next.slug}`} className="tx-card tx-card--red tx-kpi no-underline sm:col-span-2 lg:col-span-1">
             <span className="tx-label" style={{ color: '#fff' }}>Next event</span>
             <span className="h3 uppercase">{next.title}</span>
             <span className="caption">{fmtDate(next.starts_at)} · {daysTo === 0 ? 'Today' : `${daysTo} days to go`}</span>

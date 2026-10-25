@@ -30,9 +30,9 @@ async function send(to: string, subject: string, html: string, text: string, att
   }
 }
 
-export const statusUrl = (token: string) => `${siteUrl}/tickets/${token}`;
-export const applicationUrl = (token: string) => `${siteUrl}/join/status/${token}`;
-export const orderUrl = (token: string) => `${siteUrl}/orders/${token}`;
+export const statusUrl = (token: string) => `${siteUrl}/tickets?t=${token}`;
+export const applicationUrl = (token: string) => `${siteUrl}/join/status?t=${token}`;
+export const orderUrl = (token: string) => `${siteUrl}/orders?t=${token}`;
 
 async function qrAttachment(code: string, filename = 'ticket-qr.png'): Promise<Attachment> {
   const dataUrl: string = await QRCode.toDataURL(code, { errorCorrectionLevel: 'M', margin: 2, width: 480 });

@@ -1,8 +1,0 @@
-# Netlify builds the web app from the web folder (Next.js runtime is detected automatically).
-[build]
-  base = "web"
-  command = "npm run build"
-  publish = ".next"
-
-[build.environment]
-  NODE_VERSION = "20"

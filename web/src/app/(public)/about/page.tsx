@@ -1,18 +1,22 @@
-import type { Metadata } from 'next';
+'use client';
 import { PageTitle, SectionHeading, TxLabel } from '@/components/Brand';
 import { DivisionSections, SectionText } from '@/components/SiteSections';
 import { Avatar } from '@/components/ui';
 import { api } from '@/lib/api';
+import { PageLoading, useLoad } from '@/lib/useLoad';
 import { LICENSE_LINE } from '@/lib/env';
 import { roleLabel } from '@/lib/roles';
 import { DIVISION_KEYS } from '@/lib/sections';
 
-export const metadata: Metadata = { title: 'About' };
-export const revalidate = 300;
 
 // FR-1.2: TEDx vs TED, history since 2013, current board. FR-1.8: license line.
-export default async function AboutPage() {
-  const [sections, board] = await Promise.all([api.getSections(['about', 'tedx', ...DIVISION_KEYS]), api.getBoard()]);
+export default function AboutPage() {
+  const d = useLoad(async () => {
+    const [sections, board] = await Promise.all([api.getSections(['about', 'tedx', ...DIVISION_KEYS]), api.getBoard()]);
+    return { sections, board };
+  });
+  if (!d) return <PageLoading />;
+  const { sections, board } = d;
   const leads = board.filter((b) => b.role !== 'executive');
   const execs = board.filter((b) => b.role === 'executive');
   return (

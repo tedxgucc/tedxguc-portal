@@ -242,7 +242,7 @@ function Take() {
   const recent = mine.filter((m) => new Date(m.starts_at).getTime() <= now);
   const row = (m: Meeting) => (
     <li key={m.id}>
-      <Link href={`/portal/attendance/${m.id}`} className="tx-card grid grid-cols-[minmax(0,1fr)_auto] gap-s3 items-center no-underline hover:bg-surface-2" style={{ padding: '12px 16px' }}>
+      <Link href={`/portal/attendance/meeting?id=${m.id}`} className="tx-card grid grid-cols-[minmax(0,1fr)_auto] gap-s3 items-center no-underline hover:bg-surface-2" style={{ padding: '12px 16px' }}>
         <span className="grid grid-cols-1 min-w-0">
           <span className="font-semibold truncate">{m.title}</span>
           <span className="text-caption text-ink-3 truncate">{meetingTypeOne[m.type]} · {m.team_id ? team(m.team_id)?.name : m.division_id ? 'Division' : 'Club-wide'} · {fmtDate(m.starts_at)} {fmtTime(m.starts_at)}{m.slot ? ` · ${m.slot}` : ''}</span>

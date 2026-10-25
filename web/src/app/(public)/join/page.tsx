@@ -1,22 +1,26 @@
+'use client';
 import { Instagram } from 'lucide-react';
-import type { Metadata } from 'next';
 import { PageTitle, SectionHeading, TxLabel } from '@/components/Brand';
 import { DivTag } from '@/components/ui';
 import { api } from '@/lib/api';
+import { PageLoading, useLoad } from '@/lib/useLoad';
 import { recruitmentApi } from '@/lib/api/phase2b';
 import { INSTAGRAM_URL } from '@/lib/env';
 import { fmtDate } from '@/lib/format';
 import { ApplyForm } from './ApplyForm';
 
-export const metadata: Metadata = { title: 'Join the team' };
-export const revalidate = 60;
 
 // FR-1.6, FR-4.1, FR-4.2: open roles per team, the form, the deadline.
-export default async function JoinPage() {
-  const [divisions, teams, cycles] = await Promise.all([api.listDivisions(), api.listTeams(), recruitmentApi.listCycles()]);
-  const now = Date.now();
-  const open = cycles.find((c) => c.kind === 'associates' && new Date(c.opens_at).getTime() <= now && new Date(c.closes_at).getTime() >= now) ?? null;
-  const positions = open ? (await recruitmentApi.listPositions(open.id)).filter((p) => p.is_open) : [];
+export default function JoinPage() {
+  const d = useLoad(async () => {
+    const [divisions, teams, cycles] = await Promise.all([api.listDivisions(), api.listTeams(), recruitmentApi.listCycles()]);
+    const now = Date.now();
+    const open = cycles.find((c) => c.kind === 'associates' && new Date(c.opens_at).getTime() <= now && new Date(c.closes_at).getTime() >= now) ?? null;
+    const positions = open ? (await recruitmentApi.listPositions(open.id)).filter((p) => p.is_open) : [];
+    return { divisions, teams, cycles, now, open, positions };
+  });
+  if (!d) return <PageLoading />;
+  const { divisions, teams, cycles, now, open, positions } = d;
   const recruiting = new Set(positions.map((p) => p.team_id));
 
   return (

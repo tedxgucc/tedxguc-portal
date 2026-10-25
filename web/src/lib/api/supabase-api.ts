@@ -1,7 +1,7 @@
 // The real API: Supabase tables (under row-level security), database
 // functions (rpc) and server functions (functions.invoke).
 import { db } from '../supabase';
-import { ALLOWED_DOMAINS } from '../env';
+import { ALLOWED_DOMAINS, BASE_PATH } from '../env';
 import type {
   Announcement, CalendarItem, Me, Member, Task, TicketView, TxEvent,
 } from '../types';
@@ -122,7 +122,7 @@ export const supabaseApi: Api = {
     const { error } = await db().auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${window.location.origin}${BASE_PATH}/auth/callback`,
         // Shows only GUC accounts in Google's picker; the database checks again.
         queryParams: { hd: ALLOWED_DOMAINS[0], prompt: 'select_account' },
       },
@@ -130,7 +130,7 @@ export const supabaseApi: Api = {
     if (error) throw toApiError(error);
   },
   async signUpWithEmail(email, password) {
-    const { data, error } = await db().auth.signUp({ email, password, options: { emailRedirectTo: `${window.location.origin}/auth/callback` } });
+    const { data, error } = await db().auth.signUp({ email, password, options: { emailRedirectTo: `${window.location.origin}${BASE_PATH}/auth/callback` } });
     if (error) throw toApiError(error);
     return !!data.session;
   },
@@ -139,7 +139,7 @@ export const supabaseApi: Api = {
     if (error) throw new ApiError('login_failed', 'That email and password don’t match.');
   },
   async sendPasswordReset(email) {
-    const { error } = await db().auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/auth/callback?next=/portal/profile` });
+    const { error } = await db().auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}${BASE_PATH}/auth/callback?next=/portal/profile` });
     if (error) throw toApiError(error);
   },
   async signOut(everywhere) {

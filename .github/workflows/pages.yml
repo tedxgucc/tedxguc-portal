@@ -1,0 +1,57 @@
+# Builds the web app and publishes it to GitHub Pages on every push to main.
+name: Publish site
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    env:
+      # Public values: the browser receives them anyway. Supabase's rules protect the data.
+      NEXT_PUBLIC_SUPABASE_URL: https://qqgnvrjqrxafskkwxsvc.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxZ252cmpxcnhhZnNra3d4c3ZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4Nzg5MjEsImV4cCI6MjEwODQ1NDkyMX0.QIRJ4I357KHgohR4ehKvUH56vDdauvg2ANvvhh_ZpNY
+      # Repository variable CUSTOM_DOMAIN (e.g. tedxguc.com): leave unset until the domain points here.
+      CUSTOM_DOMAIN: ${{ vars.CUSTOM_DOMAIN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      # On tedxgucc.github.io the site lives under /tedxguc-portal; on its own domain, at the root.
+      - run: |
+          if [ -n "$CUSTOM_DOMAIN" ]; then echo "NEXT_PUBLIC_BASE_PATH=" >> "$GITHUB_ENV"; else echo "NEXT_PUBLIC_BASE_PATH=/tedxguc-portal" >> "$GITHUB_ENV"; fi
+      - run: npm ci
+      - run: npx next build
+      - run: |
+          touch out/.nojekyll
+          if [ -n "$CUSTOM_DOMAIN" ]; then echo "$CUSTOM_DOMAIN" > out/CNAME; fi
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web/out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

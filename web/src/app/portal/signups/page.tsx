@@ -33,7 +33,7 @@ export default function SignUpsPage() {
   }, []);
   const name = (id: string) => list?.find((p) => p.id === id)?.name ?? 'Sign-up';
   const open = async (o: Order) => {
-    try { router.push(`/orders/${await packagesApi.orderLink(o.id)}`); } catch (e) { toast('bad', 'Couldn’t open it.', (e as Error).message); }
+    try { router.push(`/orders?t=${await packagesApi.orderLink(o.id)}`); } catch (e) { toast('bad', 'Couldn’t open it.', (e as Error).message); }
   };
 
   return (
@@ -78,7 +78,7 @@ export default function SignUpsPage() {
                   <div className="flex items-end justify-between gap-s2 border-t border-line pt-s3">
                     <span className="grid"><span className="money">{p.price_egp ? egp(p.price_egp) : 'Free'}</span>{p.closes_at && <span className="caption tx-faint">Closes {fmtDate(p.closes_at)}</span>}</span>
                     {taken ? <Chip kind="ok">Signed up</Chip>
-                      : <Link href={`/portal/signups/${p.id}`} className={`tx-btn tx-btn--primary tx-btn--sm ${p.stock_left === 0 ? 'pointer-events-none opacity-50' : ''}`}>Sign up</Link>}
+                      : <Link href={`/portal/signups/form?id=${p.id}`} className={`tx-btn tx-btn--primary tx-btn--sm ${p.stock_left === 0 ? 'pointer-events-none opacity-50' : ''}`}>Sign up</Link>}
                   </div>
                 </li>
               );

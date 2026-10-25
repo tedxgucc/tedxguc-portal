@@ -181,7 +181,7 @@ export function CalendarView({ load, teams = [], divisions = [], canDelete, onDe
             {open.location && <p className="flex items-center gap-s2 text-ink-2"><MapPin size={18} aria-hidden="true" />{open.location}</p>}
             {open.online_url && <a className="tx-link inline-flex items-center gap-s2" href={open.online_url} target="_blank" rel="noopener noreferrer"><ExternalLink size={16} aria-hidden="true" />Join online</a>}
             {open.source === 'task_deadline' && <Link className="tx-link" href={`/portal/tasks?task=${open.id}`}>Open task</Link>}
-            {open.source === 'event' && !publicMode && <Link className="tx-link" href={`/portal/events/${open.id}`}>Open event</Link>}
+            {open.source === 'event' && !publicMode && <Link className="tx-link" href={`/portal/events/view?id=${open.id}`}>Open event</Link>}
           </div>
         )}
       </Modal>

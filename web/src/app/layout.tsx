@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Anton, Inter, JetBrains_Mono } from 'next/font/google';
 import '@/styles/globals.css';
 import { ToastProvider } from '@/components/Toast';
+import { BASE_PATH } from '@/lib/env';
 
 const anton = Anton({ weight: '400', subsets: ['latin'], variable: '--font-anton', display: 'swap' });
 const inter = Inter({ weight: ['400', '500', '600', '700', '800'], subsets: ['latin'], variable: '--font-inter', display: 'swap' });
@@ -11,8 +12,8 @@ export const metadata: Metadata = {
   title: { default: 'TEDxGUC', template: '%s · TEDxGUC' },
   description: 'Ideas worth spreading at the German University in Cairo, since 2013.',
   icons: {
-    icon: [{ url: '/icons/favicon.svg', type: 'image/svg+xml' }, { url: '/icons/favicon-32.png', sizes: '32x32' }],
-    apple: '/icons/apple-touch-icon-180.png',
+    icon: [{ url: `${BASE_PATH}/icons/favicon.svg`, type: 'image/svg+xml' }, { url: `${BASE_PATH}/icons/favicon-32.png`, sizes: '32x32' }],
+    apple: `${BASE_PATH}/icons/apple-touch-icon-180.png`,
   },
   appleWebApp: { capable: true, title: 'TEDxGUC', statusBarStyle: 'black' },
 };

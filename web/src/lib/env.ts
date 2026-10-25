@@ -1,5 +1,8 @@
 // Without Supabase settings the app runs in demo mode: sample data, a role
 // picker instead of login, and nothing is saved beyond this browser tab.
+// Address prefix while the site lives at tedxgucc.github.io/tedxguc-portal.
+// Empty once the club's own domain points at it.
+export const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
 export const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
 export const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '';
 // Google sign-in shows only once it is set up in Supabase.

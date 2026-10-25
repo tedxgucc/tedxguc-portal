@@ -170,7 +170,7 @@ export function EventForm({ open, onClose, onSaved, event }: { open: boolean; on
               {!isTedx && <option value="not_required">Not needed</option>}
             </Select>
             <TextInput label="Ticket prefix" value={f.ticket_prefix} onChange={(e) => set('ticket_prefix', e.target.value)} help="e.g. TX27 → TX27-0001" />
-            <div className="sm:col-span-2"><TextInput label="Web address" value={f.slug} onChange={(e) => set('slug', slugify(e.target.value))} placeholder={slugify(f.title) || 'loose-ends'} help={`/events/${f.slug || slugify(f.title) || '…'}`} /></div>
+            <div className="sm:col-span-2"><TextInput label="Web address" value={f.slug} onChange={(e) => set('slug', slugify(e.target.value))} placeholder={slugify(f.title) || 'loose-ends'} help={`/event?s=${f.slug || slugify(f.title) || '…'}`} /></div>
           </div>
         ))}
 

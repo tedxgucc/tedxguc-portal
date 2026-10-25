@@ -1,3 +1,4 @@
+'use client';
 import { Ticket } from 'lucide-react';
 import Link from 'next/link';
 import { SectionHeading, TxLabel } from '@/components/Brand';
@@ -5,14 +6,19 @@ import { Countdown } from '@/components/Countdown';
 import { EventCard, eventKind } from '@/components/EventCard';
 import { SpeakerCard } from '@/components/SpeakerCard';
 import { api } from '@/lib/api';
+import { PageLoading, useLoad } from '@/lib/useLoad';
 import { fmtDate, fmtTime } from '@/lib/format';
 
-export const revalidate = 60;
 
-export default async function HomePage() {
-  const [upcoming, partners] = await Promise.all([api.listEvents('upcoming'), api.listPartners()]);
-  const next = upcoming[0] ?? null;
-  const speakers = next ? await api.listSpeakers(next.id) : [];
+export default function HomePage() {
+  const d = useLoad(async () => {
+    const [upcoming, partners] = await Promise.all([api.listEvents('upcoming'), api.listPartners()]);
+    const next = upcoming[0] ?? null;
+    const speakers = next ? await api.listSpeakers(next.id) : [];
+    return { upcoming, partners, next, speakers };
+  });
+  if (!d) return <PageLoading />;
+  const { upcoming, partners, next, speakers } = d;
 
   return (
     <>
@@ -30,7 +36,7 @@ export default async function HomePage() {
               </div>
               <div className="max-w-[440px]"><Countdown to={next.starts_at} title={next.title} /></div>
               <div className="flex flex-wrap gap-s3">
-                <Link href={`/events/${next.slug}`} className="tx-btn tx-btn--primary"><Ticket aria-hidden="true" />Get your ticket</Link>
+                <Link href={`/event?s=${next.slug}`} className="tx-btn tx-btn--primary"><Ticket aria-hidden="true" />Get your ticket</Link>
                 <Link href="/events" className="tx-btn tx-btn--secondary">All events</Link>
                 <Link href="/login" className="tx-btn tx-btn--ghost">TEDx portal</Link>
               </div>

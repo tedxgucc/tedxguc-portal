@@ -9,6 +9,22 @@ import { api } from '@/lib/api';
 import { fmtRelative } from '@/lib/format';
 import type { Notification } from '@/lib/types';
 
+// The database writes links like /portal/tasks/<id>; send each to the page that shows it.
+function pageFor(link: string): string {
+  const [, , area, id] = link.split('/');
+  switch (area) {
+    case 'announcements': return '/portal/news';
+    case 'meetings': return id ? '/portal/attendance/meeting?id=' + id : '/portal/attendance';
+    case 'attendance': return '/portal/attendance';
+    case 'expenses': return '/portal/finance';
+    case 'orders': return '/portal/packages';
+    case 'recruitment': return '/portal/recruitment';
+    case 'tasks': return '/portal/tasks';
+    case 'events': return id ? '/portal/events/view?id=' + id : '/portal/events';
+    default: return link;
+  }
+}
+
 export default function NotificationsPage() {
   const { refreshUnread } = usePortal();
   const [list, setList] = useState<Notification[] | null>(null);
@@ -39,7 +55,7 @@ export default function NotificationsPage() {
             </>
           );
           const cls = 'tx-card grid grid-cols-[18px_minmax(0,1fr)_auto] gap-s3 items-center no-underline';
-          return <li key={n.id}>{n.link ? <Link href={n.link} className={`${cls} hover:bg-surface-2`} style={{ padding: '12px 16px' }}>{inner}</Link> : <div className={cls} style={{ padding: '12px 16px' }}>{inner}</div>}</li>;
+          return <li key={n.id}>{n.link ? <Link href={pageFor(n.link)} className={`${cls} hover:bg-surface-2`} style={{ padding: '12px 16px' }}>{inner}</Link> : <div className={cls} style={{ padding: '12px 16px' }}>{inner}</div>}</li>;
         })}
       </ul>
     </>

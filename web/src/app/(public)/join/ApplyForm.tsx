@@ -49,7 +49,7 @@ export function ApplyForm({ cycle, positions, teams }: { cycle: Cycle; positions
         team_ids: f.second === 'none' ? [f.first] : [f.first, f.second],
         answers: { ...answers, guc_id: f.gucId.trim(), major: f.major }, cv_path: null, consent, turnstile_token: token,
       });
-      router.push(`/join/status/${res.status_token}?new=1`);
+      router.push(`/join/status?t=${res.status_token}&new=1`);
     } catch (x) {
       toast('bad', "That didn't send.", (x as Error).message);
       setBusy(false);

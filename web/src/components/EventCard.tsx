@@ -10,7 +10,7 @@ export function EventCard({ event, past = false }: { event: TxEvent; past?: bool
   const d = new Date(event.starts_at);
   const day = new Intl.DateTimeFormat('en-GB', { day: '2-digit', timeZone: 'Africa/Cairo' }).format(d);
   const month = new Intl.DateTimeFormat('en-GB', { month: 'short', timeZone: 'Africa/Cairo' }).format(d);
-  const href = event.slug ? `/events/${event.slug}` : '/events';
+  const href = event.slug ? `/event?s=${event.slug}` : '/events';
   return (
     <Link href={href} className="tx-card grid grid-cols-[64px_minmax(0,1fr)_auto] gap-s4 items-center no-underline hover:bg-surface-2 transition-colors duration-2">
       <div className="grid text-center" aria-hidden="true">

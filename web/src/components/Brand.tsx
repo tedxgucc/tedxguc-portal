@@ -1,3 +1,4 @@
+import { BASE_PATH } from '@/lib/env';
 /* eslint-disable @next/next/no-img-element */
 // The official TEDxGUC lockup (never redrawn): white on dark, black on light.
 // Minimum 96px wide on screen; clear space is handled by the caller's padding.
@@ -5,20 +6,20 @@ export function Lockup({ height = 22, className = '' }: { height?: number; class
   const width = Math.round((892 / 143) * height);
   return (
     <span className={`inline-flex ${className}`}>
-      <img className="on-dark" src="/brand/tedxguc-lockup-white.png" alt="TEDxGUC" width={width} height={height} style={{ height, width: 'auto' }} />
-      <img className="on-light" src="/brand/tedxguc-lockup-black.png" alt="TEDxGUC" width={width} height={height} style={{ height, width: 'auto' }} />
+      <img className="on-dark" src={`${BASE_PATH}/brand/tedxguc-lockup-white.png`} alt="TEDxGUC" width={width} height={height} style={{ height, width: 'auto' }} />
+      <img className="on-light" src={`${BASE_PATH}/brand/tedxguc-lockup-black.png`} alt="TEDxGUC" width={width} height={height} style={{ height, width: 'auto' }} />
     </span>
   );
 }
 
 // Lockup that always shows white (tickets, the deep-red card).
 export function LockupWhite({ height = 18 }: { height?: number }) {
-  return <img src="/brand/tedxguc-lockup-white.png" alt="TEDxGUC" height={height} style={{ height, width: 'auto' }} />;
+  return <img src={`${BASE_PATH}/brand/tedxguc-lockup-white.png`} alt="TEDxGUC" height={height} style={{ height, width: 'auto' }} />;
 }
 
 // The portal X sub-mark: geometric, never the "x" from the TEDx logo.
 export function PortalMark({ size = 28, white = false }: { size?: number; white?: boolean }) {
-  return <img src={white ? '/brand/portal-mark-white.svg' : '/brand/portal-mark-red.svg'} alt="" width={size} height={size} aria-hidden="true" />;
+  return <img src={`${BASE_PATH}/brand/portal-mark-${white ? 'white' : 'red'}.svg`} alt="" width={size} height={size} aria-hidden="true" />;
 }
 
 // Page label: "OPERATIONS (04)" with the count in accent-ink.

@@ -1,14 +1,18 @@
-import type { Metadata } from 'next';
+'use client';
 import { PageTitle, SectionHeading } from '@/components/Brand';
 import { SpeakerCard } from '@/components/SpeakerCard';
 import { EmptyState } from '@/components/ui';
 import { api } from '@/lib/api';
+import { PageLoading, useLoad } from '@/lib/useLoad';
 
-export const metadata: Metadata = { title: 'Speakers' };
-export const revalidate = 60;
 
-export default async function SpeakersPage() {
-  const [speakers, events] = await Promise.all([api.listSpeakers(), api.listEvents('all')]);
+export default function SpeakersPage() {
+  const d = useLoad(async () => {
+    const [speakers, events] = await Promise.all([api.listSpeakers(), api.listEvents('all')]);
+    return { speakers, events };
+  });
+  if (!d) return <PageLoading />;
+  const { speakers, events } = d;
   const byEvent = events
     .map((e) => ({ event: e, speakers: speakers.filter((s) => s.event_id === e.id) }))
     .filter((g) => g.speakers.length > 0);

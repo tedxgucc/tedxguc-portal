@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { api } from '@/lib/api';
 import { adminApi } from '@/lib/api/admin';
+import { BASE_PATH } from '@/lib/env';
 import { cairoDay } from '@/lib/format';
 import type { Division, Me, Member, Team, TxEvent } from '@/lib/types';
 
@@ -55,7 +56,7 @@ export function PortalProvider({ children, fallback }: { children: React.ReactNo
         adminApi.myStaffEvents().catch(() => [] as string[]),
         api.listAllEvents().catch(() => [] as TxEvent[]),
       ]);
-      if (!me) { router.replace('/login'); return; }
+      if (!me) { router.replace(`/login?next=${encodeURIComponent(window.location.pathname.slice(BASE_PATH.length) + window.location.search)}`); return; }
       const today = cairoDay(new Date());
       const eventsToday = allEvents.filter((e) => e.status !== 'cancelled' && e.status !== 'draft' && cairoDay(e.starts_at) === today).map((e) => e.id);
       if (alive) setState({ me, teams, divisions, members, doorEvents, eventsToday });

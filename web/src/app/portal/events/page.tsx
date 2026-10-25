@@ -34,7 +34,7 @@ export default function PortalEvents() {
 
   const row = (e: TxEvent) => (
     <li key={e.id}>
-      <Link href={`/portal/events/${e.id}`} className="tx-card grid grid-cols-[minmax(0,1fr)_auto] gap-s3 items-center no-underline hover:bg-surface-2">
+      <Link href={`/portal/events/view?id=${e.id}`} className="tx-card grid grid-cols-[minmax(0,1fr)_auto] gap-s3 items-center no-underline hover:bg-surface-2">
         <span className="grid grid-cols-1 gap-s1 min-w-0">
           <span className="flex flex-wrap items-center gap-s2"><span className="tx-label">{eventKind(e)}</span>{statusChip(e)}{!e.is_public && <Chip kind="soft">Internal</Chip>}</span>
           <span className="h3 uppercase truncate">{e.title}</span>
@@ -54,7 +54,7 @@ export default function PortalEvents() {
       {events?.length === 0 && <EmptyState title="No events yet.">{manage ? 'Create the first one; it stays a draft until you publish it.' : 'Events show up here once Operations creates them.'}</EmptyState>}
       {upcoming.length > 0 && <><div className="tx-label mb-s2">Upcoming</div><ul className="grid gap-s2 mb-s6">{upcoming.map(row)}</ul></>}
       {past.length > 0 && <><div className="tx-label mb-s2">Past</div><ul className="grid gap-s2">{past.map(row)}</ul></>}
-      {manage && creating && <EventForm open onClose={() => setCreating(false)} onSaved={(e) => router.push(`/portal/events/${e.id}`)} />}
+      {manage && creating && <EventForm open onClose={() => setCreating(false)} onSaved={(e) => router.push(`/portal/events/view?id=${e.id}`)} />}
     </>
   );
 }

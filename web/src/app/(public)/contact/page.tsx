@@ -1,16 +1,20 @@
+'use client';
 import { Instagram } from 'lucide-react';
-import type { Metadata } from 'next';
 import { PageTitle, SectionHeading } from '@/components/Brand';
 import { InquiryForm } from '@/components/InquiryForm';
 import { FaqList } from '@/components/SiteSections';
 import { api } from '@/lib/api';
+import { PageLoading, useLoad } from '@/lib/useLoad';
 import { INSTAGRAM_URL } from '@/lib/env';
 
-export const metadata: Metadata = { title: 'Contact & FAQ' };
-export const revalidate = 300;
 
-export default async function ContactPage() {
-  const { faq } = await api.getSections(['faq']);
+export default function ContactPage() {
+  const d = useLoad(async () => {
+    const { faq } = await api.getSections(['faq']);
+    return { faq };
+  });
+  if (!d) return <PageLoading />;
+  const { faq } = d;
   return (
     <div className="mx-auto max-w-[1200px] px-s4 md:px-s6 pt-s7 grid gap-s7">
       <PageTitle label="Contact" title="Talk to us" />

@@ -1,14 +1,18 @@
-import type { Metadata } from 'next';
+'use client';
 import { PageTitle, SectionHeading } from '@/components/Brand';
 import { EventCard } from '@/components/EventCard';
 import { EmptyState } from '@/components/ui';
 import { api } from '@/lib/api';
+import { PageLoading, useLoad } from '@/lib/useLoad';
 
-export const metadata: Metadata = { title: 'Events' };
-export const revalidate = 60;
 
-export default async function EventsPage() {
-  const [upcoming, past] = await Promise.all([api.listEvents('upcoming'), api.listEvents('past')]);
+export default function EventsPage() {
+  const d = useLoad(async () => {
+    const [upcoming, past] = await Promise.all([api.listEvents('upcoming'), api.listEvents('past')]);
+    return { upcoming, past };
+  });
+  if (!d) return <PageLoading />;
+  const { upcoming, past } = d;
   return (
     <div className="mx-auto max-w-[1200px] px-s4 md:px-s6 pt-s7 grid gap-s7">
       <PageTitle label="Events" count={upcoming.length} title="Events" />

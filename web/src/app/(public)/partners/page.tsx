@@ -1,16 +1,20 @@
+'use client';
 /* eslint-disable @next/next/no-img-element */
-import type { Metadata } from 'next';
 import { PageTitle, SectionHeading } from '@/components/Brand';
 import { InquiryForm } from '@/components/InquiryForm';
 import { api } from '@/lib/api';
+import { PageLoading, useLoad } from '@/lib/useLoad';
 
-export const metadata: Metadata = { title: 'Partners' };
-export const revalidate = 300;
 
 const TIERS = ['Main', 'Gold', 'Silver', 'Community'];
 
-export default async function PartnersPage() {
-  const partners = await api.listPartners();
+export default function PartnersPage() {
+  const d = useLoad(async () => {
+    const partners = await api.listPartners();
+    return { partners };
+  });
+  if (!d) return <PageLoading />;
+  const { partners } = d;
   const tiers = [...TIERS, ...new Set(partners.map((p) => p.tier ?? 'Partners').filter((t) => !TIERS.includes(t)))];
   return (
     <div className="mx-auto max-w-[1200px] px-s4 md:px-s6 pt-s7 grid gap-s7">
