@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { BASE_PATH } from '@/lib/env';
 
@@ -11,13 +11,14 @@ export function OpeningScreen({ title, label, detail, description }: {
 }) {
   const [visible, setVisible] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
-  const enter = () => {
+  const enter = useCallback(() => {
     try { sessionStorage.setItem(VISITED, '1'); } catch { /* Continue without storage. */ }
     setVisible(false);
-  };
+  }, []);
 
   useEffect(() => {
     try { if (sessionStorage.getItem(VISITED)) return; } catch { /* Still allow entry. */ }
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     setVisible(true);
   }, []);
 
@@ -27,11 +28,13 @@ export function OpeningScreen({ title, label, detail, description }: {
     const overflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     dialog.current?.showModal();
+    const timer = window.setTimeout(enter, 2200);
     return () => {
+      window.clearTimeout(timer);
       document.body.style.overflow = overflow;
       previous?.focus({ preventScroll: true });
     };
-  }, [visible]);
+  }, [visible, enter]);
 
   if (!visible) return null;
   const words = title.trim().split(/\s+/);
@@ -49,14 +52,12 @@ export function OpeningScreen({ title, label, detail, description }: {
       <div className="op__content op__top">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img className="op__lock" src={`${BASE_PATH}/brand/tedxguc-lockup-white.png`} alt="TEDxGUC" />
-        <button type="button" className="op__skip" onClick={enter} autoFocus>Skip intro</button>
       </div>
       <div className="op__content op__main">
         <div className="op__label">{label}{detail && <b> · {detail}</b>}</div>
         <h1 id="opening-title" className="op__title">{words.join(' ')}{last && <> <span>{last}</span></>}</h1>
         <p className="op__sub">{description}</p>
         <div className="op__links">
-          <button type="button" className="op__cta" onClick={enter}>Enter <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></button>
           <span className="op__since">TEDxGUC · since 2013</span>
         </div>
       </div>

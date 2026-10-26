@@ -1,99 +1,30 @@
-/* TEDxGUC opening screen — "Loose Ends".
-   Two loose red threads drift in, pull taut along the diagonals of the TEDx "x",
-   and tie into the real x from the logo; the x then grows into the faded hero watermark.
-   Base styles are the FINAL frame; every animation runs from its start state with fill "both",
-   so reduced motion (animations off) simply shows the finished screen. */
-
-.op { position: relative; overflow: hidden; background: #000; color: #fff; font-family: var(--font-sans); }
-.op { position: fixed; inset: 0; margin: 0; padding: 0; border: 0; width: 100%; max-width: none; height: 100dvh; max-height: none; overflow-y: auto; color-scheme: dark; --tw-start: 3; --tw-end: 39; --grow: 3.2; }
+﻿/* Short opening cue. Animate transforms and opacity rather than SVG path geometry. */
+.op { position: fixed; inset: 0; margin: 0; padding: 0; border: 0; width: 100%; max-width: none; height: 100dvh; max-height: none; overflow-x: hidden; overflow-y: auto; background: #000; color: #fff; color-scheme: dark; font-family: var(--font-sans); animation: op-exit .2s 2s ease-in both; }
 .op::backdrop { background: #000; }
-.op__top { left: 0; right: 0; top: 0; padding: max(22px, env(safe-area-inset-top)) 20px 0; flex-direction: row !important; justify-content: space-between; align-items: center; }
-.op__lock { height: 20px; width: auto; }
-.op__main { left: 0; right: 0; bottom: 12px; padding: 0 20px max(40px, env(safe-area-inset-bottom)); gap: 16px; }
-.op .op__title { font-size: clamp(56px, 14vw, 160px); overflow-wrap: anywhere; }
-.op__dots { right: -32%; top: 6%; }
-.op__links { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
-.op button { border: 0; cursor: pointer; }
-.op .op__skip { padding: 12px 0 12px 12px; background: transparent; animation: none; }
-.op :focus-visible { outline: 2px solid #fff; outline-offset: 5px; }
-@media (min-width: 900px) {
-  .op { --tw-start: 2; --grow: 2.3; }
-  .op__top { padding: 32px 64px 0; }
-  .op__lock { height: 26px; }
-  .op__main { left: 64px; right: 64px; bottom: 76px; max-width: 1000px; gap: 20px; padding: 0; }
-  .op .op__title { font-size: clamp(88px, 13vw, 180px); }
-  .op .op__title span { display: inline; }
-  .op__dots { width: 46%; right: -8%; top: -14%; }
-}
-@media (max-height: 560px) {
-  .op__main { position: relative; inset: auto; margin-top: 100px; padding: 0 20px 40px; gap: 12px; }
-  .op .op__title { font-size: clamp(48px, 10vw, 88px); }
-  .op .op__title span { display: inline; }
-}
-.op__svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-
-/* the two threads — they pull taut along the diagonals of the TEDx "x", then hand over to the glyph */
-.op__t { fill: none; stroke: #e62b1e; stroke-width: var(--tw-end, 39); stroke-linecap: butt; stroke-dasharray: 1400; stroke-dashoffset: 0; opacity: 0; }
-.op__t--a { animation: op-draw .9s cubic-bezier(.2,.8,.2,1) both, op-pull-a .6s .9s cubic-bezier(.7,0,.2,1) both, op-thick .3s 1.5s cubic-bezier(.65,0,.35,1) both, op-tout .25s 1.7s linear both; }
-.op__t--b { animation: op-draw .9s .12s cubic-bezier(.2,.8,.2,1) both, op-pull-b .6s .9s cubic-bezier(.7,0,.2,1) both, op-thick .3s 1.5s cubic-bezier(.65,0,.35,1) both, op-tout .25s 1.7s linear both; }
-@keyframes op-draw { from { stroke-dashoffset: 1400; } to { stroke-dashoffset: 0; } }
-@keyframes op-pull-a {
-  from { d: path("M -60 40 C 60 140, 40 260, 130 130 C 220 0, 280 330, 460 360"); }
-  to   { d: path("M 18 -76 C 73 8, 128 91, 183 175 C 239 258, 294 342, 382 476"); }
-}
-@keyframes op-pull-b {
-  from { d: path("M 460 40 C 340 160, 380 250, 270 140 C 160 30, 120 330, -60 360"); }
-  to   { d: path("M 382 -76 C 327 8, 272 91, 217 175 C 161 258, 106 342, 18 476"); }
-}
-@keyframes op-thick { from { stroke-width: var(--tw-start, 3); } to { stroke-width: var(--tw-end, 39); } }
-@keyframes op-tout { from { opacity: 1; } to { opacity: 0; } }
-
-/* the TEDx "x" itself (traced from the official logo file, never redrawn) */
-.op__x { transform-box: view-box; transform-origin: 200px 200px; transform: scale(var(--grow, 3)); animation: op-grow .9s 2.05s cubic-bezier(.65,0,.35,1) both; }
-.op__k { transform-box: view-box; transform-origin: 200px 200px; animation: op-knot .45s 1.62s cubic-bezier(.34,1.56,.64,1) both; }
-.op__glyph { fill: #22050a; animation: op-fill .7s 2.05s cubic-bezier(.65,0,.35,1) both; }
-@keyframes op-knot { 0% { opacity: 0; transform: scale(1.35); } 30% { opacity: 1; } 60% { transform: scale(.92); } 100% { opacity: 1; transform: scale(1); } }
-@keyframes op-grow { from { transform: scale(1); } to { transform: scale(var(--grow, 3)); } }
-@keyframes op-fill { 0%, 25% { fill: #e62b1e; } 100% { fill: #22050a; } }
-
-/* knot flash at the crossing */
-.op__ring { fill: none; stroke: #fff; stroke-width: 1.5; opacity: 0; transform-box: fill-box; transform-origin: center; animation: op-ring .7s 1.62s cubic-bezier(.2,.8,.2,1) both; }
-@keyframes op-ring { 0% { opacity: 0; transform: scale(.2); } 20% { opacity: 1; } 100% { opacity: 0; transform: scale(5); } }
-
-/* halftone dot field — a nod to the X Access artwork */
-.op__dots { position: absolute; width: 70%; aspect-ratio: 1; border-radius: 50%; opacity: .55;
-  background-image: radial-gradient(circle, rgba(255,255,255,.32) 1.4px, transparent 1.6px); background-size: 9px 9px;
-  -webkit-mask-image: radial-gradient(circle, #000 30%, transparent 70%); mask-image: radial-gradient(circle, #000 30%, transparent 70%);
-  animation: op-dots 1.2s 2.1s cubic-bezier(.2,.8,.2,1) both; }
-@keyframes op-dots { from { opacity: 0; transform: scale(.7); } to { opacity: .55; transform: none; } }
-
-/* content */
-.op__content { position: absolute; z-index: 2; display: flex; flex-direction: column; }
-.op__lock { display: block; animation: op-up .6s 2.25s cubic-bezier(.2,.8,.2,1) both; }
-.op__label { font: 700 12px/16px var(--font-sans); letter-spacing: .12em; text-transform: uppercase; color: #b8b8b8; animation: op-up .6s 2.4s cubic-bezier(.2,.8,.2,1) both; }
+.op[open] { display: flex; flex-direction: column; }
+.op__svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.op__t { fill: none; stroke: #e62b1e; stroke-width: 3; transform-origin: center; animation: op-threads .7s ease-out both; }
+.op__t--b { animation-delay: .08s; }
+.op__x { transform-box: view-box; transform-origin: 200px 200px; animation: op-grow 1s .35s cubic-bezier(.2,.8,.2,1) both; }
+.op__glyph { fill: #22050a; }
+.op__ring { display: none; }
+.op__dots { position: absolute; right: -15%; top: 0; width: 70%; aspect-ratio: 1; opacity: .3; background-image: radial-gradient(circle, #ffffff52 1.4px, transparent 1.6px); background-size: 9px 9px; mask-image: radial-gradient(circle, #000 20%, transparent 68%); pointer-events: none; }
+.op__content { position: relative; z-index: 1; }
+.op__top { flex-shrink: 0; padding: max(22px, env(safe-area-inset-top)) 20px 0; }
+.op__lock { display: block; height: 20px; width: auto; }
+.op__main { margin-top: auto; padding: 48px 20px max(52px, env(safe-area-inset-bottom)); display: grid; gap: 16px; animation: op-up .5s .45s ease-out both; }
+.op__label { font: 700 12px/16px var(--font-sans); letter-spacing: .12em; text-transform: uppercase; color: #b8b8b8; }
 .op__label b { color: #ff5d52; }
-.op__title { margin: 0; font-family: var(--font-display); font-weight: 400; line-height: .86; text-transform: uppercase; color: #e62b1e; animation: op-wipe .7s 2.5s cubic-bezier(.65,0,.35,1) both; }
-.op__title span { display: block; color: #fff; }
-.op__sub { margin: 0; font: 400 16px/24px var(--font-sans); color: #b8b8b8; animation: op-up .6s 2.85s cubic-bezier(.2,.8,.2,1) both; }
-.op__cta { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; padding: 0 24px; background: #e62b1e; color: #fff; text-decoration: none;
-  font: 400 20px/1 var(--font-display); letter-spacing: .02em; text-transform: uppercase; animation: op-up .6s 3.05s cubic-bezier(.34,1.56,.64,1) both; }
-.op__cta:hover { background: #cc2418; color: #fff; }
-.op__cta:active { background: #a3001b; }
-.op__cta svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; }
-.op__skip { color: #8f8f8f; font: 600 13px/18px var(--font-sans); text-decoration: none; animation: op-in .4s .3s both; }
-.op__skip:hover { color: #fff; }
-.op__since { font: 500 12px/16px var(--font-sans); color: #8f8f8f; letter-spacing: .08em; text-transform: uppercase; animation: op-up .6s 3.1s both; }
-.op__bar { position: absolute; left: 0; right: 0; bottom: 0; height: 12px; background: #a3001b; transform-origin: left; animation: op-bar .8s 2.3s cubic-bezier(.65,0,.35,1) both; z-index: 3; }
-.op__replay { position: absolute; z-index: 4; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; border: 1px solid #7a7a7a; background: rgba(0,0,0,.6);
-  color: #fff; font: 600 12px/16px var(--font-sans); letter-spacing: .06em; text-transform: uppercase; cursor: pointer; }
-.op__replay:hover { border-color: #fff; }
-.op__replay svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.2; }
-
-@keyframes op-up { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
-@keyframes op-in { from { opacity: 0; } to { opacity: 1; } }
-@keyframes op-wipe { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
-@keyframes op-bar { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-
-@media (prefers-reduced-motion: reduce) {
-  .op *, .op *::before { animation: none !important; }
-}
+.op__title { margin: 0; font: 400 clamp(56px, 13vw, 160px)/.9 var(--font-display); text-transform: uppercase; color: #e62b1e; overflow-wrap: anywhere; max-width: 1000px; }
+.op__title span { color: #fff; }
+.op__sub { margin: 0; max-width: 560px; font: 400 16px/24px var(--font-sans); color: #b8b8b8; }
+.op__since { font: 500 12px/16px var(--font-sans); color: #8f8f8f; letter-spacing: .08em; text-transform: uppercase; }
+.op__bar { position: fixed; inset: auto 0 0; height: 12px; background: #a3001b; transform-origin: left; animation: op-progress 2s linear both; }
+@media (min-width: 900px) { .op__top { padding: 32px 64px 0; } .op__lock { height: 26px; } .op__main { padding: 64px 64px 88px; gap: 20px; } .op__dots { width: 46%; right: -8%; top: -14%; } }
+@media (max-height: 560px) { .op__title { font-size: clamp(40px, 8vw, 80px); } .op__main { padding-top: 24px; gap: 10px; } }
+@keyframes op-threads { 0% { opacity: 0; transform: scale(.7); } 30% { opacity: 1; } 100% { opacity: 0; transform: scale(1.1); } }
+@keyframes op-grow { from { opacity: 0; transform: scale(.6); } to { opacity: 1; transform: scale(2.6); } }
+@keyframes op-up { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes op-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes op-exit { to { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .op, .op * { animation: none !important; } }
