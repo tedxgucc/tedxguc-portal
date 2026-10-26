@@ -16,6 +16,8 @@ Source: `Main Event Registration❌ - Google Forms.pdf` supplied by the user, pa
 
 Guest choices: Attendee, Speaker's Family, Ex-Board, Board Member Family, Sponsor. Attendee maps to stored type `attendee`, displayed as **Regular**. Every other choice maps to `vip`, displayed as **VIP**. The original choice remains available to event managers. Classification does not bypass capacity, the waitlist or the single-use QR check.
 
+The registration form does not preview the ticket tier beneath the guest choice. After confirmation, the tier appears on the ticket. **Save ticket PNG** downloads the entire branded ticket at 3x resolution, including the QR, after fonts and images have loaded.
+
 Referral choices: University, TEDxGUC Instagram, Speaker's Platforms, Other. The PDF's spelling is corrected in the interface. Event date, time and venue come from the configured event; the PDF's sample date does not overwrite event records. Additional event questions and privacy consent continue to apply.
 
 Both the server function and database enforce the form requirements. Switching branches removes the inactive ID number and unused Other answer. No ID photo is requested, uploaded or downloaded. Identity answers are available only to event managers through the existing registration RLS policy; public ticket links and the scanner manifest do not include those answers.

@@ -10,7 +10,7 @@ import { useToast } from '@/components/Toast';
 import { Button, Check2, Modal, Select, TextArea, TextInput } from '@/components/ui';
 import { api, ApiError } from '@/lib/api';
 import { fmtDate } from '@/lib/format';
-import { GUEST_CATEGORIES, REFERRAL_SOURCES, registrationErrors, cleanRegistrationAnswers, guestTypeFor, ticketTier } from '@/lib/event-registration';
+import { GUEST_CATEGORIES, REFERRAL_SOURCES, registrationErrors, cleanRegistrationAnswers } from '@/lib/event-registration';
 import type { EventField, TxEvent } from '@/lib/types';
 
 export function RegisterPanel({ event, fields, open, past, notYet }: {
@@ -83,7 +83,6 @@ export function RegisterPanel({ event, fields, open, past, notYet }: {
       <Select label="Guest type" value={answers.guest_category ?? ''} onChange={(e) => setAnswers((a) => ({ ...a, guest_category: e.target.value }))} error={errors.guest_category} required>
         <option value="">Choose…</option>{GUEST_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
       </Select>
-      {answers.guest_category && <p className="text-body-sm text-ink-2" aria-live="polite">Ticket type: <b>{ticketTier(guestTypeFor(answers.guest_category))}</b></p>}
       <Select label="How did you reach TEDxGUC?" value={answers.referral_source ?? ''} onChange={(e) => setAnswers((a) => ({ ...a, referral_source: e.target.value, referral_other: '' }))} error={errors.referral_source} required>
         <option value="">Choose…</option>{REFERRAL_SOURCES.map((s) => <option key={s} value={s}>{s}</option>)}
       </Select>
