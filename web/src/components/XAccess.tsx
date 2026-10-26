@@ -8,7 +8,7 @@ import { createPortal } from 'react-dom';
 import { QR } from '@/components/Ticket';
 import { Chip } from '@/components/ui';
 import type { XCardState, XPartner } from '@/lib/api/xaccess';
-import { BASE_PATH } from '@/lib/env';
+import { assetUrl, BASE_PATH } from '@/lib/env';
 import { fmtDate } from '@/lib/format';
 
 export const verifyUrl = (code: string) => `${typeof window === 'undefined' ? '' : window.location.origin}${BASE_PATH}/xaccess/verify/?c=${encodeURIComponent(code)}`;
@@ -85,12 +85,13 @@ export function PerkList({ perks }: { perks: XPartner[] }) {
           <div className="flex items-center gap-s3 min-w-0">
             <span className="tx-sponsor__logo shrink-0" style={{ height: 44, minWidth: 72 }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              {p.logo_url ? <img src={p.logo_url} alt="" style={{ maxHeight: 36, maxWidth: 96, objectFit: 'contain' }} /> : p.name.slice(0, 10).toUpperCase()}
+              {p.logo_url ? <img src={assetUrl(p.logo_url)} alt="" style={{ maxHeight: 36, maxWidth: 96, objectFit: 'contain' }} /> : p.name.slice(0, 10).toUpperCase()}
             </span>
             <span className="font-semibold min-w-0 truncate">{p.name}</span>
           </div>
           <p className="h4">{p.perk}</p>
           {p.terms && <p className="text-caption text-ink-3">{p.terms}</p>}
+          {p.promo_code && <p className="text-body-sm">Code: <span className="code select-all font-semibold">{p.promo_code}</span></p>}
           <div className="flex flex-wrap items-center gap-s3 text-caption text-ink-3">
             {p.expires_on && <span>Until {fmtDate(`${p.expires_on}T12:00:00Z`, { year: true })}</span>}
             {p.website && <a href={p.website} target="_blank" rel="noopener noreferrer" className="tx-link inline-flex items-center gap-s1">Website<ExternalLink size={12} aria-hidden="true" /></a>}

@@ -3,6 +3,8 @@
 // Address prefix while the site lives at tedxgucc.github.io/tedxguc-portal.
 // Empty once the club's own domain points at it.
 export const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
+// Bundled artwork follows the deployment prefix; uploaded images keep their URL.
+export const assetUrl = (url: string) => url.startsWith('/brand/') ? `${BASE_PATH}${url}` : url;
 export const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
 export const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '';
 // Google sign-in shows only once it is set up in Supabase.

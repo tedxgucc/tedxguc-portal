@@ -1,0 +1,352 @@
+[
+    {
+        "number":  1,
+        "name":  "Mulliri",
+        "category":  "Food \u0026 Beverage",
+        "discount":  "10%",
+        "details":  ""
+    },
+    {
+        "number":  2,
+        "name":  "Aftertaste",
+        "category":  "Food \u0026 Beverage",
+        "discount":  "15%",
+        "details":  ""
+    },
+    {
+        "number":  3,
+        "name":  "SLVRSKN",
+        "category":  "Food \u0026 Beverage",
+        "discount":  "20%",
+        "details":  "Code: TEDX20"
+    },
+    {
+        "number":  4,
+        "name":  "Bakebar",
+        "category":  "Food \u0026 Beverage",
+        "discount":  "15%",
+        "details":  ""
+    },
+    {
+        "number":  5,
+        "name":  "Yaya London",
+        "category":  "Food \u0026 Beverage",
+        "discount":  "10%",
+        "details":  ""
+    },
+    {
+        "number":  6,
+        "name":  "SIPPS",
+        "category":  "Food \u0026 Beverage",
+        "discount":  "15%",
+        "details":  ""
+    },
+    {
+        "number":  7,
+        "name":  "Twenty Grams",
+        "category":  "Food \u0026 Beverage",
+        "discount":  "15%",
+        "details":  ""
+    },
+    {
+        "number":  8,
+        "name":  "NOI",
+        "category":  "Food \u0026 Beverage",
+        "discount":  "10%",
+        "details":  ""
+    },
+    {
+        "number":  9,
+        "name":  "V60",
+        "category":  "Food \u0026 Beverage",
+        "discount":  "15%",
+        "details":  ""
+    },
+    {
+        "number":  10,
+        "name":  "Brew Buzz",
+        "category":  "Food \u0026 Beverage",
+        "discount":  "15%",
+        "details":  ""
+    },
+    {
+        "number":  11,
+        "name":  "Keep Going",
+        "category":  "Food \u0026 Beverage",
+        "discount":  "5%",
+        "details":  "Code: Tedxguc"
+    },
+    {
+        "number":  12,
+        "name":  "Petit Sablé",
+        "category":  "Food \u0026 Beverage",
+        "discount":  "15%",
+        "details":  ""
+    },
+    {
+        "number":  13,
+        "name":  "Garnell Sushi \u0026 Poke",
+        "category":  "Food \u0026 Beverage",
+        "discount":  "10%",
+        "details":  ""
+    },
+    {
+        "number":  14,
+        "name":  "WIC",
+        "category":  "Food \u0026 Beverage",
+        "discount":  "10–15%",
+        "details":  "Discount range"
+    },
+    {
+        "number":  15,
+        "name":  "Tekina",
+        "category":  "Food \u0026 Beverage",
+        "discount":  "15%",
+        "details":  ""
+    },
+    {
+        "number":  16,
+        "name":  "D’Jaja",
+        "category":  "Food \u0026 Beverage",
+        "discount":  "15%",
+        "details":  ""
+    },
+    {
+        "number":  17,
+        "name":  "Wok and Walk",
+        "category":  "Food \u0026 Beverage",
+        "discount":  "20%",
+        "details":  "Code: WWxGUCTedX"
+    },
+    {
+        "number":  18,
+        "name":  "Dawgs n’ Shakes",
+        "category":  "Food \u0026 Beverage",
+        "discount":  "20%",
+        "details":  ""
+    },
+    {
+        "number":  19,
+        "name":  "HOST",
+        "category":  "Food \u0026 Beverage",
+        "discount":  "20%",
+        "details":  ""
+    },
+    {
+        "number":  20,
+        "name":  "Red Train (logo)",
+        "category":  "Food \u0026 Beverage",
+        "discount":  "15%",
+        "details":  ""
+    },
+    {
+        "number":  21,
+        "name":  "Maine Rolls \u0026 Buns",
+        "category":  "Food \u0026 Beverage",
+        "discount":  "15%",
+        "details":  ""
+    },
+    {
+        "number":  22,
+        "name":  "Halwka (Arabic logo)",
+        "category":  "Food \u0026 Beverage",
+        "discount":  "15%",
+        "details":  ""
+    },
+    {
+        "number":  23,
+        "name":  "Noodles Stop",
+        "category":  "Food \u0026 Beverage",
+        "discount":  "20%",
+        "details":  "Code: NSxGUCTedX"
+    },
+    {
+        "number":  24,
+        "name":  "Hola Tacos",
+        "category":  "Food \u0026 Beverage",
+        "discount":  "15%",
+        "details":  ""
+    },
+    {
+        "number":  25,
+        "name":  "Ya Seedy",
+        "category":  "Food \u0026 Beverage",
+        "discount":  "15%",
+        "details":  ""
+    },
+    {
+        "number":  26,
+        "name":  "Koshary brand (Arabic logo)",
+        "category":  "Food \u0026 Beverage",
+        "discount":  "10%",
+        "details":  ""
+    },
+    {
+        "number":  27,
+        "name":  "P (chicken logo)",
+        "category":  "Food \u0026 Beverage",
+        "discount":  "20%",
+        "details":  ""
+    },
+    {
+        "number":  28,
+        "name":  "Orange Faces (logo)",
+        "category":  "Food \u0026 Beverage",
+        "discount":  "15%",
+        "details":  ""
+    },
+    {
+        "number":  29,
+        "name":  "Dippys",
+        "category":  "Food \u0026 Beverage",
+        "discount":  "20%",
+        "details":  ""
+    },
+    {
+        "number":  30,
+        "name":  "Barbar",
+        "category":  "Food \u0026 Beverage",
+        "discount":  "15%",
+        "details":  ""
+    },
+    {
+        "number":  31,
+        "name":  "Gravity Code",
+        "category":  "Entertainment \u0026 Leisure",
+        "discount":  "15%",
+        "details":  ""
+    },
+    {
+        "number":  32,
+        "name":  "Cairow Water Sports",
+        "category":  "Entertainment \u0026 Leisure",
+        "discount":  "15%",
+        "details":  ""
+    },
+    {
+        "number":  33,
+        "name":  "Cairo Escapers",
+        "category":  "Entertainment \u0026 Leisure",
+        "discount":  "",
+        "details":  "140 EGP off ticket"
+    },
+    {
+        "number":  34,
+        "name":  "BNKR",
+        "category":  "Entertainment \u0026 Leisure",
+        "discount":  "",
+        "details":  "200+ when buying the card"
+    },
+    {
+        "number":  35,
+        "name":  "Mystia",
+        "category":  "Beauty \u0026 Personal Care",
+        "discount":  "15%",
+        "details":  "Code: TEDxGUC15"
+    },
+    {
+        "number":  36,
+        "name":  "TBC (face logo)",
+        "category":  "Beauty \u0026 Personal Care",
+        "discount":  "10%",
+        "details":  "Code: TBCxTEDxGUC10"
+    },
+    {
+        "number":  37,
+        "name":  "Fluid",
+        "category":  "Beauty \u0026 Personal Care",
+        "discount":  "20%",
+        "details":  "Code: TEDX20"
+    },
+    {
+        "number":  38,
+        "name":  "Organiam",
+        "category":  "Beauty \u0026 Personal Care",
+        "discount":  "15%",
+        "details":  "Code: TEDX-10"
+    },
+    {
+        "number":  39,
+        "name":  "Radiance Medical Center",
+        "category":  "Beauty \u0026 Personal Care",
+        "discount":  "20%",
+        "details":  ""
+    },
+    {
+        "number":  40,
+        "name":  "Mohamed \u0026 Ramy Barber Shop",
+        "category":  "Beauty \u0026 Personal Care",
+        "discount":  "15%",
+        "details":  ""
+    },
+    {
+        "number":  41,
+        "name":  "HG (monogram logo)",
+        "category":  "Beauty \u0026 Personal Care",
+        "discount":  "15%",
+        "details":  "Code: TEDX20"
+    },
+    {
+        "number":  42,
+        "name":  "Denjo (panda logo)",
+        "category":  "Fashion",
+        "discount":  "15%",
+        "details":  "Code: DenjoXTedXGUC"
+    },
+    {
+        "number":  43,
+        "name":  "YMREE",
+        "category":  "Fashion",
+        "discount":  "25%",
+        "details":  "Code: TEDxGUC"
+    },
+    {
+        "number":  44,
+        "name":  "Signature fashion logo",
+        "category":  "Fashion",
+        "discount":  "20%",
+        "details":  "Code: TEDXGUC"
+    },
+    {
+        "number":  45,
+        "name":  "XFit",
+        "category":  "Fitness \u0026 Wellness",
+        "discount":  "20%",
+        "details":  ""
+    },
+    {
+        "number":  46,
+        "name":  "FootFit",
+        "category":  "Fitness \u0026 Wellness",
+        "discount":  "20%",
+        "details":  ""
+    },
+    {
+        "number":  47,
+        "name":  "Rage",
+        "category":  "Fitness \u0026 Wellness",
+        "discount":  "10%",
+        "details":  ""
+    },
+    {
+        "number":  48,
+        "name":  "Laser Top",
+        "category":  "Stationery",
+        "discount":  "20%",
+        "details":  ""
+    },
+    {
+        "number":  49,
+        "name":  "Art Gifts",
+        "category":  "Stationery",
+        "discount":  "10%",
+        "details":  ""
+    },
+    {
+        "number":  50,
+        "name":  "SAG — Salama Automotive Group",
+        "category":  "Car Services",
+        "discount":  "15%",
+        "details":  "On labor only"
+    }
+]

@@ -7,6 +7,7 @@ import { X } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { xaccessApi, type XPartner } from '@/lib/api/xaccess';
+import { assetUrl } from '@/lib/env';
 
 const HIDE = 'tx-sponsor-hidden';
 
@@ -33,7 +34,7 @@ export function SponsorBanner() {
     <>
       <span className="tx-sponsor__logo">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        {p.logo_url ? <img src={p.logo_url} alt={p.name} style={{ maxHeight: 22, maxWidth: 80, objectFit: 'contain' }} /> : p.name.slice(0, 12).toUpperCase()}
+        {p.logo_url ? <img src={assetUrl(p.logo_url)} alt={p.name} style={{ maxHeight: 22, maxWidth: 80, objectFit: 'contain' }} /> : p.name.slice(0, 12).toUpperCase()}
       </span>
       {p.banner_offer && <span className="tx-sponsor__off">{p.banner_offer}</span>}
       <span className="min-w-0 truncate hidden sm:inline">{p.perk}</span>

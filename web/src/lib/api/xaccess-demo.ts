@@ -1,11 +1,12 @@
 // Demo mode for X Access. Same rules as migration 0015.
 import { canManageXAccess, canViewXAccess } from '../roles';
+import { xaccessSponsors } from '../data/xaccess-sponsors';
 import { demoCurrentMe, demoMembers } from './demo-api';
 import { friendly } from './errors';
 import { ApiError } from './types';
 import type { XAccessApi, XCard, XPartner, XRedeem } from './xaccess';
 
-const KEY = 'tx-demo-xaccess-v1';
+const KEY = 'tx-demo-xaccess-v2';
 const DAY = 86400_000;
 const day = (n: number) => new Date(Date.now() + n * DAY).toISOString().slice(0, 10);
 const tok = () => Array.from({ length: 2 }, () => Math.random().toString(36).slice(2, 12)).join('');
@@ -15,24 +16,15 @@ const today = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Cairo' 
 type Store = { partners: (XPartner & { pin: string | null })[]; cards: XCard[]; uses: { card_id: string; partner_id: string; at: string }[]; clicks: Record<string, number> };
 
 function fresh(): Store {
-  const p = (id: string, name: string, perk: string, extra: Partial<XPartner> = {}, pin: string | null = '1234') => ({
-    id, name, perk, logo_url: null, website: null, terms: null, expires_on: null, is_active: true, sort_order: 0,
-    in_banner: false, banner_offer: null, promo_code: null, banner_starts: null, banner_ends: null, ...extra, pin,
-  });
   const card = (n: number, name: string, user_id: string | null, status: XCard['status'] = 'active', exp = day(300)): XCard => ({
     id: `xc${n}`, number: `XA-27-${String(n).padStart(4, '0')}`, code: `democard${n}`, holder_name: name, holder_email: null,
     user_id, tier: 'Member', expires_on: exp, status, created_at: new Date(Date.now() - n * DAY).toISOString(),
   });
   return {
-    partners: [
-      p('xp1', 'Brewhouse Coffee', '15% off every drink', { website: 'https://example.com', terms: 'Dine-in only. Not with other offers.', in_banner: true, banner_offer: '15% OFF', promo_code: 'TEDX15', sort_order: 1 }),
-      p('xp2', 'Printly', 'Free delivery on printing orders over EGP 300', { terms: 'Order online with the code.', in_banner: true, banner_offer: 'FREE DELIVERY', promo_code: 'XACCESS', sort_order: 2 }),
-      p('xp3', 'Fit Studio', 'One free class, then 20% off a monthly pass', { expires_on: day(60), sort_order: 3 }),
-      p('xp4', 'Book Corner', '10% off all books', { sort_order: 4 }, null),
-    ],
+    partners: xaccessSponsors.map((p) => ({ ...p, pin: null })),
     cards: [card(1, 'Nour Hassan', 'u-chair'), card(2, 'Hamza El-Sayed', 'u-cur-ops'), card(3, 'Ziad Ibrahim', 'u-as-lnp1'), card(4, 'Salma Tarek', null), card(5, 'Old Guest', null, 'active', day(-3))],
-    uses: [{ card_id: 'xc3', partner_id: 'xp1', at: new Date(Date.now() - 2 * DAY).toISOString() }, { card_id: 'xc1', partner_id: 'xp1', at: new Date(Date.now() - DAY).toISOString() }],
-    clicks: { xp1: 14, xp2: 6 },
+    uses: [],
+    clicks: {},
   };
 }
 
