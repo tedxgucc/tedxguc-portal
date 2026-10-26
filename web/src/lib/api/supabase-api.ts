@@ -7,6 +7,7 @@ import type {
 } from '../types';
 import { clearCache } from '../cache';
 import { toApiError } from './errors';
+import { rosterUnavailable } from './team-roster';
 import { ApiError, type Api } from './types';
 
 const EVENT_COLS = 'id, type, title, slug, description, agenda, starts_at, ends_at, venue, capacity, registration_opens_at, registration_closes_at, license_status, is_public, status, ticket_prefix, cover_url';
@@ -108,7 +109,9 @@ export const supabaseApi: Api = {
     if (!profile) return null;
     const p = profile as { id: string; name: string; email: string; photo_url: string | null };
     const m = membership as Record<string, string | null> | null;
-    const assignments = season ? await run<{ team_id: string }[]>(db().from('team_roster').select('team_id').eq('season_id', season).eq('user_id', data.user.id).eq('status', 'active')) : [];
+    const roster = season ? await db().from('team_roster').select('team_id').eq('season_id', season).eq('user_id', data.user.id).eq('status', 'active') : { data: [], error: null };
+    if (roster.error && !rosterUnavailable(roster.error)) throw toApiError(roster.error);
+    const assignments = roster.error ? (m?.team_id ? [{ team_id: m.team_id }] : []) : (roster.data ?? []);
     return {
       ...p,
       role: (m?.role as Me['role']) ?? null,
@@ -186,7 +189,9 @@ export const supabaseApi: Api = {
     const rows = await run(db().from('org_chart')
       .select('user_id, name, photo_url, role, team_id, team, division_id, division, division_kind')
       .eq('season_id', season).eq('status', 'active').order('name'));
-    const assignments = await run<{ user_id: string; team_id: string }[]>(db().from('team_roster').select('user_id, team_id').eq('season_id', season).eq('status', 'active'));
+    const roster = await db().from('team_roster').select('user_id, team_id').eq('season_id', season).eq('status', 'active');
+    if (roster.error && !rosterUnavailable(roster.error)) throw toApiError(roster.error);
+    const assignments = roster.error ? (rows as Member[]).flatMap((m) => m.team_id ? [{ user_id: m.user_id, team_id: m.team_id }] : []) : (roster.data ?? []);
     return (rows as Member[]).map((m) => ({ ...m, team_ids: assignments.filter((a) => a.user_id === m.user_id).map((a) => a.team_id) }));
   },
   async addTeamMember(teamId, userId) {
