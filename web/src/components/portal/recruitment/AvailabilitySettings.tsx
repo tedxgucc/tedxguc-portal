@@ -10,6 +10,7 @@ import { availabilitySlots, defaultAvailability, WEEKDAYS, type InterviewAvailab
 import type { Cycle } from '@/lib/types';
 
 function Hours({ label, ranges, onChange, disabled }: { label: string; ranges: TimeRange[]; onChange: (ranges: TimeRange[]) => void; disabled: boolean }) {
+  const invalid = ranges.findIndex((r) => !r.from || !r.to || r.to <= r.from);
   return <div className="grid gap-s2 min-w-0">
     {ranges.length === 0 && <span className="text-body-sm text-ink-3 py-s2">Unavailable</span>}
     {ranges.map((range, i) => <div key={i} className="flex flex-wrap items-end gap-s2">
@@ -23,6 +24,7 @@ function Hours({ label, ranges, onChange, disabled }: { label: string; ranges: T
       const to = `${String(Math.floor(end / 60)).padStart(2, '0')}:${String(end % 60).padStart(2, '0')}`;
       onChange([...ranges, { from, to }]);
     }}><Plus size={16} aria-hidden="true" />Add hours</Button></div>
+    {invalid >= 0 && <p className="tx-help" role="alert">Range {invalid + 1}: enter an end time after the start.</p>}
   </div>;
 }
 
@@ -81,14 +83,14 @@ export function AvailabilitySettings({ cycles, teamIds, onSaved }: { cycles: Cyc
     {loading ? <Skeleton h={320} /> : loadError ? <div role="alert" className="grid gap-s3"><p className="text-body-sm">Scheduling settings could not load. Existing interview bookings are still listed below.</p><p className="tx-help">{loadError}</p><div><Button small variant="secondary" onClick={() => setRetry((n) => n + 1)}>Retry</Button></div></div> : <>
       <div className="grid gap-s6 xl:grid-cols-2">
         <div className="grid gap-s3 content-start">
-          <div><h3 className="h4">Weekly hours</h3><p className="text-body-sm text-ink-3">Add one or more ranges for each day you are available.</p></div>
+          <div><h3 className="h4">Weekly hours</h3><p className="text-body-sm text-ink-3">Add one or more ranges for each day you are available. Overlapping hours are combined into one window.</p></div>
           {WEEKDAYS.map((day, i) => <div key={day} className="grid gap-s2 border-b border-line pb-s3 sm:grid-cols-[100px_minmax(0,1fr)]">
             <div className="flex sm:flex-col gap-s2 items-center sm:items-start"><span className="font-semibold text-body-sm pt-s2">{day}</span><button type="button" className="tx-iconbtn" disabled={busy || !draft.weekly[i].length} title={`Copy ${day} hours`} aria-label={`Copy ${day} hours`} onClick={() => { setCopyTargets([]); setCopyDay(i); }}><Copy size={16} /></button></div>
             <Hours label={day} ranges={draft.weekly[i]} disabled={busy} onChange={(ranges) => patch({ weekly: draft.weekly.map((r, j) => i === j ? ranges : r) })} />
           </div>)}
         </div>
         <div className="grid gap-s4 content-start">
-          <div><h3 className="h4">Date-specific hours</h3><p className="text-body-sm text-ink-3">Replace weekly hours for a particular date, or leave it unavailable for a day off.</p></div>
+          <div><h3 className="h4">Date-specific hours</h3><p className="text-body-sm text-ink-3">Replace weekly hours for a particular date, or leave it unavailable for a day off. You can add multiple ranges; overlapping hours are combined.</p></div>
           <div className="flex flex-wrap gap-s2 items-end"><div className="flex-1 min-w-[150px]"><TextInput label="Date" type="date" value={date} disabled={busy} onChange={(e) => setDate(e.target.value)} /></div><Button small variant="secondary" disabled={busy || !date || draft.overrides.some((o) => o.date === date)} onClick={() => patch({ overrides: [...draft.overrides, { date, ranges: [] }].sort((a, b) => a.date.localeCompare(b.date)) })}><Plus size={16} />Add date</Button></div>
           {!draft.overrides.length && <p className="text-body-sm text-ink-3">No exceptions. Weekly hours apply.</p>}
           {draft.overrides.map((override) => <div key={override.date} className="border border-line p-s3 grid gap-s2">
