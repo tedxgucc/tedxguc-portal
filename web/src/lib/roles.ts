@@ -79,3 +79,8 @@ export const canOpenInbox = (me: Me | null) => seesPartnerInquiries(me) || seesC
 export const canManageSignUps = (me: Me | null) => !!me && (me.role === 'chairman'
   || (me.role === 'curator' && (me.division_kind === 'operations' || me.division_kind === 'org_development'))
   || (me.role === 'executive' && (me.team_kind === 'logistics_planning' || me.team_kind === 'associates_experience')));
+
+// X Access (FR-18): Partnerships Executives, the Operations Curator and the
+// Chairman manage it; Partnerships Associates can view.
+export const canManageXAccess = (me: Me | null) => canManageEvents(me) || (me?.role === 'executive' && me.team_kind === 'partnerships');
+export const canViewXAccess = (me: Me | null) => canManageXAccess(me) || me?.team_kind === 'partnerships';

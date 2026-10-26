@@ -2,7 +2,7 @@
 // Portal chrome (design system: AppChrome): sticky top bar with the lockup,
 // notifications and avatar; a 248px sidebar on desktop; five tabs on mobile.
 import {
-  Bell, CalendarDays, CircleUser, Globe, Inbox, Settings2, ClipboardCheck, FolderOpen, LayoutDashboard, LogOut, Megaphone, Menu, Package, ScanLine, Sparkles, SquareKanban, UserSearch, Users, Wallet,
+  Bell, CalendarDays, CircleUser, CreditCard, Globe, Inbox, Settings2, ClipboardCheck, FolderOpen, LayoutDashboard, LogOut, Megaphone, Menu, Package, ScanLine, Sparkles, SquareKanban, UserSearch, Users, Wallet,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -55,6 +55,7 @@ export function useNav() {
     {
       title: 'Club',
       items: [
+        { href: '/portal/xaccess', label: 'X Access', icon: CreditCard, show: !!me.role },
         { href: '/portal/inbox', label: 'Inbox', icon: Inbox, show: canOpenInbox(me) },
         { href: '/portal/site', label: 'Site text', icon: Globe, show: canOpenSiteEditor(me) },
         { href: '/portal/admin', label: 'Admin', icon: Settings2, show: me.role === 'chairman' },

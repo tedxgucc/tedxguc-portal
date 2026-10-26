@@ -7,14 +7,14 @@ import { useEffect, useState } from 'react';
 import { fmtDate, fmtTime } from '@/lib/format';
 import { LockupWhite } from './Brand';
 
-export function QR({ value, label }: { value: string; label: string }) {
+export function QR({ value, label, className = 'tx-ticket__qr' }: { value: string; label: string; className?: string }) {
   const [svg, setSvg] = useState<string>('');
   useEffect(() => {
     QRCode.toString(value, { type: 'svg', errorCorrectionLevel: 'M', margin: 2, color: { dark: '#000000', light: '#ffffff' } })
       .then(setSvg)
       .catch(() => setSvg(''));
   }, [value]);
-  return <div className="tx-ticket__qr" role="img" aria-label={label} dangerouslySetInnerHTML={{ __html: svg }} />;
+  return <div className={className} role="img" aria-label={label} dangerouslySetInnerHTML={{ __html: svg }} />;
 }
 
 export function Ticket({ eventTitle, eventKind, guestName, startsAt, venue, ticketNo, code }: {

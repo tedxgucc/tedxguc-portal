@@ -53,7 +53,7 @@ export interface AdminApi {
   saveRunItem(input: RunItemInput): Promise<void>;
   deleteRunItem(id: string): Promise<void>;
   /** Upload a photo for the site (events, speakers, announcements); returns its public URL. */
-  uploadImage(file: File, folder: 'events' | 'speakers' | 'announcements'): Promise<string>;
+  uploadImage(file: File, folder: 'events' | 'speakers' | 'announcements' | 'partners'): Promise<string>;
   listEventSpeakers(eventId: string): Promise<Speaker[]>;
   saveSpeaker(input: SpeakerInput): Promise<void>;
   deleteSpeaker(id: string): Promise<void>;

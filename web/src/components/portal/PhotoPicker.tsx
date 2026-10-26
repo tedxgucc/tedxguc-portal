@@ -6,7 +6,7 @@ import { useToast } from '@/components/Toast';
 import { Button } from '@/components/ui';
 import { adminApi } from '@/lib/api/admin';
 
-export function PhotoPicker({ url, onChange, label, folder, round }: { url: string | null; onChange: (u: string | null) => void; label: string; folder: 'events' | 'speakers' | 'announcements'; round?: boolean }) {
+export function PhotoPicker({ url, onChange, label, folder, round }: { url: string | null; onChange: (u: string | null) => void; label: string; folder: 'events' | 'speakers' | 'announcements' | 'partners'; round?: boolean }) {
   const toast = useToast();
   const ref = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);

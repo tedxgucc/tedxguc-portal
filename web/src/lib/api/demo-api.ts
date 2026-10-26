@@ -593,7 +593,7 @@ export function demoPersonas() {
 export function resetDemo() {
   store = fresh();
   save();
-  try { sessionStorage.removeItem('tx-demo-p2-v1'); sessionStorage.removeItem('tx-demo-p2b-v2'); sessionStorage.removeItem('tx-demo-admin-v1'); } catch { /* ignore */ }
+  try { sessionStorage.removeItem('tx-demo-p2-v1'); sessionStorage.removeItem('tx-demo-p2b-v2'); sessionStorage.removeItem('tx-demo-admin-v1'); sessionStorage.removeItem('tx-demo-xaccess-v1'); } catch { /* ignore */ }
 }
 
 // ----- Admin hooks (used by admin-demo.ts) -----

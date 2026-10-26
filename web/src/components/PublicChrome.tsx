@@ -1,5 +1,5 @@
 'use client';
-import { CalendarDays, Handshake, Info, LogIn, Menu, Mic, Sparkles, UserPlus, X } from 'lucide-react';
+import { CalendarDays, CreditCard, Handshake, Info, LogIn, Menu, Mic, Sparkles, UserPlus, X } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -12,6 +12,7 @@ const links = [
   { href: '/speakers', label: 'Speakers', icon: Mic },
   { href: '/calendar', label: 'Calendar', icon: CalendarDays },
   { href: '/partners', label: 'Partners', icon: Handshake },
+  { href: '/perks', label: 'X Access', icon: CreditCard },
   { href: '/about', label: 'About', icon: Info },
   { href: '/join', label: 'Join the team', icon: UserPlus },
 ];
@@ -78,6 +79,7 @@ export function PublicFooter() {
           <li><Link className="text-ink-2 hover:text-ink no-underline" href="/events">Events</Link></li>
           <li><Link className="text-ink-2 hover:text-ink no-underline" href="/speakers">Speakers</Link></li>
           <li><Link className="text-ink-2 hover:text-ink no-underline" href="/calendar">Calendar</Link></li>
+          <li><Link className="text-ink-2 hover:text-ink no-underline" href="/perks">X Access perks</Link></li>
           <li><Link className="text-ink-2 hover:text-ink no-underline" href="/contact">Contact &amp; FAQ</Link></li>
         </ul>
         <ul className="grid gap-s2 content-start text-body-sm" aria-label="More">
