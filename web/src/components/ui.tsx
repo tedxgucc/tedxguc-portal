@@ -2,6 +2,7 @@
 // Small building blocks on top of the design system classes.
 import { Check, Clock, Hourglass, Minus, X } from 'lucide-react';
 import { useEffect, useId, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { initials } from '@/lib/format';
 import { divClass } from '@/lib/roles';
 import type { DivisionKind } from '@/lib/types';
@@ -138,7 +139,7 @@ export function Modal({ open, onClose, title, children, actions, labelledBy }: {
     };
   }, [open, onClose]);
   if (!open) return null;
-  return (
+  return createPortal(
     <div className="tx-scrim" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div ref={ref} className="tx-modal" role="dialog" aria-modal="true" aria-labelledby={labelledBy ?? tid}>
         <div className="tx-modal__grab md:hidden" aria-hidden="true" />
@@ -149,7 +150,8 @@ export function Modal({ open, onClose, title, children, actions, labelledBy }: {
         {children}
         {actions && <div className="tx-modal__actions">{actions}</div>}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

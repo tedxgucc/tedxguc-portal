@@ -41,7 +41,7 @@ a { color: inherit; }
 /* Sheet / modal entrance. */
 @keyframes tx-sheet-in { from { transform: translateY(100%); } to { transform: none; } }
 @keyframes tx-dialog-in { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: none; } }
-.tx-modal { animation: tx-sheet-in var(--dur-3) var(--ease-out) both; max-height: 90dvh; overflow-y: auto; }
+.tx-modal { animation: tx-sheet-in var(--dur-3) var(--ease-out) both; min-height: 0; max-height: 90dvh; overflow-y: auto; overscroll-behavior-y: contain; }
 @media (min-width: 768px) { .tx-modal { animation-name: tx-dialog-in; animation-duration: var(--dur-2); } }
 
 /* Loading state: a 2px accent bar runs under the control (05 · Components). */
