@@ -24,6 +24,7 @@ type Portal = {
   divisionOfTeam: (teamId: string | null | undefined) => Division | undefined;
   unread: number;
   refreshUnread: () => void;
+  markAllNotificationsRead: () => Promise<void>;
   /** Reload teams, divisions and members after an admin change. */
   reload: () => void;
 };
@@ -32,11 +33,17 @@ const Ctx = createContext<Portal | null>(null);
 
 export function PortalProvider({ children, fallback }: { children: React.ReactNode; fallback: React.ReactNode }) {
   const router = useRouter();
-  const [state, setState] = useState<Omit<Portal, 'memberName' | 'team' | 'divisionOfTeam' | 'refreshUnread' | 'unread' | 'reload'> | null>(null);
+  const [state, setState] = useState<Omit<Portal, 'memberName' | 'team' | 'divisionOfTeam' | 'refreshUnread' | 'markAllNotificationsRead' | 'unread' | 'reload'> | null>(null);
   const [unread, setUnread] = useState(0);
 
   const refreshUnread = useCallback(() => {
     api.listNotifications().then((n) => { const c = n.filter((x) => !x.read_at).length; setUnread(c); writeCache('unread', c); }).catch(() => {});
+  }, []);
+
+  const markAllNotificationsRead = useCallback(async () => {
+    await api.markNotificationsRead();
+    setUnread(0);
+    writeCache('unread', 0);
   }, []);
 
   const reload = useCallback(() => {
@@ -84,6 +91,7 @@ export function PortalProvider({ children, fallback }: { children: React.ReactNo
       ...state,
       unread,
       refreshUnread,
+      markAllNotificationsRead,
       reload,
       memberName: (id) => byId.get(id) ?? (id === state.me.id ? state.me.name : 'Someone'),
       team: (id) => state.teams.find((t) => t.id === id),
@@ -92,7 +100,7 @@ export function PortalProvider({ children, fallback }: { children: React.ReactNo
         return state.divisions.find((d) => d.id === t?.division_id);
       },
     };
-  }, [state, unread, refreshUnread, reload]);
+  }, [state, unread, refreshUnread, markAllNotificationsRead, reload]);
 
   if (!value) return <>{fallback}</>;
   // Keyed by person: if someone else is now logged in, every page starts fresh.

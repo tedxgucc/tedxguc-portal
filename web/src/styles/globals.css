@@ -70,6 +70,11 @@ a { color: inherit; }
 .tx-sidebar a.is-on { color: var(--ink); border-left-color: var(--accent); background: var(--surface-1); }
 
 /* Mobile kanban: columns become swipeable. */
+.tx-header-panel { position: absolute; right: 0; top: calc(100% + 8px); z-index: var(--z-nav); width: 380px; max-width: calc(100vw - 32px); max-height: calc(100dvh - 88px); overflow-y: auto; overscroll-behavior: contain; background: var(--surface-1); border: 1px solid var(--line); border-radius: var(--radius-2); box-shadow: var(--shadow-pop); }
+.tx-header-panel .tx-xcard__art { height: 100%; }
+.tx-header-panel .tx-xcard__qr img { height: 100%; }
+@media (max-width: 767px) { .tx-header-panel { position: fixed; top: 68px; left: 16px; right: 16px; width: auto; } }
+
 .tx-board { grid-auto-flow: column; grid-auto-columns: minmax(280px, 1fr); gap: var(--space-3); overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: var(--space-2); }
 .tx-board > .tx-col { scroll-snap-align: start; }
 

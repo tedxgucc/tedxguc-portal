@@ -12,6 +12,7 @@ import { api } from '@/lib/api';
 import { canLeadOperations, canManageSignUps, canOpenInbox, canOpenSiteEditor, canRecordCashOut, canRecordDeposits, canScanTickets, roleLabel } from '@/lib/roles';
 import { AccountMenu } from './AccountMenu';
 import { usePortal } from './PortalContext';
+import { HeaderDropdowns } from './HeaderDropdowns';
 
 type Item = { href: string; label: string; icon: typeof Bell; show?: boolean };
 
@@ -68,16 +69,13 @@ export function useNav() {
 const isOn = (path: string, href: string) => (href === '/portal' ? path === '/portal' : path === href || path.startsWith(`${href}/`));
 
 export function PortalTopBar() {
-  const { me, unread } = usePortal();
+  const { me } = usePortal();
   return (
     <header className="tx-top">
       <Link href="/portal" aria-label="Portal home" className="lg:hidden"><Lockup height={22} /></Link>
       <span className="hidden lg:block tx-label">{me.role ? roleLabel[me.role] : 'Alumni'}{me.team_name ? ` · ${me.team_name}` : me.division_name ? ` · ${me.division_name}` : ''}</span>
       <div className="flex items-center gap-s1">
-        <Link href="/portal/notifications" className="tx-iconbtn relative" aria-label={unread ? `Notifications, ${unread} unread` : 'Notifications'}>
-          <Bell />
-          {unread > 0 && <span className="absolute top-[8px] right-[8px] min-w-[16px] h-[16px] px-[3px] rounded-pill bg-accent text-on-accent text-[10px] font-bold leading-[16px] text-center">{unread > 9 ? '9+' : unread}</span>}
-        </Link>
+        <HeaderDropdowns />
         <AccountMenu />
       </div>
     </header>
