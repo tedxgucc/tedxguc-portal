@@ -26,11 +26,12 @@ test('Partnerships executives, the Ops Curator and the Chairman manage partners;
 
 test('all 50 supplied sponsors are public with matched logos and exact offers', async () => {
   const source = JSON.parse(readFileSync(new URL('../../web/src/lib/data/xaccess-sponsors.json', import.meta.url), 'utf8'));
+  const corrections = JSON.parse(readFileSync(new URL('../../web/src/lib/data/xaccess-name-corrections.json', import.meta.url), 'utf8'));
   const rows = await db.as('anon', ({ q }) => q(`select name, logo_url, perk, terms, promo_code from xaccess_partners where id::text like '58414343-4553-4000-8000-%' order by sort_order`));
   assert.equal(rows.length, 50);
   for (let i = 0; i < source.length; i++) {
     const s = source[i], p = rows[i];
-    assert.equal(p.name, s.name);
+    assert.equal(p.name, corrections.find((c) => c.number === s.number)?.name ?? s.name);
     assert.equal(p.perk, s.discount ? `${s.discount} off` : s.details);
     assert.equal(p.promo_code, s.details.startsWith('Code:') ? s.details.slice(5).trim() : null);
     assert.equal(p.terms, s.discount && s.details && !s.details.startsWith('Code:') ? s.details : null);

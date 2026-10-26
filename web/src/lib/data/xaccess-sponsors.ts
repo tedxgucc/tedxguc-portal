@@ -1,10 +1,11 @@
 import sponsors from './xaccess-sponsors.json';
+import nameCorrections from './xaccess-name-corrections.json';
 import type { XPartner } from '../api/xaccess';
 
 // Source: X_ACCESS_Sponsors.xlsx. Numbered artwork is matched by Logo No.
 export const xaccessSponsors: XPartner[] = sponsors.map((s) => ({
   id: `58414343-4553-4000-8000-${String(s.number).padStart(12, '0')}`,
-  name: s.name,
+  name: nameCorrections.find((c) => c.number === s.number)?.name ?? s.name,
   logo_url: `/brand/xaccess/${String(s.number).padStart(2, '0')}.png`,
   website: null,
   perk: s.discount ? `${s.discount} off` : s.details,
