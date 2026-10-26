@@ -8,11 +8,13 @@ import { Suspense, useCallback, useEffect, useState } from 'react';
 import { PageTitle } from '@/components/Brand';
 import { eventKind } from '@/components/EventCard';
 import { EventForm } from '@/components/portal/EventForm';
+import { RegistrationDetails } from '@/components/portal/RegistrationDetails';
 import { QuestionsSection, RunOfShowSection, StaffSection } from '@/components/portal/EventSetup';
 import { usePortal } from '@/components/portal/PortalContext';
 import { Button, Chip, EmptyState, Segmented, Skeleton, TextInput } from '@/components/ui';
 import { api } from '@/lib/api';
 import { fmtDate, fmtShortDate, fmtTime } from '@/lib/format';
+import { ticketTier } from '@/lib/event-registration';
 import { canManageEvents, canScanTickets } from '@/lib/roles';
 import type { EventStats, RegistrationRow, TxEvent } from '@/lib/types';
 
@@ -43,9 +45,12 @@ function EventAdminPageInner() {
 
   const shown = (regs ?? []).filter((r) => !q.trim() || `${r.guest_name} ${r.guest_email} ${r.ticket_no ?? ''}`.toLowerCase().includes(q.trim().toLowerCase()));
   const exportCsv = () => {
-    const head = ['Ticket', 'Name', 'Email', 'Phone', 'Type', 'Status', 'Checked in', 'Registered'];
-    const esc = (v: string | null) => `"${(v ?? '').replace(/"/g, '""')}"`;
-    const lines = [head.join(','), ...(regs ?? []).map((r) => [r.ticket_no, r.guest_name, r.guest_email, r.guest_phone, r.guest_type, r.status, r.checked_in_at, r.created_at].map(esc).join(','))];
+    const head = ['Ticket', 'Name', 'Email', 'Phone', 'Ticket type', 'Guest category', 'GUCian', 'GUC ID', 'National ID', 'Referral source', 'Other referral', 'Status', 'Checked in', 'Registered'];
+    const esc = (v: string | null | undefined) => {
+      const value = v ?? '';
+      return `"${(/^[=+\-@\t\r]/.test(value) ? "'" + value : value).replace(/"/g, '""')}"`;
+    };
+    const lines = [head.join(','), ...(regs ?? []).map((r) => [r.ticket_no, r.guest_name, r.guest_email, r.guest_phone, ticketTier(r.guest_type), r.answers?.guest_category, r.answers?.gucian, r.answers?.guc_id, r.answers?.national_id, r.answers?.referral_source, r.answers?.referral_other, r.status, r.checked_in_at, r.created_at].map(esc).join(','))];
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([`﻿${lines.join('\n')}`], { type: 'text/csv;charset=utf-8' }));
     a.download = `${event.slug ?? event.id}-registrations.csv`;
@@ -101,8 +106,9 @@ function EventAdminPageInner() {
                 {shown.slice(0, 200).map((r) => (
                   <tr key={r.id}>
                     <td className="tx-strong">
-                      {r.guest_name}{r.guest_type === 'vip' && <span className="tx-chip tx-chip--soft ml-s2" style={{ height: 20 }}>VIP</span>}
+                      {r.guest_name}<span className="tx-chip tx-chip--soft ml-s2" style={{ height: 20 }}>{ticketTier(r.guest_type)}</span>
                       <div className="text-caption text-ink-3 font-normal">{r.guest_email}<span className="md:hidden"> · {r.ticket_no ?? '—'}</span></div>
+                      <RegistrationDetails registration={r} />
                     </td>
                     <td className="hidden md:table-cell code">{r.ticket_no ?? '—'}</td>
                     <td className="hidden md:table-cell">{fmtShortDate(r.created_at)}</td>

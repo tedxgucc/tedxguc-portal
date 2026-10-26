@@ -75,7 +75,7 @@ function TicketPageInner() {
             <p className="text-ink-2">{isNew ? 'Your ticket is below and in your inbox. ' : ''}Show the QR at the door. It works once.</p>
           </header>
           <div className="grid justify-items-center">
-            <Ticket eventTitle={t.event.title} eventKind="TEDxGUC" guestName={t.guest_name} startsAt={t.event.starts_at}
+            <Ticket eventTitle={t.event.title} eventKind="TEDxGUC" guestName={t.guest_name} guestType={t.guest_type} startsAt={t.event.starts_at}
               venue={t.event.venue} ticketNo={t.ticket_no} code={t.ticket_code} />
           </div>
           {t.checked_in_at && <div className="justify-self-center"><Chip kind="ok">Checked in {fmtTime(t.checked_in_at)}</Chip></div>}

@@ -23,6 +23,13 @@ export class HttpError extends Error {
 
 // Database errors raised as `raise exception 'code'` → friendly HTTP errors.
 const dbErrors: Record<string, [number, string]> = {
+  invalid_registration_answers: [400, 'Some form answers are too long or invalid.'],
+  missing_gucian: [400, 'Choose whether you are a GUCian.'],
+  missing_guc_id: [400, 'Enter your GUC ID.'],
+  missing_national_id: [400, 'Enter your national ID number.'],
+  invalid_guest_category: [400, 'Choose your guest type.'],
+  missing_referral_source: [400, 'Choose how you heard about TEDxGUC.'],
+  missing_referral_other: [400, 'Tell us how you heard about TEDxGUC.'],
   event_not_open: [409, 'Registration for this event is closed.'],
   already_registered: [409, 'This email is already registered. Use "Resend my ticket" to get it again.'],
   invalid_email: [400, 'Please enter a valid email address.'],

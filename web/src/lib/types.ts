@@ -98,6 +98,7 @@ export type TicketView = {
   registration_id: string;
   status: RegistrationStatus;
   guest_name: string;
+  guest_type: string;
   ticket_no: string | null;
   ticket_code: string | null;
   checked_in_at: string | null;
@@ -172,7 +173,7 @@ export type CheckInResult = {
 };
 export type ManifestRow = { registration_id: string; ticket_code_hash: string; guest_name: string; ticket_no: string; guest_type: string; checked_in_at: string | null };
 export type EventStats = { capacity: number | null; registered: number; waitlisted: number; cancelled: number; checked_in: number };
-export type RegistrationRow = { id: string; guest_name: string; guest_email: string; guest_phone: string | null; guest_type: string; status: RegistrationStatus; ticket_no: string | null; checked_in_at: string | null; created_at: string };
+export type RegistrationRow = { id: string; guest_name: string; guest_email: string; guest_phone: string | null; guest_type: string; answers: Record<string, string>; status: RegistrationStatus; ticket_no: string | null; checked_in_at: string | null; created_at: string };
 export type SearchRow = { registration_id: string; guest_name: string; email_hint: string; ticket_no: string | null; guest_type: string; status: RegistrationStatus; checked_in_at: string | null };
 
 export type Invite = { id: string; email: string; role: Role; team_id: string | null; division_id: string | null; expires_at: string; accepted_at: string | null; revoked_at: string | null; created_at: string };

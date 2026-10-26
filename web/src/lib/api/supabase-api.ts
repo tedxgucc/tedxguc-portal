@@ -280,7 +280,7 @@ export const supabaseApi: Api = {
   },
   async listRegistrations(eventId) {
     return run(db().from('registrations')
-      .select('id, guest_name, guest_email, guest_phone, guest_type, status, ticket_no, checked_in_at, created_at')
+      .select('id, guest_name, guest_email, guest_phone, guest_type, answers, status, ticket_no, checked_in_at, created_at')
       .eq('event_id', eventId).order('created_at', { ascending: false }));
   },
   async eventStats(eventId) {

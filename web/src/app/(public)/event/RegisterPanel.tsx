@@ -10,6 +10,7 @@ import { useToast } from '@/components/Toast';
 import { Button, Check2, Modal, Select, TextArea, TextInput } from '@/components/ui';
 import { api, ApiError } from '@/lib/api';
 import { fmtDate } from '@/lib/format';
+import { GUEST_CATEGORIES, REFERRAL_SOURCES, registrationErrors, cleanRegistrationAnswers, guestTypeFor, ticketTier } from '@/lib/event-registration';
 import type { EventField, TxEvent } from '@/lib/types';
 
 export function RegisterPanel({ event, fields, open, past, notYet }: {
@@ -40,9 +41,7 @@ export function RegisterPanel({ event, fields, open, past, notYet }: {
   }
 
   const validate = () => {
-    const e: Record<string, string> = {};
-    if (!name.trim()) e.name = 'Enter your name.';
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) e.email = 'Enter a valid email address.';
+    const e = registrationErrors({ name, email, phone, answers });
     for (const f of fields) if (f.required && !answers[f.id]?.trim()) e[f.id] = 'This one is required.';
     if (!consent) e.consent = 'Tick the box to continue.';
     setErrors(e);
@@ -55,7 +54,7 @@ export function RegisterPanel({ event, fields, open, past, notYet }: {
     setBusy(true);
     try {
       const res = await api.register({
-        event_id: event.id, name, email, phone: phone.trim() === '+20' ? undefined : phone.trim(), answers, consent, turnstile_token: token,
+        event_id: event.id, name: name.trim(), email: email.trim(), phone: phone.trim(), answers: cleanRegistrationAnswers(answers), consent, turnstile_token: token,
       });
       router.push(`/tickets?t=${res.status_token}&new=1`);
     } catch (err) {
@@ -70,11 +69,25 @@ export function RegisterPanel({ event, fields, open, past, notYet }: {
       <div className="grid gap-s1">
         <div className="tx-label">Free ticket</div>
         <h2 className="h3 uppercase">Get your ticket</h2>
+        <p className="text-body-sm text-ink-2">Be part of an inspiring experience where ideas come to life. Fill out the form to secure your spot. Slots are limited.</p>
       </div>
       <TextInput label="Full name" autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} error={errors.name} required />
-      <TextInput label="Email" type="email" autoComplete="email" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)}
+      <Select label="Are you a GUCian?" value={answers.gucian ?? ''} onChange={(e) => setAnswers((a) => ({ ...a, gucian: e.target.value, guc_id: '', national_id: '' }))} error={errors.gucian} required>
+        <option value="">Choose…</option><option value="Yes">Yes</option><option value="No">No</option>
+      </Select>
+      {answers.gucian === 'Yes' && <TextInput label="GUC ID" maxLength={50} value={answers.guc_id ?? ''} onChange={(e) => setAnswers((a) => ({ ...a, guc_id: e.target.value }))} error={errors.guc_id} required />}
+      {answers.gucian === 'No' && <TextInput label="National ID number" maxLength={50} autoComplete="off" value={answers.national_id ?? ''} onChange={(e) => setAnswers((a) => ({ ...a, national_id: e.target.value }))} error={errors.national_id} required />}
+      <TextInput label="Personal email" type="email" autoComplete="email" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)}
         error={errors.email} help="Your ticket and private link arrive here." required />
-      <TextInput label="Phone (optional)" type="tel" autoComplete="tel" inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
+      <TextInput label="Phone number" type="tel" autoComplete="tel" inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} error={errors.phone} required />
+      <Select label="Guest type" value={answers.guest_category ?? ''} onChange={(e) => setAnswers((a) => ({ ...a, guest_category: e.target.value }))} error={errors.guest_category} required>
+        <option value="">Choose…</option>{GUEST_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+      </Select>
+      {answers.guest_category && <p className="text-body-sm text-ink-2" aria-live="polite">Ticket type: <b>{ticketTier(guestTypeFor(answers.guest_category))}</b></p>}
+      <Select label="How did you reach TEDxGUC?" value={answers.referral_source ?? ''} onChange={(e) => setAnswers((a) => ({ ...a, referral_source: e.target.value, referral_other: '' }))} error={errors.referral_source} required>
+        <option value="">Choose…</option>{REFERRAL_SOURCES.map((s) => <option key={s} value={s}>{s}</option>)}
+      </Select>
+      {answers.referral_source === 'Other' && <TextInput label="How did you hear about us?" maxLength={500} value={answers.referral_other ?? ''} onChange={(e) => setAnswers((a) => ({ ...a, referral_other: e.target.value }))} error={errors.referral_other} required />}
       {fields.map((f) => {
         const set = (v: string) => setAnswers((a) => ({ ...a, [f.id]: v }));
         const label = f.required ? f.label : `${f.label} (optional)`;
@@ -95,6 +108,7 @@ export function RegisterPanel({ event, fields, open, past, notYet }: {
         {errors.consent && <p className="tx-help mt-s1" role="alert">{errors.consent}</p>}
       </div>
       <Turnstile onToken={setToken} />
+      {errors.answers && <p className="tx-help" role="alert">{errors.answers}</p>}
       <Button type="submit" block loading={busy}><Ticket aria-hidden="true" />Claim free ticket</Button>
       <button type="button" className="tx-link text-body-sm justify-self-center bg-transparent border-0 cursor-pointer" onClick={() => setLost(true)}>Lost your ticket?</button>
       <ResendModal open={lost} onClose={() => setLost(false)} eventId={event.id} />

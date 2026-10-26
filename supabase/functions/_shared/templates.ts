@@ -1,10 +1,12 @@
 // Email wording. Deliberately plain: the branded design is applied
 // once the branding file arrives. No Deno APIs here, so it can be
 // unit-tested with Node.
+import { ticketTier } from './event-registration.ts';
 
 export type TicketDetails = {
   guest_name: string;
   guest_email: string;
+  guest_type?: string;
   event_title: string;
   starts_at: string;
   venue: string | null;
@@ -49,6 +51,7 @@ export function ticketEmail(t: TicketDetails, statusUrl?: string) {
       `Hi ${t.guest_name},`,
       `You're in! Here is your ticket for ${t.event_title}.`,
       `Ticket number: ${t.ticket_no}`,
+      `Ticket type: ${ticketTier(t.guest_type)}`,
       ...eventLines(t),
       'Show the QR code below at the door. Each ticket can be scanned once.',
       ...(statusUrl ? [`View or cancel your ticket: ${statusUrl}`] : []),
@@ -79,6 +82,7 @@ export function statusLinkEmail(t: TicketDetails & { status: string }, statusUrl
         : `Here is the link to your waitlist place for ${t.event_title}.`,
       ...eventLines(t),
       `Your private link: ${statusUrl}`,
+      `Ticket type: ${ticketTier(t.guest_type)}`,
       'Older links you received no longer work.',
     ],
     registered ? `<p><img src="cid:ticket-qr" alt="Ticket QR code" width="240" height="240"></p>` : '',

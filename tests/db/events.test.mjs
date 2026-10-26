@@ -27,7 +27,8 @@ async function newEvent(capacity = 2, extra = {}) {
 
 const register = (eventId, email, name = 'Guest') =>
   db.as('service', ({ one }) => one(
-    `select register_for_event($1, $2, $3, '01000000000', '{}') as r`, [eventId, name, email])).then((x) => x.r);
+    `select register_for_event($1, $2, $3, '01000000000', $4) as r`, [eventId, name, email,
+      { gucian: 'Yes', guc_id: '58-1234', guest_category: 'Attendee', referral_source: 'University' }])).then((x) => x.r);
 
 test('executives cannot create events', async () => {
   await rejects(db.as(mediaExec, ({ q }) => q(
@@ -138,7 +139,7 @@ test('registration rejects closed events, bad emails and missing required answer
     `insert into event_fields (event_id, label, required) values ($1, 'University', true) returning id`, [e.id]));
   await rejects(register(e.id, 'y@example.com'), /missing_field/);
   const ok = await db.as('service', ({ one }) => one(
-    `select register_for_event($1, 'Y', 'y@example.com', null, $2) as r`, [e.id, { [field.id]: 'GUC' }])).then((x) => x.r);
+    `select register_for_event($1, 'Y', 'y@example.com', '01000000000', $2) as r`, [e.id, { gucian: 'Yes', guc_id: '58-1234', guest_category: 'Attendee', referral_source: 'University', [field.id]: 'GUC' }])).then((x) => x.r);
   assert.equal(ok.status, 'registered');
 });
 
@@ -253,4 +254,64 @@ test('all Curators can announce events to the whole club', async () => {
   const season = (await db.one(`select id from seasons where is_active`)).id;
   await db.as(opsCurator, ({ q }) => q(`insert into announcements (season_id, audience_type, title, body) values ($1, 'all', 'Salon on Thursday', 'Internal event')`, [season]));
   await db.as(talksCurator, ({ q }) => q(`insert into announcements (season_id, audience_type, title, body) values ($1, 'all', 'x', 'y')`, [season]));
+});
+
+const pdfAnswers = (extra = {}) => ({ gucian: 'Yes', guc_id: '58-1234', guest_category: 'Attendee', referral_source: 'University', ...extra });
+const registerPdf = (eventId, email, answers, phone = '+20 100 000 0000', suppliedType = 'attendee') =>
+  db.as('service', ({ one }) => one(`select register_for_event($1, 'PDF Guest', $2, $3, $4, $5) as r`, [eventId, email, phone, answers, suppliedType])).then((x) => x.r);
+
+test('PDF registration enforces identity branches, contact details, referral and exact guest choices in the database', async () => {
+  const e = await newEvent(20);
+  for (const [extra, message] of [
+    [{ gucian: '' }, /missing_gucian/], [{ guc_id: '' }, /missing_guc_id/],
+    [{ gucian: 'No' }, /missing_national_id/], [{ guest_category: 'VIP' }, /invalid_guest_category/],
+    [{ guest_category: '' }, /invalid_guest_category/], [{ referral_source: '' }, /missing_referral_source/],
+    [{ referral_source: 'Other' }, /missing_referral_other/],
+  ]) await rejects(registerPdf(e.id, 'invalid@example.com', pdfAnswers(extra)), message);
+  await rejects(registerPdf(e.id, 'invalid@example.com', pdfAnswers(), ''), /invalid_phone/);
+  await rejects(registerPdf(e.id, 'invalid@example.com', pdfAnswers({ malformed: {} })), /invalid_registration_answers/);
+  await rejects(registerPdf(e.id, 'invalid@example.com', []), /invalid_registration_answers/);
+  const nonGuc = await registerPdf(e.id, 'nonguc@example.com', pdfAnswers({ gucian: 'No', national_id: '12345678901234', referral_source: 'Other', referral_other: 'A friend' }));
+  assert.equal(nonGuc.status, 'registered', 'an ID photo is never required');
+  const stored = await db.as(opsCurator, ({ one }) => one(`select answers from registrations where id = $1`, [nonGuc.registration_id]));
+  assert.equal(stored.answers.guc_id, undefined, 'inactive branch is removed');
+  assert.equal(stored.answers.national_id, '12345678901234');
+});
+
+test('PDF guest category controls Regular/VIP across storage, private ticket, resends, check-in and manifest', async () => {
+  const e = await newEvent(20);
+  const categories = ['Attendee', "Speaker's Family", 'Ex-Board', 'Board Member Family', 'Sponsor'];
+  for (const [i, category] of categories.entries()) {
+    const expected = category === 'Attendee' ? 'attendee' : 'vip';
+    const registered = await registerPdf(e.id, `category${i}@example.com`, pdfAnswers({ guest_category: category }), '+20 100 000 0000', expected === 'vip' ? 'attendee' : 'vip');
+    assert.equal(registered.guest_type, expected, 'caller cannot override the category classification');
+    const privateView = await db.as('anon', ({ one }) => one(`select get_registration_by_token($1) as r`, [registered.status_token])).then((x) => x.r);
+    assert.equal(privateView.guest_type, expected);
+    assert.equal(privateView.answers, undefined, 'identity answers are not included in ticket links');
+    const resent = await db.as('service', ({ one }) => one(`select reissue_status_link($1, $2) as r`, [e.id, `category${i}@example.com`])).then((x) => x.r);
+    assert.equal(resent.guest_type, expected);
+    const checked = await db.as(opsCurator, ({ one }) => one(`select check_in($1, $2) as r`, [e.id, registered.ticket_code])).then((x) => x.r);
+    assert.equal(checked.guest_type, expected);
+  }
+  const stored = await db.as(opsCurator, ({ q }) => q(`select guest_type, answers from registrations where event_id = $1`, [e.id]));
+  assert.equal(stored.filter((r) => r.guest_type === 'vip').length, 4);
+  const manifest = await db.as(opsCurator, ({ q }) => q(`select * from get_checkin_manifest($1)`, [e.id]));
+  assert.equal(manifest.filter((r) => r.guest_type === 'vip').length, 4);
+  assert.equal(manifest.filter((r) => r.guest_type === 'attendee').length, 1);
+  assert.ok(manifest.every((r) => !('answers' in r) && !('national_id' in r)));
+  assert.equal((await db.as(mediaAssoc, ({ q }) => q(`select answers from registrations where event_id = $1`, [e.id]))).length, 0);
+  await rejects(db.as('anon', ({ q }) => q(`select answers from registrations where event_id = $1`, [e.id])), /permission denied/);
+});
+
+test('VIP remains VIP when promoted from the waitlist', async () => {
+  const e = await newEvent(1);
+  const first = await register(e.id, 'first-tier@example.com');
+  const waiting = await registerPdf(e.id, 'vip-wait@example.com', pdfAnswers({ guest_category: 'Sponsor' }));
+  assert.equal(waiting.status, 'waitlisted');
+  assert.equal(waiting.guest_type, 'vip');
+  const cancelled = await db.as('service', ({ one }) => one(`select cancel_registration($1) as r`, [first.status_token])).then((x) => x.r);
+  assert.equal(cancelled.promoted.guest_type, 'vip');
+  const ticket = await db.as('anon', ({ one }) => one(`select get_registration_by_token($1) as r`, [waiting.status_token])).then((x) => x.r);
+  assert.equal(ticket.status, 'registered');
+  assert.equal(ticket.guest_type, 'vip');
 });

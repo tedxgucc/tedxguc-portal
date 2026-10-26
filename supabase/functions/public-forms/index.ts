@@ -19,6 +19,7 @@
 import { admin } from '../_shared/clients.ts';
 import { clientIp, fromDbError, handle, HttpError, json } from '../_shared/http.ts';
 import { verifyTurnstile } from '../_shared/turnstile.ts';
+import { registrationErrors, cleanRegistrationAnswers, guestTypeFor } from '../_shared/event-registration.ts';
 import {
   sendApplicationNotice, sendPlain, sendStatusLink, sendTicket, sendWaitlisted,
 } from '../_shared/email.ts';
@@ -49,6 +50,9 @@ Deno.serve(handle(async (req) => {
     case 'register': {
       requireConsent(body);
       await verifyTurnstile(str(body.turnstile_token, 2048), ip);
+      const registrationIssues = registrationErrors(body);
+      if (Object.keys(registrationIssues).length) throw new HttpError(400, 'invalid_form', Object.values(registrationIssues)[0]);
+      const registrationAnswers = cleanRegistrationAnswers(body.answers as Record<string, string>);
       const email = str(body.email, 254).toLowerCase();
       await limit(`email:${email}`, 5, 3600);
       const { data, error } = await admin.rpc('register_for_event', {
@@ -56,7 +60,8 @@ Deno.serve(handle(async (req) => {
         p_name: str(body.name, 120),
         p_email: email,
         p_phone: str(body.phone, 30) || null,
-        p_answers: typeof body.answers === 'object' && body.answers ? body.answers : {},
+        p_answers: registrationAnswers,
+        p_guest_type: guestTypeFor(registrationAnswers.guest_category),
       });
       if (error) throw fromDbError(error);
       if (data.status === 'registered') await sendTicket(data, data.status_token);

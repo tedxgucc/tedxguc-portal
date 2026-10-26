@@ -5,6 +5,7 @@ import * as fx from '../demo/fixtures';
 import { clearCache } from '../cache';
 import { cairoDay } from '../format';
 import { canManageEvents, canManageTeam } from '../roles';
+import { registrationErrors, cleanRegistrationAnswers, guestTypeFor } from '../event-registration';
 import type {
   Announcement, CalendarItem, CheckInResult, Me, Member, Notification, RegistrationRow, Task, TxEvent,
 } from '../types';
@@ -211,6 +212,8 @@ export const demoApi: Api = {
     const e = st.events.find((x) => x.id === input.event_id);
     if (!e || !isOpen(e)) fail('event_not_open');
     if (!input.consent) fail('consent_required');
+    const issues = registrationErrors(input);
+    if (Object.keys(issues).length) fail('invalid_form', Object.values(issues)[0]);
     if (!input.name.trim()) fail('invalid_name');
     const email = input.email.trim().toLowerCase();
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) fail('invalid_email');
@@ -224,9 +227,9 @@ export const demoApi: Api = {
     const token = id('tok') + id('k');
     const g: Guest = {
       id: id('r'), event_id: e!.id, guest_name: input.name.trim(), guest_email: email, guest_phone: input.phone ?? '',
-      guest_type: 'attendee', status: full ? 'waitlisted' : 'registered',
+      guest_type: guestTypeFor(input.answers.guest_category), status: full ? 'waitlisted' : 'registered',
       ticket_no: full ? '' : ticketFor(e!, mine.filter((x) => x.ticket_no).length + 1),
-      ticket_code: full ? null : id('code'), status_token: token, answers: input.answers, checked_in_at: null, created_at: nowIso(),
+      ticket_code: full ? null : id('code'), status_token: token, answers: cleanRegistrationAnswers(input.answers), checked_in_at: null, created_at: nowIso(),
     };
     st.guests.push(g);
     save();
@@ -245,7 +248,7 @@ export const demoApi: Api = {
     const e = st.events.find((x) => x.id === g.event_id)!;
     const waiting = st.guests.filter((x) => x.event_id === g.event_id && x.status === 'waitlisted');
     return {
-      registration_id: g.id, status: g.status, guest_name: g.guest_name, ticket_no: g.ticket_no || null,
+      registration_id: g.id, status: g.status, guest_name: g.guest_name, guest_type: g.guest_type, ticket_no: g.ticket_no || null,
       ticket_code: g.status === 'registered' ? g.ticket_code : null, checked_in_at: g.checked_in_at,
       waitlist_position: g.status === 'waitlisted' ? waiting.findIndex((x) => x.id === g.id) + 1 : null,
       event: { id: e.id, title: e.title, starts_at: e.starts_at, ends_at: e.ends_at, venue: e.venue },
@@ -514,7 +517,7 @@ export const demoApi: Api = {
     const me = requireMe();
     if (!canManageEvents(me)) return [];
     return s().guests.filter((g) => g.event_id === eventId).map<RegistrationRow>((g) => ({
-      id: g.id, guest_name: g.guest_name, guest_email: g.guest_email, guest_phone: g.guest_phone, guest_type: g.guest_type,
+      id: g.id, guest_name: g.guest_name, guest_email: g.guest_email, guest_phone: g.guest_phone, guest_type: g.guest_type, answers: g.answers,
       status: g.status, ticket_no: g.ticket_no || null, checked_in_at: g.checked_in_at, created_at: g.created_at,
     })).sort((a, b) => b.created_at.localeCompare(a.created_at));
   },

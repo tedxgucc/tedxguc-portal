@@ -6,6 +6,7 @@ import QRCode from 'qrcode';
 import { useEffect, useState } from 'react';
 import { fmtDate, fmtTime } from '@/lib/format';
 import { LockupWhite } from './Brand';
+import { ticketTier } from '@/lib/event-registration';
 
 export function QR({ value, label, className = 'tx-ticket__qr' }: { value: string; label: string; className?: string }) {
   const [svg, setSvg] = useState<string>('');
@@ -17,8 +18,8 @@ export function QR({ value, label, className = 'tx-ticket__qr' }: { value: strin
   return <div className={className} role="img" aria-label={label} dangerouslySetInnerHTML={{ __html: svg }} />;
 }
 
-export function Ticket({ eventTitle, eventKind, guestName, startsAt, venue, ticketNo, code }: {
-  eventTitle: string; eventKind: string; guestName: string; startsAt: string; venue: string | null; ticketNo: string; code: string;
+export function Ticket({ eventTitle, eventKind, guestName, guestType, startsAt, venue, ticketNo, code }: {
+  eventTitle: string; eventKind: string; guestName: string; guestType?: string; startsAt: string; venue: string | null; ticketNo: string; code: string;
 }) {
   return (
     <div className="tx-ticket" id="ticket">
@@ -31,6 +32,7 @@ export function Ticket({ eventTitle, eventKind, guestName, startsAt, venue, tick
       <div className="tx-ticket__body">
         <div className="tx-ticket__grid">
           <div><div className="tx-ticket__k">Name</div><div className="tx-ticket__v">{guestName}</div></div>
+            <div><div className="tx-ticket__k">Ticket type</div><div className="tx-ticket__v">{ticketTier(guestType)}</div></div>
           <div><div className="tx-ticket__k">Seat</div><div className="tx-ticket__v">Free seating</div></div>
           <div><div className="tx-ticket__k">Date</div><div className="tx-ticket__v">{fmtDate(startsAt)}</div></div>
           <div><div className="tx-ticket__k">Doors</div><div className="tx-ticket__v">{fmtTime(startsAt)}</div></div>

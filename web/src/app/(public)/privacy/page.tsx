@@ -12,6 +12,7 @@ export default function PrivacyPage() {
       <section className="grid gap-s2">
         <h2 className="h4">What we keep</h2>
         <p className="text-ink-2">When you register, apply, order or write to us, we keep your name, email, phone (if you give it) and your answers to the form.</p>
+        <p className="text-ink-2">Event registration requires a phone number, whether you are a GUCian, your GUC ID or national ID number, your guest category and how you heard about us. We do not request an ID photo.</p>
       </section>
       <section className="grid gap-s2">
         <h2 className="h4">Why</h2>
