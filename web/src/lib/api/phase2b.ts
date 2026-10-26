@@ -4,7 +4,7 @@ import { DEMO } from '../env';
 import { db } from '../supabase';
 import type { InterviewAvailability } from '../interview-availability';
 import type {
-  Application, ApplicationView, BoardPlan, Cycle, FileScope, HandoverRow, InterviewScore, InterviewSlot, LibFile,
+  Application, ApplicationView, ApplicationDecisionContext, BoardPlan, Cycle, FileScope, HandoverRow, InterviewScore, InterviewSlot, LibFile,
   FormAnswer, Order, OrderMethod, OrderPlaced, OrderView, Package, Position, Question, SalesRow, Stage,
 } from '../types';
 import { friendly, toApiError } from './errors';
@@ -41,6 +41,8 @@ export interface RecruitmentApi {
   setStage(ids: string[], stage: Exclude<Stage, 'accepted' | 'withdrawn'>): Promise<{ emailed: number; held_back: number }>;
   releaseRejections(cycleId: string): Promise<number>;
   accept(applicationId: string, teamId: string): Promise<{ team: string }>;
+  decisionContext(applicationId: string): Promise<ApplicationDecisionContext>;
+  refer(applicationId: string, teamId: string, notes: string): Promise<void>;
   cvUrl(path: string): Promise<string | null>;
   listSlots(): Promise<InterviewSlot[]>;
   addSlot(input: SlotInput): Promise<void>;
@@ -155,13 +157,20 @@ const liveRecruitment: RecruitmentApi = {
     await run(db().rpc('withdraw_application', { p_status_token: token }));
   },
   async listApplications() {
-    return run(db().from('applications').select('id, cycle_id, applicant_name, applicant_email, applicant_phone, team_choices, answers, cv_path, stage, accepted_team_id, created_at').order('created_at', { ascending: false }));
+    const rows = await run<Application[]>(db().from('applications').select('id, cycle_id, applicant_name, applicant_email, applicant_phone, team_choices, answers, cv_path, stage, accepted_team_id, created_at').order('created_at', { ascending: false }));
+    const referrals = await db().from('application_referrals').select('application_id, to_team_id');
+    if (referrals.error && !(['42P01', 'PGRST205'].includes(referrals.error.code) && referrals.error.message.includes('application_referrals'))) throw toApiError(referrals.error);
+    return rows.map((a) => ({ ...a, referred_team_ids: (referrals.data ?? []).filter((r) => r.application_id === a.id).map((r) => r.to_team_id) }));
   },
   setStage: (ids, stage) => invoke('staff-actions', { action: 'application_stage', application_ids: ids, stage }),
   async releaseRejections(cycleId) {
     return (await invoke<{ emailed: number }>('staff-actions', { action: 'release_rejections', cycle_id: cycleId })).emailed;
   },
   accept: (applicationId, teamId) => invoke('staff-actions', { action: 'accept_application', application_id: applicationId, team_id: teamId }),
+  decisionContext: (applicationId) => run(db().rpc('application_decision_context', { p_application_id: applicationId })),
+  async refer(applicationId, teamId, notes) {
+    await run(db().rpc('refer_application', { p_application_id: applicationId, p_team_id: teamId, p_notes: notes }));
+  },
   cvUrl: (path) => signed('applications', path),
   async listSlots() {
     return run(db().from('interview_slots').select('id, cycle_id, team_id, starts_at, ends_at, location, interviewer_ids, application_id').order('starts_at'));

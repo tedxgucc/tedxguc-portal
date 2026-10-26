@@ -266,7 +266,10 @@ export type Application = {
   id: string; cycle_id: string; applicant_name: string; applicant_email: string; applicant_phone: string | null;
   team_choices: string[]; answers: Record<string, string>; cv_path: string | null; stage: Stage;
   accepted_team_id: string | null; created_at: string;
+  referred_team_ids?: string[];
 };
+export type ApplicationReferral = { id: string; application_id: string; from_team_id: string; to_team_id: string; referred_by: string; notes: string; status: 'pending' | 'accepted' | 'closed'; created_at: string };
+export type ApplicationDecisionContext = { interview_completed: boolean; acceptable_team_ids: string[]; referrals: ApplicationReferral[] };
 export type SlotView = { slot_id: string; starts_at: string; ends_at: string; location: string | null; team: string };
 export type ApplicationView = {
   application_id: string; applicant_name: string; cycle: string;

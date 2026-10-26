@@ -4,7 +4,7 @@ import * as fx from '../demo/fixtures';
 import { applicationPhoneKey } from '../recruitment';
 import type { InterviewAvailability } from '../interview-availability';
 import type {
-  Application, ApplicationView, BoardPlan, Cycle, InterviewScore, InterviewSlot, LibFile, Me, Order, OrderStatus,
+  Application, ApplicationView, ApplicationReferral, BoardPlan, Cycle, InterviewScore, InterviewSlot, LibFile, Me, Order, OrderStatus,
   Package, Position, SlotView,
 } from '../types';
 import { friendly } from './errors';
@@ -26,6 +26,7 @@ type App = Application & { token: string; released?: boolean };
 type Ord = Order & { token: string; pickup_code: string | null };
 type Store = {
   availability?: Record<string, InterviewAvailability>;
+  referrals?: ApplicationReferral[];
   cycles: Cycle[]; positions: Position[]; apps: App[]; slots: InterviewSlot[]; scores: InterviewScore[]; plans: BoardPlan[];
   files: LibFile[]; packages: Omit<Package, 'stock_left'>[]; orders: Ord[]; approvers: string[]; counter: number;
 };
@@ -117,7 +118,12 @@ const manageTeam = (u: Me, tid: string | null) => {
   return !!t && (u.role === 'chairman' || (u.role === 'curator' && u.division_id === t.division_id) || (u.role === 'executive' && u.team_id === t.id));
 };
 const manageDivision = (u: Me, did: string | null) => u.role === 'chairman' || (u.role === 'curator' && u.division_id === did);
-const canReview = (u: Me, a: Application) => a.team_choices.some((t) => manageTeam(u, t));
+const canReview = (u: Me, a: Application) => a.team_choices.some((t) => manageTeam(u, t)) || (s().referrals ?? []).some((r) => r.application_id === a.id && manageTeam(u, r.to_team_id));
+const interviewed = (appId: string) => s().slots.some((x) => x.application_id === appId && Date.parse(x.ends_at) <= Date.now());
+const acceptableTeams = (u: Me, a: Application) => fx.teams.filter((t) => manageTeam(u, t.id)
+  && (a.team_choices.includes(t.id) || (s().referrals ?? []).some((r) => r.application_id === a.id && r.to_team_id === t.id && r.status === 'pending'))
+  && !['accepted', 'withdrawn'].includes(a.stage)
+  && (u.role !== 'executive' || (a.stage === 'interview' && interviewed(a.id)))).map((t) => t.id);
 const canDecide = (u: Me, a: Application) => u.role === 'chairman' || a.team_choices.some((t) => manageDivision(u, team(t)?.division_id ?? null));
 const isOpen = (c: Cycle) => Date.now() >= new Date(c.opens_at).getTime() && Date.now() <= new Date(c.closes_at).getTime();
 
@@ -214,7 +220,7 @@ export const demoRecruitmentApi: RecruitmentApi = {
   },
   async listApplications() {
     const u = me();
-    return s().apps.filter((a) => canReview(u, a)).map(({ token: _t, released: _r, ...a }) => a);
+    return s().apps.filter((a) => canReview(u, a)).map(({ token: _t, released: _r, ...a }) => ({ ...a, referred_team_ids: (s().referrals ?? []).filter((r) => r.application_id === a.id).map((r) => r.to_team_id) }));
   },
   async setStage(ids, stage) {
     const u = me();
@@ -245,13 +251,28 @@ export const demoRecruitmentApi: RecruitmentApi = {
   async accept(applicationId, teamId) {
     const u = me();
     const a = s().apps.find((x) => x.id === applicationId);
-    if (!a || !canDecide(u, a)) fail('not_allowed');
-    if (!a!.team_choices.includes(teamId)) fail('team_not_chosen', 'They didn’t choose that team.');
-    if (!(u.role === 'chairman' || manageDivision(u, team(teamId)?.division_id ?? null))) fail('not_allowed', 'You can only accept into your own division.');
+    if (!a || !acceptableTeams(u, a).includes(teamId)) fail('not_allowed');
     a!.stage = 'accepted';
     a!.accepted_team_id = teamId;
+    for (const r of s().referrals ?? []) if (r.application_id === applicationId && r.status === 'pending') r.status = r.to_team_id === teamId ? 'accepted' : 'closed';
     save();
     return { team: team(teamId)?.name ?? '' };
+  },
+  async decisionContext(applicationId) {
+    const u = me(); const a = s().apps.find((x) => x.id === applicationId);
+    if (!a || !canReview(u, a)) fail('not_allowed');
+    return { interview_completed: interviewed(applicationId), acceptable_team_ids: acceptableTeams(u, a!), referrals: (s().referrals ?? []).filter((r) => r.application_id === applicationId && (manageTeam(u, r.from_team_id) || manageTeam(u, r.to_team_id))) };
+  },
+  async refer(applicationId, teamId, notes) {
+    const u = me(); const a = s().apps.find((x) => x.id === applicationId);
+    if (!a || !canReview(u, a)) fail('not_allowed');
+    if (a!.stage !== 'interview' || !interviewed(applicationId)) fail('interview_not_completed');
+    const source = [...a!.team_choices, ...(s().referrals ?? []).filter((r) => r.application_id === applicationId && r.status === 'pending').map((r) => r.to_team_id)].find((t) => t !== teamId && manageTeam(u, t));
+    if (!source || !s().positions.some((p) => p.cycle_id === a!.cycle_id && p.team_id === teamId)) fail('not_allowed');
+    if ((s().referrals ?? []).some((r) => r.application_id === applicationId && r.to_team_id === teamId)) fail('already_referred');
+    if (notes.length > 2000) fail('referral_notes_too_long');
+    (s().referrals ??= []).push({ id: rid('ref'), application_id: applicationId, from_team_id: source!, to_team_id: teamId, referred_by: u.id, notes: notes.trim(), status: 'pending', created_at: new Date().toISOString() });
+    save();
   },
   async cvUrl() { return null; },
   async listSlots() {

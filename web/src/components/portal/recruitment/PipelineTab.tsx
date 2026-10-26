@@ -1,7 +1,7 @@
 'use client';
 // Pipeline (FR-4.3, 4.4, 4.5, 4.6): Applied → Screened → Interview → Accepted / Rejected.
-// Curators (own division) and the Chairman move applicants, in bulk, and
-// accept into a team; Executives see their own team's applicants and score.
+// Curators and the Chairman move stages; Executives accept completed
+// interviews into their own team and send reallocation referrals.
 import { Check, ExternalLink, FileText, Send, Star, UserCheck, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { usePortal } from '@/components/portal/PortalContext';
@@ -9,7 +9,8 @@ import { useToast } from '@/components/Toast';
 import { Button, Chip, EmptyState, Modal, Select, Skeleton, TextArea, TextInput } from '@/components/ui';
 import { recruitmentApi } from '@/lib/api/phase2b';
 import { fmtRelative } from '@/lib/format';
-import type { Application, Cycle, InterviewScore, Position, Stage } from '@/lib/types';
+import { canManageTeam } from '@/lib/roles';
+import type { Application, ApplicationDecisionContext, Cycle, InterviewScore, Position, Stage } from '@/lib/types';
 
 const STAGES: { s: Stage; label: string }[] = [
   { s: 'applied', label: 'Applied' }, { s: 'screened', label: 'Screened' }, { s: 'interview', label: 'Interview' },
@@ -25,7 +26,7 @@ export function stageChip(s: Stage) {
   return <Chip kind={k}>{w}</Chip>;
 }
 
-export function PipelineTab() {
+export function PipelineTab({ decisionsOnly = false }: { decisionsOnly?: boolean }) {
   const { me, team, teams } = usePortal();
   const toast = useToast();
   const [cycles, setCycles] = useState<Cycle[]>([]);
@@ -33,7 +34,7 @@ export function PipelineTab() {
   const [apps, setApps] = useState<Application[] | null>(null);
   const [positions, setPositions] = useState<Position[]>([]);
   const [teamFilter, setTeamFilter] = useState('');
-  const [stage, setStage] = useState<Stage | ''>('');
+  const [stage, setStage] = useState<Stage | ''>(decisionsOnly ? 'interview' : '');
   const [picked, setPicked] = useState<string[]>([]);
   const [open, setOpen] = useState<Application | null>(null);
   const decides = me.role === 'chairman' || me.role === 'curator';
@@ -45,9 +46,10 @@ export function PipelineTab() {
   }, []);
   useEffect(() => { load(); }, [load]);
 
-  const visibleTeams = useMemo(() => teams.filter((t) => (apps ?? []).some((a) => a.team_choices.includes(t.id))), [teams, apps]);
-  const shown = (apps ?? []).filter((a) => (!cycleId || a.cycle_id === cycleId) && (!teamFilter || a.team_choices.includes(teamFilter)) && (!stage || a.stage === stage));
-  const count = (s: Stage) => (apps ?? []).filter((a) => (!cycleId || a.cycle_id === cycleId) && (!teamFilter || a.team_choices.includes(teamFilter)) && a.stage === s).length;
+  const inTeam = (a: Application, id: string) => a.team_choices.includes(id) || a.referred_team_ids?.includes(id) || a.accepted_team_id === id;
+  const visibleTeams = useMemo(() => teams.filter((t) => canManageTeam(me, t)), [teams, me]);
+  const shown = (apps ?? []).filter((a) => (!cycleId || a.cycle_id === cycleId) && (!teamFilter || inTeam(a, teamFilter)) && (!stage || a.stage === stage));
+  const count = (s: Stage) => (apps ?? []).filter((a) => (!cycleId || a.cycle_id === cycleId) && (!teamFilter || inTeam(a, teamFilter)) && a.stage === s).length;
   const heldRejections = (apps ?? []).filter((a) => a.cycle_id === cycleId && a.stage === 'rejected').length;
   const cycle = cycles.find((c) => c.id === cycleId);
 
@@ -66,6 +68,7 @@ export function PipelineTab() {
 
   return (
     <div className="grid gap-s4">
+      {decisionsOnly && <p className="text-body-sm text-ink-2">Review your team's interviews and incoming reallocations. After an interview finishes, accept the applicant into your team or refer them to another team for review.</p>}
       <div className="grid gap-s3 sm:grid-cols-3">
         <Select label="Round" value={cycleId} onChange={(e) => { setCycleId(e.target.value); setPicked([]); }}>
           {cycles.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -116,6 +119,7 @@ export function PipelineTab() {
                 : <span className="w-[20px]" />}
               <button className="grid grid-cols-1 min-w-0 text-left bg-transparent border-0 cursor-pointer p-0 text-ink" onClick={() => setOpen(a)}>
                 <span className="font-semibold truncate">{a.applicant_name}</span>
+                {a.referred_team_ids?.some((id) => canManageTeam(me, team(id))) && <span className="text-caption text-accent">Reallocation received</span>}
                 <span className="text-caption text-ink-3 truncate">{a.team_choices.map((t, i) => `${i + 1}. ${team(t)?.name}`).join('  ')} · {fmtRelative(a.created_at)}</span>
               </button>
               {stageChip(a.stage)}
@@ -132,13 +136,24 @@ function ApplicantSheet({ app, positions, decides, onClose, onChanged, onMove }:
   app: Application; positions: Position[]; decides: boolean; onClose: () => void; onChanged: () => void;
   onMove: (ids: string[], s: Exclude<Stage, 'accepted' | 'withdrawn'>) => Promise<void>;
 }) {
-  const { me, team, memberName } = usePortal();
+  const { me, team, teams, memberName } = usePortal();
   const toast = useToast();
   const [scores, setScores] = useState<InterviewScore[]>([]);
   const [score, setScore] = useState('');
   const [notes, setNotes] = useState('');
   const [accepting, setAccepting] = useState(false);
-  const [acceptTeam, setAcceptTeam] = useState(app.team_choices[0]);
+  const [acceptTeam, setAcceptTeam] = useState('');
+  const [context, setContext] = useState<ApplicationDecisionContext | null>(null);
+  const [contextError, setContextError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [referring, setReferring] = useState(false);
+  const [referTeam, setReferTeam] = useState('');
+  const [referNotes, setReferNotes] = useState('');
+  const loadContext = useCallback(() => {
+    setContextError(null);
+    recruitmentApi.decisionContext(app.id).then((c) => { setContext(c); setAcceptTeam((id) => c.acceptable_team_ids.includes(id) ? id : c.acceptable_team_ids[0] ?? ''); }).catch((e) => setContextError((e as Error).message));
+  }, [app.id]);
+  useEffect(() => { loadContext(); }, [loadContext]);
   const loadScores = useCallback(() => recruitmentApi.listScores(app.id).then((s) => {
     setScores(s);
     const mine = s.find((x) => x.interviewer_id === me.id);
@@ -148,9 +163,10 @@ function ApplicantSheet({ app, positions, decides, onClose, onChanged, onMove }:
 
   const qs = positions.filter((p) => p.cycle_id === app.cycle_id && app.team_choices.includes(p.team_id)).flatMap((p) => p.questions);
   const avg = scores.length ? Math.round((scores.reduce((a, s) => a + s.score, 0) / scores.length) * 10) / 10 : null;
-  // Curators accept only into teams of their own division.
-  const acceptable = app.team_choices.filter((t) => me.role === 'chairman' || teamsDivision(t) === me.division_id);
-  function teamsDivision(t: string) { return team(t)?.division_id; }
+  const acceptable = context?.acceptable_team_ids ?? [];
+  const sourceTeams = [...app.team_choices, ...(context?.referrals.filter((r) => r.status === 'pending').map((r) => r.to_team_id) ?? [])].filter((id) => canManageTeam(me, team(id)));
+  const referable = teams.filter((t) => positions.some((p) => p.cycle_id === app.cycle_id && p.team_id === t.id)
+    && sourceTeams.some((id) => id !== t.id) && !context?.referrals.some((r) => r.to_team_id === t.id));
 
   const saveScore = async () => {
     const n = Number(score);
@@ -159,8 +175,17 @@ function ApplicantSheet({ app, positions, decides, onClose, onChanged, onMove }:
     catch (e) { toast('bad', 'That didn’t save.', (e as Error).message); }
   };
   const accept = async () => {
+    setSaving(true);
     try { const r = await recruitmentApi.accept(app.id, acceptTeam); toast('ok', `${app.applicant_name} accepted into ${r.team}.`, 'They get an invite to the portal by email.'); onChanged(); }
     catch (e) { toast('bad', 'That didn’t save.', (e as Error).message); }
+    finally { setSaving(false); }
+  };
+  const refer = async () => {
+    if (!referTeam) return;
+    setSaving(true);
+    try { await recruitmentApi.refer(app.id, referTeam, referNotes); toast('ok', `Referred to ${team(referTeam)?.name}.`, 'The receiving team reviews and accepts the applicant.'); onChanged(); }
+    catch (e) { toast('bad', 'That did not save.', (e as Error).message); }
+    finally { setSaving(false); }
   };
   const openCv = async () => {
     if (!app.cv_path) return;
@@ -204,13 +229,19 @@ function ApplicantSheet({ app, positions, decides, onClose, onChanged, onMove }:
           <Button small variant="secondary" className="justify-self-start" onClick={saveScore}>Save my score</Button>
         </section>
 
-        {decides && !['accepted', 'withdrawn'].includes(app.stage) && (
+        {context?.referrals.length ? <section className="grid gap-s2 border-t border-line pt-s4"><h3 className="h4">Reallocations</h3>{context.referrals.map((r) => <div key={r.id} className="tx-card grid gap-s1"><p className="text-body-sm font-semibold">{team(r.from_team_id)?.name} → {team(r.to_team_id)?.name} · {r.status}</p>{r.notes && <p className="text-body-sm text-ink-2 whitespace-pre-line">{r.notes}</p>}</div>)}</section> : null}
+        {contextError && <div role="alert" className="grid gap-s2"><p className="tx-help">{contextError}</p><div><Button small variant="secondary" onClick={loadContext}>Retry decision permissions</Button></div></div>}
+        {(decides || me.role === 'executive') && !['accepted', 'withdrawn'].includes(app.stage) && (
           <section className="grid gap-s2 border-t border-line pt-s4">
+            <h3 className="h4">Interview decision</h3>
+            {!context && !contextError && <p className="text-body-sm text-ink-3">Loading decision permissions…</p>}
+            {me.role === 'executive' && context && !context.interview_completed && <><p className="text-body-sm text-ink-3">Acceptance and reallocation become available after the scheduled interview finishes.</p><div><Button small variant="ghost" onClick={loadContext}>Refresh interview status</Button></div></>}
             <div className="grid grid-cols-2 gap-s2">
-              {app.stage !== 'screened' && app.stage !== 'interview' && <Button small variant="secondary" onClick={() => onMove([app.id], 'screened')}>Screened</Button>}
-              {app.stage !== 'interview' && <Button small variant="secondary" onClick={() => onMove([app.id], 'interview')}>Invite to interview</Button>}
-              {app.stage !== 'rejected' && <Button small variant="danger" onClick={() => onMove([app.id], 'rejected')}><X aria-hidden="true" />Reject</Button>}
+              {decides && app.stage !== 'screened' && app.stage !== 'interview' && <Button small variant="secondary" onClick={() => onMove([app.id], 'screened')}>Screened</Button>}
+              {decides && app.stage !== 'interview' && <Button small variant="secondary" onClick={() => onMove([app.id], 'interview')}>Invite to interview</Button>}
+              {decides && app.stage !== 'rejected' && <Button small variant="danger" onClick={() => onMove([app.id], 'rejected')}><X aria-hidden="true" />Reject</Button>}
               {acceptable.length > 0 && <Button small onClick={() => setAccepting(true)}><UserCheck aria-hidden="true" />Accept</Button>}
+              {app.stage === 'interview' && context?.interview_completed && referable.length > 0 && <Button small variant="secondary" onClick={() => setReferring((v) => !v)}>Refer to another team</Button>}
             </div>
             {accepting && (
               <div className="tx-card tx-card--outline grid gap-s3">
@@ -218,12 +249,12 @@ function ApplicantSheet({ app, positions, decides, onClose, onChanged, onMove }:
                   {acceptable.map((t) => <option key={t} value={t}>{team(t)?.name}</option>)}
                 </Select>
                 <p className="text-caption text-ink-3">One step: they become an Associate and get an invite to the portal.</p>
-                <Button small onClick={accept}><Check aria-hidden="true" />Accept {app.applicant_name.split(' ')[0]}</Button>
+                <Button small loading={saving} disabled={!acceptTeam} onClick={accept}><Check aria-hidden="true" />Accept {app.applicant_name.split(' ')[0]}</Button>
               </div>
             )}
+            {referring && <div className="tx-card tx-card--outline grid gap-s3"><Select label="Receiving team" value={referTeam} onChange={(e) => setReferTeam(e.target.value)}><option value="">Choose a team</option>{referable.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</Select><TextArea label="Reallocation notes" maxLength={2000} value={referNotes} onChange={(e) => setReferNotes(e.target.value)} placeholder="Why might this applicant suit the receiving team?" /><p className="text-caption text-ink-3">Their original preferences stay unchanged. The receiving Executive makes the acceptance decision.</p><Button small loading={saving} disabled={!referTeam} onClick={refer}>Send referral</Button></div>}
           </section>
         )}
-        {!decides && <p className="text-caption text-ink-3">Your curator moves applicants and decides. You score and add notes.</p>}
       </div>
     </Modal>
   );

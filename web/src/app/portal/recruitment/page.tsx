@@ -1,6 +1,6 @@
 'use client';
 // Recruitment (FR-4). Associates only; there are no board applications.
-//   Executive → My availability: say when you're free (Calendly style); see who booked
+//   Executive → interview decisions, reallocations and availability
 //   Curator   → pipeline for own division, interview times, roles
 //   Chairman  → everything, and opens and closes rounds
 import { useState } from 'react';
@@ -12,13 +12,14 @@ import { PositionsTab } from '@/components/portal/recruitment/PositionsTab';
 import { RoundsTab } from '@/components/portal/recruitment/RoundsTab';
 import { EmptyState, Segmented } from '@/components/ui';
 
-type Tab = 'pipeline' | 'interviews' | 'roles' | 'rounds';
+type Tab = 'pipeline' | 'decisions' | 'interviews' | 'roles' | 'rounds';
 
 export default function RecruitmentPage() {
   const { me } = usePortal();
   const lead = me.role === 'chairman' || me.role === 'curator';
   const tabs: { value: Tab; label: string }[] = [];
   if (lead) tabs.push({ value: 'pipeline', label: 'Pipeline' });
+  if (me.role === 'executive') tabs.push({ value: 'decisions', label: 'Interview decisions' });
   if (lead || me.role === 'executive') tabs.push({ value: 'interviews', label: me.role === 'executive' ? 'My availability' : 'Interview times' });
   if (lead) tabs.push({ value: 'roles', label: 'Roles' });
   if (me.role === 'chairman') tabs.push({ value: 'rounds', label: 'Rounds' });
@@ -31,6 +32,7 @@ export default function RecruitmentPage() {
       <PageTitle label={`Recruitment · ${scope ?? ''}`} title={tabs.find((t) => t.value === tab)?.label ?? 'Recruitment'} />
       {tabs.length > 1 && <div className="mb-s5 overflow-x-auto -mx-s4 px-s4"><div className="min-w-[440px] max-w-[640px]"><Segmented label="Recruitment view" value={tab!} onChange={setTab} options={tabs} /></div></div>}
       {tab === 'pipeline' && <PipelineTab />}
+      {tab === 'decisions' && <PipelineTab decisionsOnly />}
       {tab === 'interviews' && <InterviewsTab />}
       {tab === 'roles' && <PositionsTab />}
       {tab === 'rounds' && <RoundsTab />}
