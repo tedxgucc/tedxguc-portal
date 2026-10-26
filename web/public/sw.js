@@ -2,7 +2,7 @@
 // (FR-5.7). Static files are cached on first use; pages are fetched from
 // the network first and fall back to the last copy when offline.
 // It never caches API or Supabase requests.
-const CACHE = 'tx-v2';
+const CACHE = 'tx-v3';
 // "" on the club's own domain, "/tedxguc-portal" on GitHub Pages.
 const BASE = new URL(self.registration.scope).pathname.replace(/\/$/, '');
 const SHELL = ['/portal/door/', '/brand/tedxguc-lockup-white.png', '/brand/tedxguc-lockup-black.png', '/brand/portal-mark-red.svg', '/icons/favicon.svg'].map((p) => BASE + p);
