@@ -1,6 +1,7 @@
 /* Design system first; its tx- classes outrank Tailwind's element reset. */
 @import './tokens.css';
 @import './bundle.css';
+@import './opening.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

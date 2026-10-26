@@ -5,6 +5,7 @@ import { SectionHeading, TxLabel } from '@/components/Brand';
 import { Countdown } from '@/components/Countdown';
 import { EventCard, eventKind } from '@/components/EventCard';
 import { SpeakerCard } from '@/components/SpeakerCard';
+import { OpeningScreen } from '@/components/OpeningScreen';
 import { api } from '@/lib/api';
 import { PageLoading, useLoad } from '@/lib/useLoad';
 import { fmtDate, fmtTime } from '@/lib/format';
@@ -22,6 +23,12 @@ export default function HomePage() {
 
   return (
     <>
+      <OpeningScreen
+        title={next?.title ?? 'Ideas worth spreading'}
+        label={next ? eventKind(next) : 'TEDxGUC'}
+        detail={next ? `${fmtDate(next.starts_at)}${next.venue ? ` · ${next.venue}` : ''}` : undefined}
+        description={next ? 'A stage for ideas. A place for new perspectives.' : 'Ideas, conversations and a community at the German University in Cairo.'}
+      />
       {/* Hero (FR-1.1): one watermark, the event title in display, countdown, one primary action. */}
       <section className="tx-watermark is-hero">
         <div className="mx-auto max-w-[1200px] px-s4 md:px-s6 pt-s8 md:pt-s9 pb-s7 grid gap-s6">
