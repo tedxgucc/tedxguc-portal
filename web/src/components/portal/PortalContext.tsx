@@ -27,13 +27,14 @@ type Portal = {
   markAllNotificationsRead: () => Promise<void>;
   /** Reload teams, divisions and members after an admin change. */
   reload: () => void;
+  refreshMembers: () => Promise<void>;
 };
 
 const Ctx = createContext<Portal | null>(null);
 
 export function PortalProvider({ children, fallback }: { children: React.ReactNode; fallback: React.ReactNode }) {
   const router = useRouter();
-  const [state, setState] = useState<Omit<Portal, 'memberName' | 'team' | 'divisionOfTeam' | 'refreshUnread' | 'markAllNotificationsRead' | 'unread' | 'reload'> | null>(null);
+  const [state, setState] = useState<Omit<Portal, 'memberName' | 'team' | 'divisionOfTeam' | 'refreshUnread' | 'markAllNotificationsRead' | 'unread' | 'reload' | 'refreshMembers'> | null>(null);
   const [unread, setUnread] = useState(0);
 
   const refreshUnread = useCallback(() => {
@@ -50,6 +51,17 @@ export function PortalProvider({ children, fallback }: { children: React.ReactNo
     Promise.all([api.getMe(), api.listTeams(), api.listDivisions(), api.listMembers(), adminApi.myStaffEvents().catch(() => [] as string[])])
       .then(([me, teams, divisions, members, doorEvents]) => { if (me) setState((cur) => ({ eventsToday: cur?.eventsToday ?? [], me, doorEvents, teams: teams.map((t) => ({ ...t })), divisions: divisions.map((d) => ({ ...d })), members: members.map((m) => ({ ...m })) })); })
       .catch(() => {});
+  }, []);
+
+  const refreshMembers = useCallback(async () => {
+    const [me, members] = await Promise.all([api.getMe(), api.listMembers()]);
+    if (!me) throw new Error('Log in again to refresh the roster.');
+    setState((cur) => {
+      if (!cur) return cur;
+      const next = { ...cur, me, members: members.map((m) => ({ ...m })) };
+      writeCache('portal', next);
+      return next;
+    });
   }, []);
 
   // A refresh shows the last view at once (before the first paint); the
@@ -93,6 +105,7 @@ export function PortalProvider({ children, fallback }: { children: React.ReactNo
       refreshUnread,
       markAllNotificationsRead,
       reload,
+      refreshMembers,
       memberName: (id) => byId.get(id) ?? (id === state.me.id ? state.me.name : 'Someone'),
       team: (id) => state.teams.find((t) => t.id === id),
       divisionOfTeam: (teamId) => {
@@ -100,7 +113,7 @@ export function PortalProvider({ children, fallback }: { children: React.ReactNo
         return state.divisions.find((d) => d.id === t?.division_id);
       },
     };
-  }, [state, unread, refreshUnread, markAllNotificationsRead, reload]);
+  }, [state, unread, refreshUnread, markAllNotificationsRead, reload, refreshMembers]);
 
   if (!value) return <>{fallback}</>;
   // Keyed by person: if someone else is now logged in, every page starts fresh.

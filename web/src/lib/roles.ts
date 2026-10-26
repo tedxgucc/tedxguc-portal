@@ -1,6 +1,6 @@
 // Role and division helpers for the screens. These only decide what to
 // SHOW; the database enforces every rule again (row-level security).
-import type { DivisionKind, Me, Role, Team } from './types';
+import type { DivisionKind, Me, Member, Role, Team } from './types';
 
 // Division accent class suffix used by tx-tag / tx-kcard / tx-pill.
 export function divClass(kind: DivisionKind | null | undefined): 'talks' | 'ops' | 'od' | 'mc' | null {
@@ -22,6 +22,19 @@ export const roleLabel: Record<Role, string> = {
 
 export const isBoard = (me: Me | null) => me?.role === 'chairman' || me?.role === 'curator' || me?.role === 'executive';
 export const isChairman = (me: Me | null) => me?.role === 'chairman';
+
+export const memberTeamIds = (member: Pick<Member, 'team_id' | 'team_ids'>): string[] => member.team_ids ?? (member.team_id ? [member.team_id] : []);
+export const isInTeam = (member: Pick<Member, 'team_id' | 'team_ids'>, teamId: string | null) => !!teamId && memberTeamIds(member).includes(teamId);
+
+export function canManageTeamMember(me: Me | null, team: Team, member: Member, action: 'add' | 'remove', teams: Team[] = []): boolean {
+  if (!me || !canManageTeam(me, team)) return false;
+  if (me.role === 'chairman') return true;
+  const ids = memberTeamIds(member);
+  if (me.role === 'curator') return ['executive', 'associate'].includes(member.role)
+    && (member.division_id === me.division_id || teams.some((t) => t.division_id === me.division_id && ids.includes(t.id)));
+  return me.role === 'executive' && member.role === 'associate'
+    && (action === 'remove' ? ids.includes(team.id) : member.team_id === null && ids.length === 0 && member.division_id === team.division_id);
+}
 
 // Chairman, the Curator of the team's division, or an Executive of the team.
 export function canManageTeam(me: Me | null, team: Pick<Team, 'id' | 'division_id'> | null | undefined): boolean {

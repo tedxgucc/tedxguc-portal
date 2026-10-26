@@ -17,6 +17,7 @@ export type Me = {
   photo_url: string | null;
   role: Role | null; // null = alumni / no role this season
   team_id: string | null;
+  team_ids?: string[];
   team_name: string | null;
   team_kind: TeamKind | null;
   division_id: string | null;
@@ -30,6 +31,7 @@ export type Member = {
   photo_url: string | null;
   role: Role;
   team_id: string | null;
+  team_ids?: string[];
   team: string | null;
   division_id: string | null;
   division: string | null;

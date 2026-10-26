@@ -7,6 +7,7 @@ import { usePortal } from '@/components/portal/PortalContext';
 import { useToast } from '@/components/Toast';
 import { Button, Chip, DivTag, Modal, Select, Skeleton, TextInput } from '@/components/ui';
 import { adminApi, type Season } from '@/lib/api/admin';
+import { isInTeam } from '@/lib/roles';
 import { fmtDate } from '@/lib/format';
 
 type Edit = { kind: 'team' | 'division'; id: string; name: string } | { kind: 'new-team'; divisionId: string; name: string } | null;
@@ -31,7 +32,7 @@ export function StructureTab() {
       toast('bad', 'Couldn’t save', (e as Error).message);
     } finally { setBusy(false); }
   };
-  const count = (teamId: string) => members.filter((m) => m.team_id === teamId).length;
+  const count = (teamId: string) => members.filter((m) => isInTeam(m, teamId)).length;
 
   return (
     <div className="grid gap-s6">

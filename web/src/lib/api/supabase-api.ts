@@ -108,10 +108,12 @@ export const supabaseApi: Api = {
     if (!profile) return null;
     const p = profile as { id: string; name: string; email: string; photo_url: string | null };
     const m = membership as Record<string, string | null> | null;
+    const assignments = season ? await run<{ team_id: string }[]>(db().from('team_roster').select('team_id').eq('season_id', season).eq('user_id', data.user.id).eq('status', 'active')) : [];
     return {
       ...p,
       role: (m?.role as Me['role']) ?? null,
       team_id: m?.team_id ?? null,
+      team_ids: assignments.map((a) => a.team_id),
       team_name: m?.team ?? null,
       team_kind: (m?.team_kind as Me['team_kind']) ?? null,
       division_id: m?.division_id ?? null,
@@ -184,7 +186,14 @@ export const supabaseApi: Api = {
     const rows = await run(db().from('org_chart')
       .select('user_id, name, photo_url, role, team_id, team, division_id, division, division_kind')
       .eq('season_id', season).eq('status', 'active').order('name'));
-    return rows as Member[];
+    const assignments = await run<{ user_id: string; team_id: string }[]>(db().from('team_roster').select('user_id, team_id').eq('season_id', season).eq('status', 'active'));
+    return (rows as Member[]).map((m) => ({ ...m, team_ids: assignments.filter((a) => a.user_id === m.user_id).map((a) => a.team_id) }));
+  },
+  async addTeamMember(teamId, userId) {
+    await run(db().rpc('add_team_member', { p_team_id: teamId, p_user_id: userId }));
+  },
+  async removeTeamMember(teamId, userId) {
+    await run(db().rpc('remove_team_member', { p_team_id: teamId, p_user_id: userId }));
   },
   async listInvites() {
     return run(db().from('invites').select('id, email, role, team_id, division_id, expires_at, accepted_at, revoked_at, created_at')

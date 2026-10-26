@@ -4,7 +4,7 @@
 import * as fx from '../demo/fixtures';
 import { clearCache } from '../cache';
 import { cairoDay } from '../format';
-import { canManageEvents, canManageTeam } from '../roles';
+import { canManageEvents, canManageTeam, canManageTeamMember, memberTeamIds, isInTeam } from '../roles';
 import { registrationErrors, cleanRegistrationAnswers, guestTypeFor } from '../event-registration';
 import type {
   Announcement, CalendarItem, CheckInResult, Me, Member, Notification, RegistrationRow, Task, TxEvent,
@@ -108,7 +108,7 @@ function meFrom(userId: string | null): Me | null {
   const t = s().teams.find((x) => x.id === mem.team_id) ?? null;
   return {
     id: mem.user_id, name: mem.name, email: fx.emailOf(mem.user_id), photo_url: mem.photo_url, role: mem.role,
-    team_id: mem.team_id, team_name: mem.team, team_kind: t?.kind ?? null,
+    team_id: mem.team_id, team_ids: memberTeamIds(mem), team_name: mem.team, team_kind: t?.kind ?? null,
     division_id: mem.division_id, division_name: mem.division, division_kind: mem.division_kind,
   };
 }
@@ -124,7 +124,7 @@ function requireMe(): Me {
 
 const teamOf = (teamId: string | null) => s().teams.find((t) => t.id === teamId) ?? null;
 const canManage = (me: Me, teamId: string | null) => canManageTeam(me, teamOf(teamId));
-const canSeeTeam = (me: Me, teamId: string | null) => canManage(me, teamId) || me.team_id === teamId;
+const canSeeTeam = (me: Me, teamId: string | null) => canManage(me, teamId) || isInTeam(me, teamId);
 const isListed = (e: TxEvent) => e.is_public && ['published', 'completed'].includes(e.status) && e.license_status !== 'pending';
 const isOpen = (e: TxEvent) => isListed(e) && e.status === 'published' && new Date(e.starts_at) > new Date()
   && (!e.registration_closes_at || new Date(e.registration_closes_at) > new Date());
@@ -140,7 +140,7 @@ function inAudience(me: Me, a: Announcement): boolean {
   switch (a.audience_type) {
     case 'all': return true;
     case 'division': return me.division_id === a.division_id;
-    case 'team': return me.team_id === a.team_id || (me.role === 'curator' && teamOf(a.team_id)?.division_id === me.division_id);
+    case 'team': return isInTeam(me, a.team_id) || (me.role === 'curator' && teamOf(a.team_id)?.division_id === me.division_id);
     case 'role': return me.role === a.audience_role;
   }
 }
@@ -327,6 +327,29 @@ export const demoApi: Api = {
   async listDivisions() { return s().divisions; },
   async listTeams() { return s().teams; },
   async listMembers() { requireMe(); return s().members; },
+  async addTeamMember(teamId, userId) {
+    const actor = requireMe();
+    const team = teamOf(teamId);
+    const member = s().members.find((m) => m.user_id === userId);
+    if (!team || !member || !canManageTeamMember(actor, team, member, 'add', s().teams)) fail('not_allowed');
+    if (isInTeam(member!, teamId)) fail('already_in_team');
+    member!.team_ids = [...memberTeamIds(member!), teamId];
+    if (['executive', 'associate'].includes(member!.role) && !member!.team_id) {
+      const division = s().divisions.find((d) => d.id === team!.division_id)!;
+      Object.assign(member!, { team_id: teamId, team: team!.name, division_id: division.id, division: division.name, division_kind: division.kind });
+    }
+    save();
+  },
+  async removeTeamMember(teamId, userId) {
+    const actor = requireMe();
+    const team = teamOf(teamId);
+    const member = s().members.find((m) => m.user_id === userId);
+    if (!team || !member || !canManageTeamMember(actor, team, member, 'remove', s().teams)) fail('not_allowed');
+    if (!isInTeam(member!, teamId)) fail('not_in_team');
+    member!.team_ids = memberTeamIds(member!).filter((id) => id !== teamId);
+    if (member!.team_id === teamId) Object.assign(member!, { team_id: null, team: null });
+    save();
+  },
   async listInvites() {
     const me = requireMe();
     return s().invites.filter((i) => me.role === 'chairman' || (me.role === 'curator' && i.division_id === me.division_id));
@@ -363,7 +386,7 @@ export const demoApi: Api = {
     const mayRequest = me.role === 'chairman' || (me.role === 'curator' && reqDivision === me.division_id);
     if (isRequest ? !mayRequest : !canManage(me, input.team_id)) fail('not_allowed');
     for (const a of input.assignees) {
-      if (s().members.find((x) => x.user_id === a)?.team_id !== input.team_id) fail('assignee_not_in_team');
+      if (!s().members.some((x) => x.user_id === a && isInTeam(x, input.team_id))) fail('assignee_not_in_team');
     }
     const task: Task = {
       id: id('k'), team_id: input.team_id, title: input.title, description: input.description ?? null, created_by: me.id,

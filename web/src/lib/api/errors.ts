@@ -16,6 +16,8 @@ const messages: Record<string, string> = {
   already_cancelled: 'This ticket was already cancelled.',
   already_checked_in: 'This ticket was already used at the door.',
   not_allowed: "This one's for the board. Ask your curator if you need access.",
+  already_in_team: 'This member already belongs to that team.',
+  not_in_team: 'This member no longer belongs to that team. Refresh the roster.',
   only_creator_or_executive_marks_done: 'Only your executive can mark this done. Move it to review instead.',
   only_managers_edit_task_details: 'Only your executive can change the task details.',
   only_receiving_team_accepts_requests: 'The other team accepts or declines this request.',

@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useToast } from '@/components/Toast';
 import { Avatar, Button, Chip, DivTag, Modal, TextArea } from '@/components/ui';
 import { api } from '@/lib/api';
+import { isInTeam } from '@/lib/roles';
 import { fmtDateTime, fmtRelative } from '@/lib/format';
 import type { Task, TaskComment, TaskStatus } from '@/lib/types';
 import { isLate } from './KanbanCard';
@@ -29,7 +30,7 @@ export function TaskSheet({ task, canManage, onClose, onChanged }: { task: Task;
   const loadComments = useCallback(() => api.listComments(task.id).then(setComments).catch(() => {}), [task.id]);
   useEffect(() => { loadComments(); setAssignees(task.assignees); }, [loadComments, task.assignees]);
 
-  const teamMembers = members.filter((m) => m.team_id === task.team_id);
+  const teamMembers = members.filter((m) => isInTeam(m, task.team_id));
   const isCreator = task.created_by === me.id;
   const isAssignee = task.assignees.includes(me.id);
 
@@ -87,7 +88,7 @@ export function TaskSheet({ task, canManage, onClose, onChanged }: { task: Task;
   }
 
   const d = divisionOfTeam(task.team_id);
-  const mentionable = members.filter((m) => m.user_id !== me.id && (m.team_id === task.team_id || task.assignees.includes(m.user_id) || m.role !== 'associate'));
+  const mentionable = members.filter((m) => m.user_id !== me.id && (isInTeam(m, task.team_id) || task.assignees.includes(m.user_id) || m.role !== 'associate'));
 
   return (
     <Modal open onClose={onClose} title={task.title}>
