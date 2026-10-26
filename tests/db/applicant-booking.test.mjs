@@ -4,7 +4,8 @@ import { createDb, rejects } from './harness.mjs';
 let db, chair, executive, cycle, team, otherTeam, first, second, unavailable, wrongTeam, app, other;
 const get = (token) => db.as('anon', ({ one }) => one(`select get_application_by_token($1) as data`, [token])).then((r) => r.data);
 const book = (token, id) => db.as('anon', ({ q }) => q(`select book_interview_slot($1,$2)`, [token, id]));
-const apply = (email) => db.as('service', ({ one }) => one(`select submit_application($1,'Applicant',$2,'01000000000',$3) as data`, [cycle.id, email, [team]])).then((r) => r.data);
+let phoneCounter = 0;
+const apply = (email) => db.as('service', ({ one }) => one(`select submit_application($1,'Applicant',$2,$4,$3) as data`, [cycle.id, email, [team], '+2010' + String(++phoneCounter).padStart(8, '0')])).then((r) => r.data);
 before(async () => {
   db = await createDb(); chair = await db.member('chairman'); executive = await db.member('executive', 'media_design');
   team = await db.team('media_design'); otherTeam = await db.team('coaching');

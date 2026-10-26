@@ -7,7 +7,7 @@ import type {
   Application, ApplicationView, BoardPlan, Cycle, FileScope, HandoverRow, InterviewScore, InterviewSlot, LibFile,
   FormAnswer, Order, OrderMethod, OrderPlaced, OrderView, Package, Position, Question, SalesRow, Stage,
 } from '../types';
-import { toApiError } from './errors';
+import { friendly, toApiError } from './errors';
 import { ApiError } from './types';
 import { demoFilesApi, demoPackagesApi, demoRecruitmentApi } from './phase2b-demo';
 
@@ -138,7 +138,13 @@ const liveRecruitment: RecruitmentApi = {
     await run(id ? db().from('positions').update(f).eq('id', id) : db().from('positions').insert(f));
   },
   uploadCv: (cycleId, file, turnstileToken) => signedUpload('cv', { cycle_id: cycleId, turnstile_token: turnstileToken }, file),
-  apply: (input) => invoke('public-forms', { action: 'apply', ...input }),
+  async apply(input) {
+    try { return await invoke('public-forms', { action: 'apply', ...input }); }
+    catch (error) {
+      if (error instanceof ApiError && error.code === 'already_applied') throw new ApiError(error.code, friendly(error.code));
+      throw error;
+    }
+  },
   async getApplication(token) {
     return run(db().rpc('get_application_by_token', { p_status_token: token }));
   },

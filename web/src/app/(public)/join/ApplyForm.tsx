@@ -67,6 +67,7 @@ export function ApplyForm({ cycle, positions, teams }: { cycle: Cycle; positions
   return (
     <form className="tx-card grid gap-s4 max-w-[720px]" onSubmit={submit} noValidate>
       <p className="tx-label">{step === 'teams' ? 'Step 1 - Choose your team' : 'Step 2 - Your application'}</p>
+      <p className="text-body-sm text-ink-3">One application per recruitment round. An email or phone number already used in this round cannot be used again, even after withdrawing.</p>
       {step === 'teams' ? <>
         <div className="grid gap-s4 sm:grid-cols-2">
         <Select label="First choice team" value={f.first} error={errors.first} onChange={(e) => setF((x) => ({ ...x, first: e.target.value, second: x.second === e.target.value ? '' : x.second }))}>

@@ -21,6 +21,7 @@ const messages: Record<string, string> = {
   interview_time_conflict: 'An interview already overlaps these hours. Adjust the time range; existing bookings are kept.',
   invalid_interview_time: 'Choose a future interview time with an end after its start.',
   invalid_availability: 'Check your availability settings and try again.',
+  already_applied: 'This email or phone number has already been used in this recruitment round.',
   only_creator_or_executive_marks_done: 'Only your executive can mark this done. Move it to review instead.',
   only_managers_edit_task_details: 'Only your executive can change the task details.',
   only_receiving_team_accepts_requests: 'The other team accepts or declines this request.',

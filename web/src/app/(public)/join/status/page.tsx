@@ -58,7 +58,7 @@ function StatusInner() {
         <p className="text-ink-2">
           {a.stage === 'accepted' ? 'You’re in. Check your email to set up your portal account.'
             : a.stage === 'not_selected' ? 'We couldn’t offer you a place this round. We’d love to see you at our events and in the next round.'
-            : a.stage === 'withdrawn' ? 'You withdrew this application. You can apply again while the round is open.'
+            : a.stage === 'withdrawn' ? 'You withdrew this application. Only one application is allowed per recruitment round.'
             : a.interview ? 'Your time is confirmed. Save your invitation below.' : canBook ? 'Your application is saved. Choose a time for your team, then confirm your interview.' : isNew ? 'We emailed you this page’s link. Keep it: it’s how you follow your application.' : 'Here’s where your application stands.'}
         </p>
       </header>
@@ -103,7 +103,7 @@ function StatusInner() {
 
       <Modal open={confirm} onClose={() => setConfirm(false)} title="Withdraw your application?"
         actions={<><Button variant="secondary" onClick={() => setConfirm(false)}>Keep it</Button><Button variant="danger" onClick={withdraw} loading={busy === 'withdraw'}>Withdraw</Button></>}>
-        <p className="text-ink-2">Your interview, if any, is released. You can apply again while the round is open.</p>
+        <p className="text-ink-2">Your interview, if any, is released. Withdrawing does not allow you to submit another application in this round.</p>
       </Modal>
       <Modal open={!!picked} onClose={() => { if (!busy) setPicked(null); }} title={a.interview ? 'Confirm your new interview time' : 'Confirm your interview time'}
         actions={<><Button variant="secondary" disabled={!!busy} onClick={() => setPicked(null)}>Back</Button><Button loading={!!busy} onClick={() => picked && book(picked.slot_id)}>Confirm interview</Button></>}>

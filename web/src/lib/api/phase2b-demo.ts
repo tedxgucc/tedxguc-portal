@@ -1,6 +1,7 @@
 // Demo mode for recruitment, files and packages. Mirrors migrations 0007,
 // 0009 and 0011 closely enough to show each stakeholder their screens.
 import * as fx from '../demo/fixtures';
+import { applicationPhoneKey } from '../recruitment';
 import type { InterviewAvailability } from '../interview-availability';
 import type {
   Application, ApplicationView, BoardPlan, Cycle, InterviewScore, InterviewSlot, LibFile, Me, Order, OrderStatus,
@@ -170,7 +171,8 @@ export const demoRecruitmentApi: RecruitmentApi = {
       if (!p) fail('team_not_recruiting', 'One of the teams you picked is not recruiting right now.');
       for (const q of p!.questions) if (q.required && !input.answers[q.id]?.trim()) fail('missing_field', `Please answer: ${q.label}`);
     }
-    if (st.apps.some((a) => a.cycle_id === c!.id && a.applicant_email === email && a.stage !== 'withdrawn')) fail('already_applied', 'You already applied in this round. Check the link we emailed you.');
+    const phone = applicationPhoneKey(input.phone);
+    if (st.apps.some((a) => a.cycle_id === c!.id && (a.applicant_email.trim().toLowerCase() === email || (phone && applicationPhoneKey(a.applicant_phone) === phone)))) fail('already_applied', 'This email or phone number has already been used in this recruitment round.');
     const token = tok();
     st.apps.unshift({ id: rid('a'), cycle_id: c!.id, applicant_name: input.name.trim(), applicant_email: email, applicant_phone: input.phone ?? null, team_choices: input.team_ids, answers: input.answers, cv_path: input.cv_path ?? null, stage: 'applied', accepted_team_id: null, created_at: new Date().toISOString(), token });
     save();

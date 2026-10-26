@@ -24,10 +24,11 @@ before(async () => {
     [cycle.id, media, JSON.stringify([{ id: 'portfolio', label: 'Portfolio link', required: true }]), campaigns]));
 });
 
+let phoneCounter = 0;
 const apply = (email, choices, answers = { portfolio: 'https://x' }) =>
   db.as('service', ({ one }) => one(
-    `select submit_application($1, 'Applicant', $2, '0100', $3, $4) as r`,
-    [cycle.id, email, `{${choices.join(',')}}`, answers])).then((x) => x.r);
+    `select submit_application($1, 'Applicant', $2, $5, $3, $4) as r`,
+    [cycle.id, email, `{${choices.join(',')}}`, answers, '+2010' + String(++phoneCounter).padStart(8, '0')])).then((x) => x.r);
 const status = (token) => db.as('anon', ({ one }) => one(`select get_application_by_token($1) as r`, [token])).then((x) => x.r);
 
 test('positions: Curators open them for their own division only', async () => {
@@ -118,8 +119,8 @@ test('withdraw by link frees the interview slot', async () => {
   const a = await apply('wd@x.co', [media]);
   await db.as('anon', ({ q }) => q(`select withdraw_application($1)`, [a.status_token]));
   assert.equal((await status(a.status_token)).stage, 'withdrawn');
-  // They may apply again after withdrawing.
-  await apply('wd@x.co', [media]);
+  // Withdrawal does not release their identity for a second application.
+  await rejects(apply('wd@x.co', [media]), /already_applied/);
 });
 
 test('board plans: candidates draft and submit their own; only the Chairman reads and scores (FR-4.7)', async () => {

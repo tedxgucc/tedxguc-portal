@@ -9,10 +9,10 @@ import { fileURLToPath } from 'node:url';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const migrationsDir = join(root, 'supabase', 'migrations');
 
-export async function createDb() {
+export async function createDb(migrationLimit) {
   const db = new PGlite();
   await db.exec(readFileSync(join(root, 'tests', 'db', 'supabase-shim.sql'), 'utf8'));
-  for (const file of readdirSync(migrationsDir).filter((f) => f.endsWith('.sql')).sort()) {
+  for (const file of readdirSync(migrationsDir).filter((f) => f.endsWith('.sql') && (!migrationLimit || f <= migrationLimit)).sort()) {
     try {
       await db.exec(readFileSync(join(migrationsDir, file), 'utf8'));
     } catch (err) {
