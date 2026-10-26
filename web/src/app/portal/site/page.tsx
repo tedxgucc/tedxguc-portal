@@ -62,15 +62,15 @@ export default function SiteEditorPage() {
   return (
     <>
       <PageTitle label={me.role === 'curator' ? `Site · ${me.division_name ?? ''}` : 'Site'} title="Public site text" />
-      <div className="grid gap-s6 lg:grid-cols-[minmax(0,280px)_minmax(0,1fr)] lg:items-start">
-        <ul className="grid gap-s2" aria-label="Sections">
+      <div className="grid gap-s6 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)] lg:items-start">
+        <ul className="grid grid-cols-1 gap-s2 min-w-0" aria-label="Sections">
           {rows.map((r) => (
-            <li key={r.key}>
+            <li key={r.key} className="min-w-0">
               <button type="button" onClick={() => setKey(r.key)} aria-current={r.key === key || undefined}
-                className={`tx-card w-full text-left grid gap-s1 ${r.key === key ? 'tx-card--outline' : 'hover:bg-surface-2'}`}>
+                className={`tx-card w-full min-w-0 overflow-hidden text-left grid grid-cols-1 gap-s1 ${r.key === key ? 'tx-card--outline' : 'hover:bg-surface-2'}`}>
                 <span className="flex items-center justify-between gap-s2">
-                  <span className="font-semibold truncate">{r.title}</span>
-                  {r.is_published ? <Chip kind="ok">Live</Chip> : <Chip kind="soft">Hidden</Chip>}
+                  <span className="font-semibold truncate min-w-0">{r.title}</span>
+                  <span className="shrink-0">{r.is_published ? <Chip kind="ok">Live</Chip> : <Chip kind="soft">Hidden</Chip>}</span>
                 </span>
                 <span className="caption tx-faint">{where(r.key).label} · edited {fmtRelative(r.updated_at)}</span>
               </button>
