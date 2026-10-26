@@ -80,18 +80,16 @@ test('stages: only Curators decide; rejections stay hidden until released (FR-4.
   assert.deepEqual(again, [], 'no double emails');
 });
 
-test('interviews: reviewers add slots, applicant books by link, Executives score (FR-4.4)', async () => {
+test('interviews: applicants book directly after applying, then Executives score (FR-4.4)', async () => {
   const a = await apply('int@x.co', [media]);
   const slot = await db.as(mediaExec, ({ one }) => one(
     `insert into interview_slots (cycle_id, team_id, starts_at, ends_at, interviewer_ids) values ($1, $2, now() + interval '2 days', now() + interval '2 days 20 minutes', $3) returning id`,
     [cycle.id, media, `{${mediaExec}}`]));
-  await rejects(db.as('anon', ({ q }) => q(`select book_interview_slot($1, $2)`, [a.status_token, slot.id])), /not_invited_to_interview/);
-
-  await db.as(mktCurator, ({ q }) => q(`select set_application_stage($1, 'interview')`, [`{${a.application_id}}`]));
   const s = await status(a.status_token);
-  assert.equal(s.stage, 'interview');
+  assert.equal(s.stage, 'received');
   assert.equal(s.open_slots.length, 1);
   await db.as('anon', ({ q }) => q(`select book_interview_slot($1, $2)`, [a.status_token, slot.id]));
+  assert.equal((await status(a.status_token)).stage, 'interview');
   assert.ok((await status(a.status_token)).interview.slot_id === slot.id);
 
   const other = await apply('int2@x.co', [media]);

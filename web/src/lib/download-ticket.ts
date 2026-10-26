@@ -17,10 +17,10 @@ async function waitForQr(ticket: HTMLElement): Promise<void> {
   });
 }
 
-export async function downloadTicketPng(ticket: HTMLElement, ticketNumber: string): Promise<void> {
+export async function downloadTicketPng(ticket: HTMLElement, ticketNumber: string, options: { requireQr?: boolean } = {}): Promise<void> {
   await Promise.all([
     document.fonts.ready,
-    waitForQr(ticket),
+    options.requireQr === false ? Promise.resolve() : waitForQr(ticket),
     ...Array.from(ticket.querySelectorAll('img')).map((image) => image.decode()),
   ]);
   // Capture the complete branded card, with readable text and a sharp QR.

@@ -185,19 +185,21 @@ export const demoRecruitmentApi: RecruitmentApi = {
       application_id: a.id, applicant_name: a.applicant_name, cycle: st.cycles.find((c) => c.id === a.cycle_id)?.name ?? '',
       stage: publicStage(a), teams: a.team_choices.map((t) => team(t)?.name ?? ''),
       interview: booked ? slotView(booked) : null,
-      open_slots: a.stage === 'interview' ? st.slots.filter((x) => x.cycle_id === a.cycle_id && a.team_choices.includes(x.team_id) && !x.application_id && new Date(x.starts_at).getTime() > Date.now() + 3600_000).map(slotView) : null,
+      open_slots: ['applied', 'screened', 'interview'].includes(a.stage) ? st.slots.filter((x) => x.cycle_id === a.cycle_id && a.team_choices.includes(x.team_id) && !x.application_id && new Date(x.starts_at).getTime() > Date.now() + 3600_000).map(slotView) : null,
     };
   },
   async bookSlot(token, slotId) {
     const st = s();
     const a = st.apps.find((x) => x.token === token);
     if (!a) fail('not_found');
-    if (a!.stage !== 'interview') fail('not_invited', 'You haven’t been invited to an interview yet.');
+    if (!['applied', 'screened', 'interview'].includes(a!.stage)) fail('not_invited', 'This application cannot book an interview.');
     const slot = st.slots.find((x) => x.id === slotId);
     if (!slot || !a!.team_choices.includes(slot.team_id)) fail('slot_not_found', 'That time isn’t available.');
     if (slot!.application_id && slot!.application_id !== a!.id) fail('slot_taken', 'Someone just took that time. Pick another.');
+    if (slot!.cycle_id !== a!.cycle_id || Date.parse(slot!.starts_at) <= Date.now() + 3600_000) fail('slot_not_found');
     for (const x of st.slots) if (x.application_id === a!.id) x.application_id = null;
     slot!.application_id = a!.id;
+    a!.stage = 'interview';
     save();
   },
   async withdraw(token) {
