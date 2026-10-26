@@ -44,12 +44,12 @@ export function BalancesTab() {
     shown.map((t) => [t.doc_number, t.occurred_on, kindLabel[t.kind], t.account, t.item ?? t.description, t.supplier, team(t.team_id)?.name ?? '', t.amount_gross, t.vat_amount, t.amount_net, t.direction, t.fatora_path ? 'yes' : t.kind === 'cash_out' ? 'MISSING' : '', t.status, t.void_reason, t.created_by ? memberName(t.created_by) : '']));
 
   return (
-    <div className="grid gap-s6">
+    <div className="grid grid-cols-1 gap-s6">
       {b ? (
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-s2 md:gap-s4">
+        <div className="grid grid-cols-[repeat(2,minmax(0,1fr))] lg:grid-cols-3 gap-s2 md:gap-s4">
           <div className="tx-card tx-card--red tx-kpi col-span-2 lg:col-span-1">
             <span className="tx-label" style={{ color: '#fff' }}>Total</span>
-            <span className="stat tx-num" style={{ fontSize: 40 }}>{egp(b.bank + b.telda + b.cash)}</span>
+            <span className="stat tx-num break-words" style={{ fontSize: "clamp(28px, 8vw, 40px)" }}>{egp(b.bank + b.telda + b.cash)}</span>
           </div>
           {tile('Bank account', b.bank)}
           {tile('Cash on hand', b.cash)}
@@ -61,7 +61,7 @@ export function BalancesTab() {
 
       <section className="grid gap-s3" aria-labelledby="bud">
         <SectionHeading as="h3"><span id="bud">Division budgets</span></SectionHeading>
-        <table className="tx-table">
+        <div className="overflow-x-auto"><table className="tx-table">
           <thead><tr><th>Division</th><th className="tx-amt">Budget</th><th className="tx-amt hidden sm:table-cell">Spent</th><th className="tx-amt hidden md:table-cell">Approved</th><th className="tx-amt">Left</th>{me.role === 'chairman' && <th><span className="sr-only">Edit</span></th>}</tr></thead>
           <tbody>
             {divisions.map((d) => {
@@ -78,7 +78,7 @@ export function BalancesTab() {
               );
             })}
           </tbody>
-        </table>
+        </table></div>
         <p className="text-caption text-ink-3">{me.role === 'chairman' ? 'You set each division’s season budget. ' : 'The chairman sets budgets. '}Curators see only their own division’s line, never the balances.</p>
       </section>
 
@@ -101,7 +101,7 @@ export function BalancesTab() {
           </Select>
         </div>
         {txns === null ? <Skeleton h={240} /> : (
-          <table className="tx-table">
+          <div className="overflow-x-auto"><table className="tx-table">
             <thead><tr><th>Entry</th><th className="hidden md:table-cell">Kind</th><th className="hidden lg:table-cell">Team</th><th className="tx-amt">Amount</th><th><span className="sr-only">Actions</span></th></tr></thead>
             <tbody>
               {shown.map((t) => (
@@ -122,7 +122,7 @@ export function BalancesTab() {
               ))}
             </tbody>
             <tfoot><tr><td className="tx-strong" colSpan={3}>Net of shown entries</td><td className="tx-amt">{egp(shown.filter((t) => t.status !== 'void').reduce((a, t) => a + signed(t), 0))}</td><td /></tr></tfoot>
-          </table>
+          </table></div>
         )}
       </section>
 

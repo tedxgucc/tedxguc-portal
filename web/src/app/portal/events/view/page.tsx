@@ -95,7 +95,7 @@ function EventAdminPageInner() {
             <Search size={18} className="absolute left-s4 bottom-[17px] text-ink-3" aria-hidden="true" />
           </div>
           {regs === null ? <Skeleton h={200} /> : shown.length === 0 ? <EmptyState title="No guests yet.">Registrations show up here as they come in.</EmptyState> : (
-            <table className="tx-table">
+            <div className="overflow-x-auto"><table className="tx-table">
               <thead><tr><th>Guest</th><th className="hidden md:table-cell">Ticket</th><th className="hidden md:table-cell">Registered</th><th>Status</th></tr></thead>
               <tbody>
                 {shown.slice(0, 200).map((r) => (
@@ -113,7 +113,7 @@ function EventAdminPageInner() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           )}
           {shown.length > 200 && <p className="text-caption text-ink-3">Showing 200 of {shown.length}. Search or export for the rest.</p>}
         </section>

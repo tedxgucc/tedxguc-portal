@@ -37,7 +37,7 @@ export function Billboard({ items }: { items: Announcement[] }) {
   return (
     <section className="relative mb-s6 overflow-hidden bg-ink" aria-roledescription="carousel" aria-label="Announcements"
       onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} onFocus={() => setPaused(true)} onBlur={() => setPaused(false)}>
-      <div ref={track} className="flex overflow-x-auto snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      <div ref={track} className="flex overflow-x-auto overflow-y-hidden overscroll-x-contain snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         onScroll={(e) => { const el = e.currentTarget; const i = Math.round(el.scrollLeft / el.clientWidth); if (i !== at) setAt(i); }}>
         {slides.map((a, i) => (
           <Link key={a.id} href="/portal/news" aria-roledescription="slide" aria-label={`${i + 1} of ${slides.length}: ${a.title}`}

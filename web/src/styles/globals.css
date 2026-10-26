@@ -83,3 +83,13 @@ a { color: inherit; }
 
 /* Utility: hide visually, keep for screen readers. */
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+/* Side-scrolling strips (tab bars, the week view, the billboard) scroll
+   sideways only, so a scroll over them always moves the page. */
+.overflow-x-auto { overflow-y: hidden; }
+/* Number tiles never push the page wider than the screen. */
+.tx-kpi { min-width: 0; }
+.tx-heading { min-width: 0; }
+/* A single-column grid never grows wider than its container because of a
+   wide child (a table, a long word); the child scrolls or wraps instead. */
+.grid:not([class*="grid-cols"]) { grid-template-columns: minmax(0, 1fr); }

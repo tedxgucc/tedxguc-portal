@@ -5,6 +5,7 @@ import { ALLOWED_DOMAINS, BASE_PATH } from '../env';
 import type {
   Announcement, CalendarItem, Me, Member, Task, TicketView, TxEvent,
 } from '../types';
+import { clearCache } from '../cache';
 import { toApiError } from './errors';
 import { ApiError, type Api } from './types';
 
@@ -143,6 +144,7 @@ export const supabaseApi: Api = {
     if (error) throw toApiError(error);
   },
   async signOut(everywhere) {
+    clearCache();
     await db().auth.signOut({ scope: everywhere ? 'global' : 'local' });
   },
   async updateProfile(patch) {

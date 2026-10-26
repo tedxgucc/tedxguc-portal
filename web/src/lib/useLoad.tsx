@@ -1,14 +1,22 @@
 'use client';
 // Loads a page's data in the browser (the site is plain files on GitHub
-// Pages, so there is no server to load it first).
-import { useEffect, useState } from 'react';
+// Pages). A saved copy from this tab shows at once on refresh; fresh data
+// replaces it as soon as it arrives.
+import { useEffect, useLayoutEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui';
+import { readCache, writeCache } from './cache';
+
+// useLayoutEffect runs before the browser paints, so the saved copy never flashes the placeholder.
+const useBeforePaint = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 
 export function useLoad<T>(load: () => Promise<T>, deps: unknown[] = []): T | undefined {
   const [data, setData] = useState<T>();
-  useEffect(() => {
+  useBeforePaint(() => {
+    const key = `page:${window.location.pathname}${window.location.search}`;
+    const saved = readCache<T>(key);
+    if (saved !== undefined) setData(saved);
     let alive = true;
-    load().then((d) => { if (alive) setData(d); }).catch(() => {});
+    load().then((d) => { if (!alive) return; setData(d); writeCache(key, d); }).catch(() => {});
     return () => { alive = false; };
   }, deps); // eslint-disable-line react-hooks/exhaustive-deps
   return data;

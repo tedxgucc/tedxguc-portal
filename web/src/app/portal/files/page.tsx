@@ -178,7 +178,7 @@ function Handover() {
       </div>
       <SectionHeading as="h3">Board handovers</SectionHeading>
       {rows === null ? <Skeleton h={240} /> : (
-        <table className="tx-table">
+        <div className="overflow-x-auto"><table className="tx-table">
           <thead><tr><th>Member</th><th className="hidden sm:table-cell">Role</th><th>Handover</th></tr></thead>
           <tbody>
             {rows.map((r) => (
@@ -189,7 +189,7 @@ function Handover() {
               </tr>
             ))}
           </tbody>
-        </table>
+        </table></div>
       )}
       <p className="text-caption text-ink-3">Executives and Curators upload their handover from Library → Upload → “This is my handover file”.</p>
     </div>

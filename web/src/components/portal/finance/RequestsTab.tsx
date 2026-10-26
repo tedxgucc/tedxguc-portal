@@ -64,7 +64,7 @@ export function RequestsTab() {
   );
 
   return (
-    <div className="grid gap-s6">
+    <div className="grid grid-cols-1 gap-s6">
       {canRequestMoney(me) && <div className="flex flex-wrap gap-s2"><Button onClick={() => setAsking(true)}><Plus aria-hidden="true" />Request money</Button></div>}
 
       {budget && (

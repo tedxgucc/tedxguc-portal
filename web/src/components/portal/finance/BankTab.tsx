@@ -33,7 +33,7 @@ export function BankTab() {
   const vat = live.reduce((a, t) => a + t.vat_amount, 0);
 
   return (
-    <div className="grid gap-s6">
+    <div className="grid grid-cols-1 gap-s6">
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-s2">
         <div className="tx-card tx-kpi"><span className="tx-label">Deposited (net)</span><span className="money"><Money value={net} sign /></span></div>
         <div className="tx-card tx-kpi"><span className="tx-label">VAT held</span><span className="money"><Money value={vat} /></span><span className="caption tx-faint">14% of gross</span></div>
@@ -46,7 +46,7 @@ export function BankTab() {
           <Button onClick={() => setAdding(true)}><Landmark aria-hidden="true" />Add deposit</Button>
         </div>
         {deposits === null ? <Skeleton h={160} /> : deposits.length === 0 ? <EmptyState title="No money moved.">Deposits and sponsor payments appear here.</EmptyState> : (
-          <table className="tx-table">
+          <div className="overflow-x-auto"><table className="tx-table">
             <thead><tr><th>Deposit</th><th className="hidden md:table-cell">Account</th><th className="tx-amt hidden sm:table-cell">Gross</th><th className="tx-amt hidden sm:table-cell">VAT</th><th className="tx-amt">Net</th></tr></thead>
             <tbody>
               {deposits.map((t) => (
@@ -62,7 +62,7 @@ export function BankTab() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         )}
       </section>
 

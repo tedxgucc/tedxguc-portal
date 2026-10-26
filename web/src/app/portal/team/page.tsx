@@ -96,7 +96,7 @@ export default function TeamPage() {
       {canInvite && openInvites.length > 0 && (
         <section className="grid gap-s3 mt-s7" aria-labelledby="inv">
           <SectionHeading as="h3"><span id="inv">Waiting to join</span></SectionHeading>
-          <table className="tx-table">
+          <div className="overflow-x-auto"><table className="tx-table">
             <thead><tr><th>Email</th><th className="hidden sm:table-cell">Role</th><th className="hidden sm:table-cell">Expires</th><th><span className="sr-only">Actions</span></th></tr></thead>
             <tbody>
               {openInvites.map((i) => (
@@ -111,7 +111,7 @@ export default function TeamPage() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         </section>
       )}
       <RequestChangeModal member={changing} onClose={() => setChanging(null)} />

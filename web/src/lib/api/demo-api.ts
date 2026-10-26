@@ -2,6 +2,7 @@
 // (sessionStorage). It mirrors the database rules closely enough to show
 // each role what they would see, but it is not the security boundary.
 import * as fx from '../demo/fixtures';
+import { clearCache } from '../cache';
 import { cairoDay } from '../format';
 import { canManageTeam } from '../roles';
 import type {
@@ -291,6 +292,7 @@ export const demoApi: Api = {
   async signUpWithEmail() { fail('demo_login'); return false; },
   async sendPasswordReset() { await wait(300); },
   async signOut() {
+    clearCache();
     document.cookie = `${DEMO_COOKIE}=; path=/; max-age=0; samesite=lax`;
   },
   async updateProfile(patch) {

@@ -349,7 +349,7 @@ function Rates() {
         <div className="tx-card tx-kpi"><span className="tx-label">At level 2+</span><span className="stat tx-num">{(rows ?? []).filter((r) => r.level >= 2).length}</span><span className="caption tx-faint">need a conversation</span></div>
       </div>
       {rows === null ? <Skeleton h={240} /> : rows.length === 0 ? <EmptyState title="No sessions yet.">Rates appear after the first roll call.</EmptyState> : (
-        <table className="tx-table">
+        <div className="overflow-x-auto"><table className="tx-table">
           <thead><tr><th>Member</th><th className="hidden sm:table-cell">Team</th><th className="tx-amt">Rate</th><th className="hidden md:table-cell tx-amt">Absent</th><th>Level</th></tr></thead>
           <tbody>
             {rows.map((r) => (
@@ -362,7 +362,7 @@ function Rates() {
               </tr>
             ))}
           </tbody>
-        </table>
+        </table></div>
       )}
     </div>
   );

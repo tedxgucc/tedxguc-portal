@@ -309,10 +309,10 @@ function Sales() {
       </div>
       {rows === null ? <Skeleton h={160} /> : rows.length === 0 ? <EmptyState title="No sales yet." /> : (
         <>
-          <table className="tx-table">
+          <div className="overflow-x-auto"><table className="tx-table">
             <thead><tr><th>Package</th><th>Method</th><th className="tx-amt">Units</th><th className="tx-amt">Total</th></tr></thead>
             <tbody>{rows.map((r) => <tr key={`${r.package_id}-${r.method}`}><td className="tx-strong">{r.package}</td><td>{methodName[r.method]}</td><td className="tx-amt">{r.units}</td><td className="tx-amt">{r.total_egp.toLocaleString('en-US')}</td></tr>)}</tbody>
-          </table>
+          </table></div>
           <Button small variant="secondary" className="justify-self-start" onClick={() => downloadCsv('package-sales.csv', ['Package', 'Method', 'Orders', 'Units', 'Total EGP'], rows.map((r) => [r.package, methodName[r.method], r.orders, r.units, r.total_egp]))}><Download aria-hidden="true" />Export</Button>
         </>
       )}
