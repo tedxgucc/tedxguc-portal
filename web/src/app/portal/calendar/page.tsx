@@ -11,7 +11,7 @@ import { useToast } from '@/components/Toast';
 import { Button, Check2, Modal, Segmented, Select, TextArea, TextInput } from '@/components/ui';
 import { api } from '@/lib/api';
 import { fromLocalInput } from '@/lib/format';
-import { canManageTeam, canPostClubWide, manageableTeams } from '@/lib/roles';
+import { canManageTeam, canPostClubWide, manageableTeams, isInTeam } from '@/lib/roles';
 import type { CalendarItem, CalendarVisibility } from '@/lib/types';
 
 export default function PortalCalendar() {
@@ -39,7 +39,7 @@ export default function PortalCalendar() {
         <div className="w-full sm:w-[260px] mb-s5">
           <Select label="Show" value={teamFilter} onChange={(e) => setTeamFilter(e.target.value)}>
             <option value="">Everything I can see</option>
-            {teams.filter((t) => me.role === 'chairman' || me.role === 'curator' ? true : t.id === me.team_id).map((t) => <option key={t.id} value={t.id}>{t.name} only</option>)}
+            {teams.filter((t) => canManageTeam(me, t) || isInTeam(me, t.id)).map((t) => <option key={t.id} value={t.id}>{t.name} only</option>)}
           </Select>
         </div>
       )}

@@ -1,4 +1,4 @@
-import { isInTeam } from '../roles';
+import { canSeeMeeting as meetingVisible } from '../roles';
 // Demo mode for attendance and finance. Mirrors the database rules in
 // migrations 0008 and 0010 closely enough to show each role its screens.
 import * as fx from '../demo/fixtures';
@@ -7,7 +7,7 @@ import type {
   Sponsorship, Transaction,
 } from '../types';
 import { friendly } from './errors';
-import { demoCurrentMe, demoEvents, demoMembers } from './demo-api';
+import { demoCurrentMe, demoEvents, demoMembers, demoTeams } from './demo-api';
 import type { AttendanceApi, FinanceApi } from './phase2';
 import { ApiError } from './types';
 
@@ -143,7 +143,7 @@ const canManageDivision = (u: Me, did: string | null) => u.role === 'chairman' |
 // ----- Attendance rules (0008) -----
 function expected(m: Meeting) {
   return demoMembers().filter((x) => (m.type === 'board_meeting' ? ['executive', 'curator'].includes(x.role) : x.role === 'associate')
-    && (!m.team_id || isInTeam(x, m.team_id)) && (!m.division_id || x.division_id === m.division_id));
+    && meetingVisible({ ...x, id: x.user_id, email: '', team_name: x.team, team_kind: null, division_name: x.division }, m, demoTeams()));
 }
 function canMark(u: Me, target: string) {
   const t = memberOf(target);
@@ -163,11 +163,7 @@ function canMarkAtMeeting(u: Me, meetingId: string, target: string) {
   return person.role === 'curator' && u.role === 'chairman';
 }
 function canSeeMeeting(u: Me, m: Meeting) {
-  if (u.role === 'chairman') return true;
-  if (m.type === 'board_meeting') return ['curator', 'executive'].includes(u.role ?? '') && (!m.division_id || u.division_id === m.division_id);
-  if (m.team_id) return canManageTeam(u, m.team_id) || isInTeam(u, m.team_id);
-  if (m.division_id) return u.division_id === m.division_id;
-  return !!u.role;
+  return meetingVisible(u, m, demoTeams());
 }
 function canWriteMeeting(u: Me, input: Pick<Meeting, 'type' | 'team_id' | 'division_id'>) {
   if (input.team_id) return canManageTeam(u, input.team_id);
@@ -496,4 +492,12 @@ export async function demoSaveMinutes(meetingId: string, minutes: string) {
 export function demoCanWriteMeeting(m: Pick<Meeting, 'type' | 'team_id' | 'division_id'>) {
   const u = demoCurrentMe();
   return !!u && canWriteMeeting(u, m);
+}
+
+export function demoCalendarMeetings(from: string, to: string, teamId?: string | null) {
+  const u = me();
+  return s().meetings.filter((m) => canSeeMeeting(u, m) && m.starts_at < to && (m.ends_at ?? m.starts_at) >= from && (!teamId || m.team_id === teamId))
+    .map((m) => ({ source: 'meeting' as const, id: m.id, title: m.title, starts_at: m.starts_at, ends_at: m.ends_at,
+      all_day: false, location: m.location, online_url: m.online_url, team_id: m.team_id,
+      visibility: m.team_id ? 'team' as const : 'club' as const, linked_type: 'meeting', linked_id: m.id }));
 }

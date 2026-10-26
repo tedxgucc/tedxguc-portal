@@ -3,6 +3,7 @@
 // each role what they would see, but it is not the security boundary.
 import * as fx from '../demo/fixtures';
 import { clearCache } from '../cache';
+import { publicCalendarEvents } from '../calendar';
 import { cairoDay } from '../format';
 import { canManageEvents, canManageTeam, canManageTeamMember, memberTeamIds, isInTeam } from '../roles';
 import { registrationErrors, cleanRegistrationAnswers, guestTypeFor } from '../event-registration';
@@ -114,6 +115,7 @@ function meFrom(userId: string | null): Me | null {
 }
 const currentMe = () => meFrom(readCookie(DEMO_COOKIE));
 export const demoCurrentMe = currentMe;
+export const demoTeams = () => s().teams;
 export const demoMembers = () => s().members;
 export const demoEvents = () => s().events;
 function requireMe(): Me {
@@ -198,13 +200,7 @@ export const demoApi: Api = {
     return s().members.filter((x) => x.role !== 'associate').map((x) => ({ name: x.name, photo_url: null, role: x.role, division: x.division, team: x.team }));
   },
   async publicCalendar(from, to) {
-    const inRange = (iso: string) => iso >= from && iso < to;
-    const entries: CalendarItem[] = s().entries.filter((e) => e.visibility === 'public' && inRange(e.starts_at));
-    const evs: CalendarItem[] = s().events.filter((e) => isListed(e) && inRange(e.starts_at)).map((e) => ({
-      source: 'event', id: e.id, title: e.title, starts_at: e.starts_at, ends_at: e.ends_at, all_day: false, location: e.venue,
-      online_url: null, team_id: null, visibility: 'public', linked_type: 'event', linked_id: e.id,
-    }));
-    return [...entries, ...evs].sort((a, b) => a.starts_at.localeCompare(b.starts_at));
+    return publicCalendarEvents(s().events, from, to);
   },
   async register(input) {
     await wait(500);
@@ -449,7 +445,9 @@ export const demoApi: Api = {
       source: 'task_deadline', id: t.id, title: `Due: ${t.title}`, starts_at: t.deadline!, ends_at: null, all_day: false, location: null,
       online_url: null, team_id: t.team_id, visibility: 'team', linked_type: 'task', linked_id: t.id,
     }));
-    return [...entries, ...evs, ...deadlines].sort((a, b) => a.starts_at.localeCompare(b.starts_at));
+    const { demoCalendarMeetings } = await import('./phase2-demo');
+    const meetings = demoCalendarMeetings(from, to, teamId);
+    return [...entries, ...evs, ...meetings, ...deadlines].sort((a, b) => a.starts_at.localeCompare(b.starts_at));
   },
   async createCalendarEntry(input) {
     await wait(250);

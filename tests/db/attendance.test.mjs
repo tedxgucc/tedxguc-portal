@@ -143,13 +143,13 @@ test('rates per member and per meeting, for the right people only (FR-7.5)', asy
   await rejects(db.as(a1, ({ q }) => q(`select attendance_summary($1)`, [a2])), /not_allowed/);
 });
 
-test('board meetings expect Executives and Curators; the Chairman marks Curators', async () => {
+test('high-board meetings expect Curators only; the Chairman marks Curators', async () => {
   const m = await db.as(chairman, ({ one }) => one(
     `insert into meetings (type, title, starts_at) values ('board_meeting', 'Board', now() - interval '1 hour') returning id`));
   const list = await db.as(chairman, ({ q }) => q(`select user_id from meeting_roll_call($1)`, [m.id]));
-  assert.deepEqual(new Set(list.map((r) => r.user_id)), new Set([mktCurator, mediaExec, campaignsExec]));
+  assert.deepEqual(new Set(list.map((r) => r.user_id)), new Set([mktCurator]));
   const curatorList = await db.as(mktCurator, ({ q }) => q(`select user_id from meeting_roll_call($1)`, [m.id]));
-  assert.deepEqual(new Set(curatorList.map((r) => r.user_id)), new Set([mediaExec, campaignsExec]));
+  assert.equal(curatorList.length, 0);
   await rejects(db.as(mediaExec, ({ q }) => q(`insert into meetings (type, title, starts_at) values ('board_meeting', 'x', now())`)), /row-level security/);
 });
 

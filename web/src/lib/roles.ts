@@ -99,3 +99,13 @@ export const canManageSignUps = (me: Me | null) => !!me && (me.role === 'chairma
 // Chairman manage it; Partnerships Associates can view.
 export const canManageXAccess = (me: Me | null) => canLeadOperations(me) || (me?.role === 'executive' && me.team_kind === 'partnerships');
 export const canViewXAccess = (me: Me | null) => canManageXAccess(me) || me?.team_kind === 'partnerships';
+
+export function canSeeMeeting(me: Me | null, meeting: { type: string; team_id: string | null; division_id: string | null }, teams: Team[]): boolean {
+  if (!me?.role) return false;
+  if (me.role === 'chairman') return true;
+  if (meeting.team_id) return (canManageTeam(me, teams.find((t) => t.id === meeting.team_id)) || isInTeam(me, meeting.team_id))
+    && (meeting.type !== 'board_meeting' || ['curator', 'executive'].includes(me.role));
+  if (meeting.division_id) return ['curator', 'executive'].includes(me.role) && me.division_id === meeting.division_id;
+  if (meeting.type === 'board_meeting') return me.role === 'curator';
+  return true;
+}

@@ -6,6 +6,7 @@ import type {
   Announcement, CalendarItem, Me, Member, Task, TicketView, TxEvent,
 } from '../types';
 import { clearCache } from '../cache';
+import { publicCalendarEvents } from '../calendar';
 import { toApiError } from './errors';
 import { rosterUnavailable } from './team-roster';
 import { ApiError, type Api } from './types';
@@ -76,7 +77,11 @@ export const supabaseApi: Api = {
     return run(db().rpc('get_public_board'));
   },
   async publicCalendar(from, to) {
-    return run(db().rpc('calendar_feed', { p_from: from, p_to: to }));
+    const now = new Date().toISOString();
+    const events = await run(db().from('events').select(EVENT_COLS).eq('is_public', true).eq('status', 'published')
+      .in('license_status', ['licensed', 'not_required']).gte('starts_at', new Date(Math.max(Date.parse(from), Date.parse(now))).toISOString())
+      .lt('starts_at', to).order('starts_at'));
+    return publicCalendarEvents(events as TxEvent[], from, to, now);
   },
   async register(input) {
     return invoke('public-forms', { action: 'register', ...input });
