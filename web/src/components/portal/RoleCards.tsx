@@ -1,25 +1,21 @@
 'use client';
-// Dashboard cards for attendance and money, per the requirements'
+// Dashboard cards for money, recruitment and sign-ups, per the requirements.
 // "Role dashboards" table:
-//   Associate → my absence level · Executive → excuses + team at risk
+//   (Attendance was removed: no absence or excuse cards.)
 //   Curator   → requests to approve + division budget left
 //   Chairman  → approvals waiting + total balance
 //   L&P       → cash outs missing a fatora
 import { ClipboardCheck, Package, UserSearch, Wallet } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { attendanceApi, financeApi } from '@/lib/api/phase2';
+import { financeApi } from '@/lib/api/phase2';
 import { packagesApi, recruitmentApi } from '@/lib/api/phase2b';
 import { egp } from '@/lib/format';
 import { canManageSignUps, isFinanceAdmin, isLpExec } from '@/lib/roles';
-import { LevelBar, LevelChip } from './AttendanceBits';
 import { usePortal } from './PortalContext';
 
 export function RoleCards() {
   const { me, teams } = usePortal();
-  const [level, setLevel] = useState<number | null>(null);
-  const [excuses, setExcuses] = useState<number | null>(null);
-  const [atRisk, setAtRisk] = useState<number | null>(null);
   const [toApprove, setToApprove] = useState<number | null>(null);
   const [left, setLeft] = useState<number | null>(null);
   const [total, setTotal] = useState<number | null>(null);
@@ -28,11 +24,6 @@ export function RoleCards() {
   const [ordersToCheck, setOrdersToCheck] = useState<number | null>(null);
 
   useEffect(() => {
-    if (me.role === 'associate') attendanceApi.attendanceSummary().then((s) => setLevel(s.overall_level)).catch(() => {});
-    if (me.role !== 'associate') {
-      attendanceApi.listExcuses().then((x) => setExcuses(x.filter((e) => e.status === 'pending' && e.user_id !== me.id).length)).catch(() => {});
-    }
-    if (me.role === 'executive' && me.team_id) attendanceApi.attendanceRates(me.team_id, null).then((r) => setAtRisk(r.filter((x) => x.level >= 2).length)).catch(() => {});
     if (isFinanceAdmin(me)) {
       financeApi.listExpenseRequests().then((list) => setToApprove(list.filter((r) => (me.role === 'chairman' ? ['awaiting_chairman', 'submitted'].includes(r.status)
         : r.status === 'submitted')).length)).catch(() => {});
@@ -56,14 +47,6 @@ export function RoleCards() {
 
   return (
     <>
-      {level !== null && (
-        <Link href="/portal/attendance" className="tx-card tx-kpi no-underline hover:bg-surface-2">
-          <span className="tx-label flex items-center gap-s1"><ClipboardCheck size={18} aria-hidden="true" />My attendance</span>
-          <LevelChip level={level} />
-          <LevelBar level={level} />
-        </Link>
-      )}
-      {excuses !== null && card('/portal/attendance', 'Excuses to decide', excuses, me.role === 'executive' ? `${atRisk ?? 0} in your team at level 2+` : 'From your scope')}
       {toApprove !== null && card('/portal/finance', 'Requests to approve', toApprove, me.role === 'chairman' ? 'Includes those over EGP 5,000' : 'From L&P', money)}
       {left !== null && card('/portal/finance', 'Budget left', <span style={{ fontSize: 32 }}>{egp(left)}</span>, 'Division, this season', money)}
       {total !== null && card('/portal/finance', 'All accounts', <span style={{ fontSize: 32 }}>{egp(total)}</span>, `${missing ?? 0} cash outs missing a fatora`, money)}
