@@ -34,7 +34,6 @@ export function ApplyForm({ cycle, positions, teams }: { cycle: Cycle; positions
     const err: Record<string, string> = {};
     if (step === 'teams') {
       if (!f.first) err.first = 'Pick the team you want most.';
-      if (!f.second) err.second = 'Pick a second preference or choose no second preference.';
       setErrors(err);
       if (!Object.keys(err).length) setStep('form');
       return;
@@ -69,21 +68,16 @@ export function ApplyForm({ cycle, positions, teams }: { cycle: Cycle; positions
       <p className="tx-label">{step === 'teams' ? 'Step 1 - Choose your team' : 'Step 2 - Your application'}</p>
       <p className="text-body-sm text-ink-3">One application per recruitment round. An email or phone number already used in this round cannot be used again, even after withdrawing.</p>
       {step === 'teams' ? <>
-        <div className="grid gap-s4 sm:grid-cols-2">
+        <div className="grid gap-s4">
         <Select label="First choice team" value={f.first} error={errors.first} onChange={(e) => setF((x) => ({ ...x, first: e.target.value, second: x.second === e.target.value ? '' : x.second }))}>
           <option value="">Choose</option>
           {open.map((p) => <option key={p.team_id} value={p.team_id}>{teamName(p.team_id)}</option>)}
-        </Select>
-        <Select label="Second preference" value={f.second} onChange={set('second')} error={errors.second} disabled={!f.first}>
-          <option value="">Choose</option>
-          {open.filter((p) => p.team_id !== f.first).map((p) => <option key={p.team_id} value={p.team_id}>{teamName(p.team_id)}</option>)}
-          <option value="none">No second preference</option>
         </Select>
         </div>
         <Button type="submit" block>Continue to application</Button>
       </> : <>
       <p className="text-body-sm text-ink-2">{teamName(f.first)}{f.second && f.second !== 'none' ? ' - Second preference: ' + teamName(f.second) : ''}</p>
-      <div><Button type="button" small variant="ghost" onClick={() => setStep('teams')}>Change teams</Button></div>
+      <div><Button type="button" small variant="ghost" onClick={() => setStep('teams')}>Change first-choice team</Button></div>
       <TextInput label="Full name" value={f.name} onChange={set('name')} autoComplete="name" error={errors.name} />
       <div className="grid gap-s4 grid-cols-1 sm:grid-cols-2">
         <TextInput label="GUC ID" value={f.gucId} onChange={set('gucId')} placeholder="49-12345" inputMode="numeric" error={errors.gucId} />
@@ -93,7 +87,13 @@ export function ApplyForm({ cycle, positions, teams }: { cycle: Cycle; positions
         </Select>
         <TextInput label="Email" type="email" value={f.email} onChange={set('email')} autoComplete="email" error={errors.email} help="Updates and your private status link come here." />
         <TextInput label="Phone / WhatsApp" type="tel" value={f.phone} onChange={set('phone')} autoComplete="tel" error={errors.phone} />
-
+        <div className="sm:col-span-2">
+          <Select label="What is your second team preference?" value={f.second} onChange={set('second')} error={errors.second}>
+            <option value="">Choose</option>
+            {open.filter((p) => p.team_id !== f.first).map((p) => <option key={p.team_id} value={p.team_id}>{teamName(p.team_id)}</option>)}
+            <option value="none">No second preference</option>
+          </Select>
+        </div>
       </div>
       {f.first && open.find((p) => p.team_id === f.first)?.description && (
         <p className="text-body-sm text-ink-2">{teamName(f.first)}: {open.find((p) => p.team_id === f.first)?.description}</p>
