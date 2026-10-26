@@ -12,7 +12,8 @@ import { recruitmentApi } from '@/lib/api/phase2b';
 import { GUC_MAJORS } from '@/lib/recruitment';
 import type { Cycle, Position, Team } from '@/lib/types';
 
-export function ApplyForm({ cycle, positions, teams }: { cycle: Cycle; positions: Position[]; teams: Team[] }) {
+// Teams that reached their applicant limit can only be a second preference.
+export function ApplyForm({ cycle, positions, teams, full = [] }: { cycle: Cycle; positions: Position[]; teams: Team[]; full?: string[] }) {
   const router = useRouter();
   const toast = useToast();
   const [f, setF] = useState({ name: '', gucId: '', email: '', phone: '+20 ', major: '', first: '', second: '' });
@@ -69,9 +70,9 @@ export function ApplyForm({ cycle, positions, teams }: { cycle: Cycle; positions
       <p className="text-body-sm text-ink-3">One application per recruitment round. An email or phone number already used in this round cannot be used again, even after withdrawing.</p>
       {step === 'teams' ? <>
         <div className="grid gap-s4">
-        <Select label="First choice team" value={f.first} error={errors.first} onChange={(e) => setF((x) => ({ ...x, first: e.target.value, second: x.second === e.target.value ? '' : x.second }))}>
+        <Select label="First choice team" value={f.first} error={errors.first} help={full.length ? "Full teams can still be your second preference." : undefined} onChange={(e) => setF((x) => ({ ...x, first: e.target.value, second: x.second === e.target.value ? '' : x.second }))}>
           <option value="">Choose</option>
-          {open.map((p) => <option key={p.team_id} value={p.team_id}>{teamName(p.team_id)}</option>)}
+          {open.map((p) => <option key={p.team_id} value={p.team_id} disabled={full.includes(p.team_id)}>{teamName(p.team_id)}{full.includes(p.team_id) ? ' (full)' : ''}</option>)}
         </Select>
         </div>
         <Button type="submit" block>Continue to application</Button>

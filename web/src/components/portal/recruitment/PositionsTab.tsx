@@ -6,7 +6,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { usePortal } from '@/components/portal/PortalContext';
 import { useToast } from '@/components/Toast';
 import { Button, Check2, Chip, EmptyState, Modal, Select, Skeleton, TextArea, TextInput } from '@/components/ui';
-import { recruitmentApi } from '@/lib/api/phase2b';
+import { recruitmentApi, type PositionFill } from '@/lib/api/phase2b';
 import type { Cycle, Position, Question } from '@/lib/types';
 
 export function PositionsTab() {
@@ -15,6 +15,8 @@ export function PositionsTab() {
   const [cycleId, setCycleId] = useState('');
   const [positions, setPositions] = useState<Position[] | null>(null);
   const [editing, setEditing] = useState<{ teamId: string; position: Position | null } | null>(null);
+  const [fill, setFill] = useState<PositionFill[]>([]);
+  useEffect(() => { if (cycleId) recruitmentApi.positionFill(cycleId).then(setFill).catch(() => setFill([])); }, [cycleId, positions]);
   const load = useCallback(() => {
     recruitmentApi.listCycles().then((c) => { setCycles(c); setCycleId((cur) => cur || c.find((x) => new Date(x.closes_at).getTime() > Date.now())?.id || c[0]?.id || ''); }).catch(() => {});
     recruitmentApi.listPositions().then(setPositions).catch(() => setPositions([]));
@@ -35,9 +37,9 @@ export function PositionsTab() {
               <li key={t.id} className="tx-card grid gap-s2 content-start">
                 <div className="flex items-center justify-between gap-s2">
                   <span className="font-semibold">{t.name}</span>
-                  {p ? (p.is_open ? <Chip kind="ok">Recruiting</Chip> : <Chip kind="void">Closed</Chip>) : <Chip kind="soft">Not recruiting</Chip>}
+                  {p ? (!p.is_open ? <Chip kind="void">Closed</Chip> : fill.find((x) => x.team_id === t.id)?.is_full ? <Chip kind="pending">Full</Chip> : <Chip kind="ok">Recruiting</Chip>) : <Chip kind="soft">Not recruiting</Chip>}
                 </div>
-                {p && <p className="text-body-sm text-ink-2">{p.seats ? `${p.seats} seats · ` : ''}{p.questions.length} question{p.questions.length === 1 ? '' : 's'}{p.description ? ` · ${p.description}` : ''}</p>}
+                {p && <p className="text-body-sm text-ink-2">{`${fill.find((x) => x.team_id === t.id)?.applicants ?? 0}${p.seats ? ` / ${p.seats}` : ''} first-choice applicants · `}{p.questions.length} question{p.questions.length === 1 ? '' : 's'}{p.description ? ` · ${p.description}` : ''}</p>}
                 <Button small variant="secondary" className="justify-self-start" onClick={() => setEditing({ teamId: t.id, position: p })}>
                   {p ? <><Pencil aria-hidden="true" />Edit role</> : <><Plus aria-hidden="true" />Open a role</>}
                 </Button>
@@ -73,7 +75,7 @@ function PositionModal({ cycleId, teamId, teamName, position, onClose, onSaved }
       actions={<><Button variant="secondary" onClick={onClose}>Cancel</Button><Button onClick={save} loading={busy}>Save</Button></>}>
       <div className="grid gap-s4">
         <div className="grid gap-s4 sm:grid-cols-[140px_minmax(0,1fr)]">
-          <TextInput label="Seats" type="number" min={1} value={seats} onChange={(e) => setSeats(e.target.value)} />
+          <TextInput label="Max applicants (first choice)" type="number" min={1} value={seats} onChange={(e) => setSeats(e.target.value)} help="Empty = no limit. When it’s reached, the team shows Full and can only be picked as a second preference." />
           <div className="sm:pt-s6"><Check2 label="Recruiting now (shows on the Join page)" checked={isOpen} onChange={(e) => setIsOpen(e.target.checked)} /></div>
         </div>
         <TextArea label="What the team does" value={description} onChange={(e) => setDescription(e.target.value)} rows={2} />

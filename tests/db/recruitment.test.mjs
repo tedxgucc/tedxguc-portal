@@ -156,3 +156,22 @@ test('applicant data is purged 6 months after the cycle closes, except accepted 
   const left = await db.q(`select applicant_name from applications where cycle_id = $1`, [old.id]);
   assert.deepEqual(left.map((r) => r.applicant_name), ['Old B']);
 });
+
+test('applicant limit: a full team cannot be picked first, but can be a second preference', async () => {
+  // Campaigns: room for 2 first-choice applicants beyond those already in.
+  const before = await db.one(`select applicants from position_fill($1) where team_id = $2`, [cycle.id, campaigns]);
+  await db.as(mktCurator, ({ q }) => q(`update positions set seats = $3 where cycle_id = $1 and team_id = $2`, [cycle.id, campaigns, before.applicants + 2]));
+  await apply('lim1@x.co', [campaigns]);
+  await apply('lim2@x.co', [campaigns]);
+  await rejects(apply('lim3@x.co', [campaigns]), /team_full/);
+  const fill = await db.as('anon', ({ one }) => one(`select is_full, applicants, seats from position_fill($1) where team_id = $2`, [cycle.id, campaigns]));
+  assert.equal(fill.is_full, true);
+  assert.equal(fill.applicants, fill.seats);
+  // Still allowed as a second preference.
+  const ok = await apply('lim4@x.co', [media, campaigns]);
+  assert.ok(ok.status_token);
+  // A withdrawal frees a place.
+  const w = await db.one(`select id from applications where applicant_email = 'lim1@x.co'`);
+  await db.q(`update applications set stage = 'withdrawn' where id = $1`, [w.id]);
+  await apply('lim5@x.co', [campaigns]);
+});

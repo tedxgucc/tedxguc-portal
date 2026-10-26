@@ -17,10 +17,12 @@ export default function JoinPage() {
     const now = Date.now();
     const open = cycles.find((c) => c.kind === 'associates' && new Date(c.opens_at).getTime() <= now && new Date(c.closes_at).getTime() >= now) ?? null;
     const positions = open ? (await recruitmentApi.listPositions(open.id)).filter((p) => p.is_open) : [];
-    return { divisions, teams, cycles, now, open, positions };
+    const fill = open ? await recruitmentApi.positionFill(open.id).catch(() => []) : [];
+    return { divisions, teams, cycles, now, open, positions, fill };
   });
   if (!d) return <PageLoading />;
-  const { divisions, teams, cycles, now, open, positions } = d;
+  const { divisions, teams, cycles, now, open, positions, fill } = d;
+  const full = new Set(fill.filter((x) => x.is_full).map((x) => x.team_id));
   const recruiting = new Set(positions.map((p) => p.team_id));
 
   return (
@@ -59,7 +61,7 @@ export default function JoinPage() {
                   <li key={t.id} className="tx-card grid gap-s1">
                     <div className="flex items-center justify-between gap-s3">
                       <span className="font-semibold">{t.name}</span>
-                      {open && (recruiting.has(t.id) ? <DivTag kind={d.kind}>{p?.seats ? `${p.seats} seats` : 'Open'}</DivTag> : <span className="text-caption text-ink-3">Not this round</span>)}
+                      {open && (!recruiting.has(t.id) ? <span className="text-caption text-ink-3">Not this round</span> : full.has(t.id) ? <span className="tx-chip tx-chip--void">Full</span> : <DivTag kind={d.kind}>Open</DivTag>)}
                     </div>
                     {p?.description && <p className="text-body-sm text-ink-2">{p.description}</p>}
                   </li>
@@ -74,7 +76,7 @@ export default function JoinPage() {
         <section id="apply" className="grid gap-s4 scroll-mt-[88px]" aria-labelledby="apply-h">
           <TxLabel>Apply</TxLabel>
           <SectionHeading><span id="apply-h">Your application</span></SectionHeading>
-          <ApplyForm cycle={open} positions={positions} teams={teams} />
+          <ApplyForm cycle={open} positions={positions} teams={teams} full={[...full]} />
         </section>
       )}
     </div>

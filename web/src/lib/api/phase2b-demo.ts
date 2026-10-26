@@ -142,6 +142,12 @@ const slotView = (x: InterviewSlot): SlotView => ({ slot_id: x.id, starts_at: x.
 export const demoRecruitmentApi: RecruitmentApi = {
   async listCycles() { return [...s().cycles].sort((a, b) => b.opens_at.localeCompare(a.opens_at)); },
   async listPositions(cycleId) { return s().positions.filter((p) => !cycleId || p.cycle_id === cycleId); },
+  async positionFill(cycleId) {
+    return s().positions.filter((p) => p.cycle_id === cycleId).map((p) => {
+      const applicants = s().apps.filter((a) => a.cycle_id === cycleId && a.team_choices[0] === p.team_id && a.stage !== 'withdrawn').length;
+      return { team_id: p.team_id, seats: p.seats, applicants, is_full: p.seats !== null && applicants >= p.seats };
+    });
+  },
   async saveCycle(input) {
     if (me().role !== 'chairman') fail('not_allowed');
     if (input.id) Object.assign(s().cycles.find((c) => c.id === input.id)!, input);
@@ -177,6 +183,8 @@ export const demoRecruitmentApi: RecruitmentApi = {
       for (const q of p!.questions) if (q.required && !input.answers[q.id]?.trim()) fail('missing_field', `Please answer: ${q.label}`);
     }
     const phone = applicationPhoneKey(input.phone);
+    const first = st.positions.find((x) => x.cycle_id === c!.id && x.team_id === input.team_ids[0]);
+    if (first?.seats && st.apps.filter((x) => x.cycle_id === c!.id && x.team_choices[0] === first.team_id && x.stage !== 'withdrawn').length >= first.seats) fail('team_full', 'That team is full for this round. Pick another team as your first choice; you can still keep it as your second preference.');
     if (st.apps.some((a) => a.cycle_id === c!.id && (a.applicant_email.trim().toLowerCase() === email || (phone && applicationPhoneKey(a.applicant_phone) === phone)))) fail('already_applied', 'This email or phone number has already been used in this recruitment round.');
     const token = tok();
     st.apps.unshift({ id: rid('a'), cycle_id: c!.id, applicant_name: input.name.trim(), applicant_email: email, applicant_phone: input.phone ?? null, team_choices: input.team_ids, answers: input.answers, cv_path: input.cv_path ?? null, stage: 'applied', accepted_team_id: null, created_at: new Date().toISOString(), token });

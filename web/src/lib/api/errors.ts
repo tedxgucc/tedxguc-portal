@@ -21,6 +21,7 @@ const messages: Record<string, string> = {
   interview_time_conflict: 'An interview already overlaps these hours. Adjust the time range; existing bookings are kept.',
   invalid_interview_time: 'Choose a future interview time with an end after its start.',
   invalid_availability: 'Check your availability settings and try again.',
+  team_full: 'That team is full for this round. Pick another team as your first choice; you can still keep it as your second preference.',
   already_applied: 'This email or phone number has already been used in this recruitment round.',
   interview_not_completed: 'Wait until the scheduled interview has finished before making this decision.',
   already_referred: 'This applicant has already been referred to that team.',

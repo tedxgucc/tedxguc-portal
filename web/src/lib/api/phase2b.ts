@@ -11,6 +11,7 @@ import { friendly, toApiError } from './errors';
 import { ApiError } from './types';
 import { demoFilesApi, demoPackagesApi, demoRecruitmentApi } from './phase2b-demo';
 
+export type PositionFill = { team_id: string; seats: number | null; applicants: number; is_full: boolean };
 export type ApplyInput = {
   cycle_id: string; name: string; email: string; phone?: string; team_ids: string[];
   answers: Record<string, string>; cv_path?: string | null; consent: boolean; turnstile_token?: string;
@@ -30,6 +31,8 @@ export type PickupResult = { result: 'ok' | 'already_delivered' | 'not_paid' | '
 export interface RecruitmentApi {
   listCycles(): Promise<Cycle[]>;
   listPositions(cycleId?: string): Promise<Position[]>;
+  /** First-choice applicants per team, and whether it's full (seats = the limit). */
+  positionFill(cycleId: string): Promise<PositionFill[]>;
   saveCycle(input: Omit<Cycle, 'id' | 'rejections_released_at'> & { id?: string }): Promise<void>;
   savePosition(input: PositionInput): Promise<void>;
   uploadCv(cycleId: string, file: File, turnstileToken?: string): Promise<string>;
@@ -125,6 +128,9 @@ const numify = <T,>(rows: T[], keys: (keyof T)[]) => rows.map((r) => { const o =
 const liveRecruitment: RecruitmentApi = {
   async listCycles() {
     return run(db().from('recruitment_cycles').select('id, name, kind, opens_at, closes_at, rejections_released_at').order('opens_at', { ascending: false }));
+  },
+  async positionFill(cycleId) {
+    return run(db().rpc('position_fill', { p_cycle_id: cycleId }));
   },
   async listPositions(cycleId) {
     let q = db().from('positions').select('id, cycle_id, team_id, seats, description, questions, is_open');
