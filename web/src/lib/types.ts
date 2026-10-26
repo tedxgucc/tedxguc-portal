@@ -205,7 +205,7 @@ export type Excuse = { id: string; meeting_id: string; user_id: string; note: st
 export type RateRow = { user_id: string; name: string; team: string | null; sessions: number; attended: number; late: number; absent: number; excused: number; rate: number | null; level: number };
 
 // ----- Finance (Phase 2, FR-12) -----
-export type TxnKind = 'cash_out' | 'bank_deposit' | 'sponsorship' | 'package_sale' | 'refund' | 'opening_balance';
+export type TxnKind = 'cash_out' | 'bank_deposit' | 'sponsorship' | 'package_sale' | 'refund' | 'opening_balance' | 'bank_out';
 export type PayMethod = 'cash' | 'bank' | 'instapay' | 'telda';
 export type MoneyAccount = 'cash' | 'bank' | 'telda';
 export type Transaction = {

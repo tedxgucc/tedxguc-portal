@@ -18,7 +18,7 @@ export type NewMeeting = {
 export type Mark = { user_id: string; status: AttendanceStatus; note?: string };
 export type NewExpenseRequest = { team_id: string; item: string; amount_egp: number; reason?: string; event_id?: string | null };
 export type NewTransaction = {
-  kind: Extract<TxnKind, 'cash_out' | 'bank_deposit' | 'sponsorship'>;
+  kind: Extract<TxnKind, 'cash_out' | 'bank_deposit' | 'sponsorship' | 'bank_out'>;
   method: PayMethod; amount_gross: number; item?: string; supplier?: string; description?: string;
   team_id?: string | null; event_id?: string | null; expense_request_id?: string | null; sponsorship_id?: string | null;
   occurred_on?: string; vat_applies?: boolean;
@@ -47,6 +47,8 @@ export interface FinanceApi {
   divisionBudget(divisionId: string): Promise<BudgetStatus>;
   setBudget(divisionId: string, amount: number): Promise<void>;
   listTransactions(): Promise<Transaction[]>;
+  /** Every entry I may see, all years (for the bank history and reports). */
+  listAllTransactions(): Promise<Transaction[]>;
   createTransaction(input: NewTransaction): Promise<Transaction>;
   attachFatora(txnId: string, file: File): Promise<void>;
   openFile(path: string): Promise<string | null>;
@@ -147,6 +149,15 @@ const liveFinance: FinanceApi = {
   async listTransactions() {
     const rows = await run<Transaction[]>(db().from('transactions').select('*').order('occurred_on', { ascending: false }).order('created_at', { ascending: false }).limit(500));
     return rows.map((r) => num(r, TXN_NUMS));
+  },
+  async listAllTransactions() {
+    const out: Transaction[] = [];
+    for (let from = 0; from < 20000; from += 1000) {
+      const rows = await run<Transaction[]>(db().from('transactions').select('*').order('occurred_on', { ascending: true }).order('created_at', { ascending: true }).range(from, from + 999));
+      out.push(...rows.map((r) => num(r, TXN_NUMS)));
+      if (rows.length < 1000) break;
+    }
+    return out;
   },
   async createTransaction(input) {
     const me = await uid();

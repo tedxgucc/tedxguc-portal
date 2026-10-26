@@ -58,7 +58,7 @@ function VerifyInner() {
         <section className="tx-card grid gap-s4" aria-labelledby="log">
           <h2 id="log" className="tx-heading h3">Log this use</h2>
           {logged !== null ? (
-            <p className="flex items-center gap-s2"><Check size={18} className="text-good" aria-hidden="true" />Logged for {logged}. Thank you!</p>
+            <p className="flex items-center gap-s2"><Check size={18} className="text-ok" aria-hidden="true" />Logged for {logged}. Thank you!</p>
           ) : (
             <>
               <p className="text-body-sm text-ink-2">Optional: pick your place and enter the PIN TEDxGUC gave you. It helps us report how many people you served.</p>

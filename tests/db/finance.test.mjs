@@ -177,3 +177,17 @@ test('season rollover carries balances as opening entries (FR-3.4)', async () =>
   assert.deepEqual(ob.map((r) => [r.account, r.direction, Number(r.amount_net)]), [['cash', 'out', 50], ['bank', 'in', 1000]]);
   assert.match(ob[0].doc_number, /^OB-2028-/);
 });
+
+test('bank out: finance admins only, always from the bank, no VAT; bank in can skip VAT', async () => {
+  const out = await db.as(opsCurator, ({ one }) => one(
+    `insert into transactions (kind, method, amount_gross, description, created_by) values ('bank_out', 'cash', 1200, 'Bank fees', auth.uid()) returning *`));
+  assert.equal(out.direction, 'out');
+  assert.equal(out.account, 'bank');
+  assert.equal(Number(out.vat_amount), 0);
+  assert.match(out.doc_number, /^BO-/);
+  await rejects(db.as(pExec, ({ q }) => q(`insert into transactions (kind, method, amount_gross, created_by) values ('bank_out', 'bank', 5, auth.uid())`)), /row-level security/);
+  await rejects(db.as(lpExec, ({ q }) => q(`insert into transactions (kind, method, amount_gross, created_by) values ('bank_out', 'bank', 5, auth.uid())`)), /row-level security/);
+  const inn = await db.as(pExec, ({ one }) => one(
+    `insert into transactions (kind, method, amount_gross, vat_applies, description, created_by) values ('bank_deposit', 'bank', 1000, false, 'Transfer from GUC', auth.uid()) returning *`));
+  assert.equal(Number(inn.amount_net), 1000);
+});

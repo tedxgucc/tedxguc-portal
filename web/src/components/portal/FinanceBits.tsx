@@ -16,7 +16,7 @@ export function Money({ value, sign = false, className = '' }: { value: number; 
 export const signed = (t: Transaction) => (t.direction === 'in' ? t.amount_net : -t.amount_net);
 
 export const kindLabel: Record<Transaction['kind'], string> = {
-  cash_out: 'Cash out', bank_deposit: 'Bank deposit', sponsorship: 'Sponsorship', package_sale: 'Package sale', refund: 'Refund', opening_balance: 'Opening balance',
+  cash_out: 'Cash out', bank_deposit: 'Bank deposit', sponsorship: 'Sponsorship', package_sale: 'Package sale', refund: 'Refund', opening_balance: 'Bank statement', bank_out: 'Bank out',
 };
 export const methodLabel: Record<Transaction['method'], string> = { cash: 'Cash', bank: 'Bank', instapay: 'InstaPay', telda: 'Telda' };
 

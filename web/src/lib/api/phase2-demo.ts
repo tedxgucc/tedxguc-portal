@@ -10,7 +10,7 @@ import { demoCurrentMe, demoEvents, demoMembers } from './demo-api';
 import type { AttendanceApi, FinanceApi } from './phase2';
 import { ApiError } from './types';
 
-const KEY = 'tx-demo-p2-v1';
+const KEY = 'tx-demo-p2-v2';
 const DAY = 86400_000;
 const at = (days: number, hour = 16) => { const d = new Date(Date.now() + days * DAY); d.setUTCHours(hour - 3, 0, 0, 0); return d.toISOString(); };
 const day = (days: number) => at(days).slice(0, 10);
@@ -39,7 +39,7 @@ function mtg(idv: string, type: MeetingType, title: string, team: string | null,
 function txn(p: Partial<Transaction> & Pick<Transaction, 'id' | 'kind' | 'method' | 'amount_gross'>): Transaction {
   const vat = p.kind === 'bank_deposit' || p.kind === 'sponsorship' ? Math.round((p.amount_gross * VAT / (1 + VAT)) * 100) / 100 : 0;
   return {
-    doc_number: null, direction: p.kind === 'cash_out' || p.kind === 'refund' ? 'out' : 'in',
+    doc_number: null, direction: p.kind === 'cash_out' || p.kind === 'refund' || p.kind === 'bank_out' ? 'out' : 'in',
     account: p.method === 'cash' ? 'cash' : p.method === 'telda' ? 'telda' : 'bank',
     vat_amount: vat, amount_net: p.amount_gross - vat, item: null, supplier: null, description: null, team_id: null, event_id: null,
     expense_request_id: null, sponsorship_id: null, occurred_on: day(-5), fatora_path: null, expense_form_path: null, memo_path: null,
@@ -83,6 +83,17 @@ function fresh(): Store {
     { id: 'x5', team_id: 't-cc', event_id: null, requested_by: 'u-as-cc1', item: 'Poster printing', amount_egp: 1200, reason: null, status: 'rejected', reject_reason: 'Use the Delta Print barter deal instead.', transaction_id: null, created_at: at(-6) },
   ];
   const txns: Transaction[] = [
+    // Past bank statement lines (imported history), for reports and the bank view.
+    txn({ id: 'tob1', kind: 'opening_balance', method: 'bank', direction: 'in', amount_gross: 45000, item: 'Sponsor Vodafone Egypt', description: 'Bank statement', occurred_on: '2024-03-14', doc_number: 'OB-2026-0001', created_by: null }),
+    txn({ id: 'tob2', kind: 'opening_balance', method: 'bank', direction: 'out', amount_gross: 38200, item: 'Main Event 2024 venue', description: 'Bank statement', occurred_on: '2024-05-02', doc_number: 'OB-2026-0002', created_by: null }),
+    txn({ id: 'tob3', kind: 'opening_balance', method: 'bank', direction: 'in', amount_gross: 61000, item: 'Sponsor L Oreal Egypt', description: 'Bank statement', occurred_on: '2024-09-20', doc_number: 'OB-2026-0003', created_by: null }),
+    txn({ id: 'tob4', kind: 'opening_balance', method: 'bank', direction: 'out', amount_gross: 52400, item: 'Logistics for the Main Event 2024', description: 'Bank statement', occurred_on: '2024-10-28', doc_number: 'OB-2026-0004', created_by: null }),
+    txn({ id: 'tob5', kind: 'opening_balance', method: 'bank', direction: 'in', amount_gross: 58000, item: 'Sponsor Touch Media', description: 'Bank statement', occurred_on: '2025-02-11', doc_number: 'OB-2026-0005', created_by: null }),
+    txn({ id: 'tob6', kind: 'opening_balance', method: 'bank', direction: 'out', amount_gross: 21900, item: 'Salon venue and sound', description: 'Bank statement', occurred_on: '2025-04-18', doc_number: 'OB-2026-0006', created_by: null }),
+    txn({ id: 'tob7', kind: 'opening_balance', method: 'bank', direction: 'in', amount_gross: 70000, item: 'Student Plaza', description: 'Bank statement', occurred_on: '2025-09-30', doc_number: 'OB-2026-0007', created_by: null }),
+    txn({ id: 'tob8', kind: 'opening_balance', method: 'bank', direction: 'out', amount_gross: 103965.72, item: 'Logistics for the Main Event 2025', description: 'Bank statement', occurred_on: '2025-10-02', doc_number: 'OB-2026-0008', created_by: null }),
+    txn({ id: 'tob9', kind: 'opening_balance', method: 'bank', direction: 'in', amount_gross: 43859.65, item: 'Touch Media', description: 'Bank statement', occurred_on: '2026-01-15', doc_number: 'OB-2026-0009', created_by: null }),
+    txn({ id: 'tob10', kind: 'opening_balance', method: 'bank', direction: 'in', amount_gross: 39473.68, item: 'Media Craft', description: 'Bank statement', occurred_on: '2026-06-02', doc_number: 'OB-2026-0010', created_by: null }),
     txn({ id: 't1', doc_number: 'OB-2027-0001', kind: 'opening_balance', method: 'bank', amount_gross: 25000, description: 'Carried over from the previous season', occurred_on: day(-60), created_at: at(-60) }),
     txn({ id: 't2', doc_number: 'OB-2027-0002', kind: 'opening_balance', method: 'cash', amount_gross: 3000, description: 'Carried over from the previous season', occurred_on: day(-60), created_at: at(-60) }),
     txn({ id: 't3', doc_number: 'CO-2027-0001', kind: 'cash_out', method: 'cash', amount_gross: 300, item: 'Gaffer tape (10 rolls)', supplier: 'El Nour Hardware', team_id: 't-lnp', event_id: 'e-main27', expense_request_id: 'x4', fatora_path: 'demo/fatora-0001.jpg', occurred_on: day(-8), created_at: at(-8) }),
@@ -297,7 +308,7 @@ export const demoAttendanceApi: AttendanceApi = {
 const isAdmin = (u: Me) => u.role === 'chairman' || (u.role === 'curator' && u.division_kind === 'operations');
 const isLp = (u: Me) => u.role === 'executive' && u.team_kind === 'logistics_planning';
 const isP = (u: Me) => u.role === 'executive' && u.team_kind === 'partnerships';
-const canWriteKind = (u: Me, k: string) => (k === 'cash_out' ? isAdmin(u) || isLp(u) : ['bank_deposit', 'sponsorship'].includes(k) ? isAdmin(u) || isP(u) : false);
+const canWriteKind = (u: Me, k: string) => (k === 'cash_out' ? isAdmin(u) || isLp(u) : ['bank_deposit', 'sponsorship'].includes(k) ? isAdmin(u) || isP(u) : k === 'bank_out' ? isAdmin(u) : false);
 // Only L&P Executives ask; only they, the Ops Curator and the Chairman see requests.
 const canSeeRequest = (u: Me, r: ExpenseRequest) => r.requested_by === u.id || isAdmin(u) || isLp(u);
 const nextDoc = (prefix: string) => { const st = s(); st.counters[prefix] = (st.counters[prefix] ?? 0) + 1; return `${prefix}-2027-${String(st.counters[prefix]).padStart(4, '0')}`; };
@@ -354,6 +365,9 @@ export const demoFinanceApi: FinanceApi = {
     const u = me();
     return s().txns.filter((t) => isAdmin(u) || canWriteKind(u, t.kind)).sort((a, b) => b.occurred_on.localeCompare(a.occurred_on) || b.created_at.localeCompare(a.created_at));
   },
+  async listAllTransactions() {
+    return [...(await demoFinanceApi.listTransactions())].sort((a, b) => a.occurred_on.localeCompare(b.occurred_on) || a.created_at.localeCompare(b.created_at));
+  },
   async createTransaction(input) {
     const u = me();
     if (!canWriteKind(u, input.kind)) fail('not_allowed');
@@ -365,10 +379,11 @@ export const demoFinanceApi: FinanceApi = {
       if (!r || r.status !== 'approved') fail('expense_request_not_approved', 'That request isn’t approved yet.');
       teamId = teamId ?? r!.team_id;
     }
-    const vatApplies = input.vat_applies ?? input.kind !== 'cash_out';
+    const vatApplies = input.kind === 'bank_out' ? false : input.vat_applies ?? input.kind !== 'cash_out';
+    if (input.kind === 'bank_out') input = { ...input, method: 'bank' };
     const t = txn({
       id: id('t'), kind: input.kind, method: input.method, amount_gross: input.amount_gross,
-      doc_number: nextDoc(input.kind === 'cash_out' ? 'CO' : input.kind === 'bank_deposit' ? 'DEP' : 'SP'),
+      doc_number: nextDoc(input.kind === 'cash_out' ? 'CO' : input.kind === 'bank_deposit' ? 'DEP' : input.kind === 'bank_out' ? 'BO' : 'SP'),
       item: input.item ?? null, supplier: input.supplier ?? null, description: input.description ?? null, team_id: teamId,
       event_id: input.event_id ?? null, expense_request_id: input.expense_request_id ?? null, sponsorship_id: input.sponsorship_id ?? null,
       occurred_on: input.occurred_on ?? new Date().toISOString().slice(0, 10), created_by: u.id, created_at: new Date().toISOString(),

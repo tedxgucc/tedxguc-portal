@@ -49,7 +49,7 @@ export function BalancesTab() {
         <div className="grid grid-cols-[repeat(2,minmax(0,1fr))] lg:grid-cols-3 gap-s2 md:gap-s4">
           <div className="tx-card tx-card--red tx-kpi col-span-2 lg:col-span-1">
             <span className="tx-label" style={{ color: '#fff' }}>Total</span>
-            <span className="stat tx-num break-words" style={{ fontSize: "clamp(28px, 8vw, 40px)" }}>{egp(b.bank + b.telda + b.cash)}</span>
+            <span className="stat tx-num break-words" style={{ fontSize: "clamp(22px, 3vw, 40px)", whiteSpace: "nowrap" }}>{egp(b.bank + b.telda + b.cash)}</span>
           </div>
           {tile('Bank account', b.bank)}
           {tile('Cash on hand', b.cash)}
