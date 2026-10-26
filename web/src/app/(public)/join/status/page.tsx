@@ -2,12 +2,12 @@
 // Applicant's private status page (FR-2.2, FR-4.4, FR-4.6): where the
 // application stands, interview booking, withdraw. Rejections stay
 // "in review" until the curator releases them for the whole round.
-import { CalendarCheck } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useState } from 'react';
 import { TxLabel } from '@/components/Brand';
 import { InterviewInvitation } from '@/components/InterviewInvitation';
+import { InterviewSlotPicker } from '@/components/InterviewSlotPicker';
 import { useToast } from '@/components/Toast';
 import { Button, EmptyState, Modal, Skeleton } from '@/components/ui';
 import { recruitmentApi } from '@/lib/api/phase2b';
@@ -85,14 +85,7 @@ function StatusInner() {
         <section className="grid gap-s3" aria-labelledby="slots">
           <h2 id="slots" className="tx-heading h3">{a.interview ? 'Need another time?' : 'Pick your interview time'}</h2>
           {a.open_slots && a.open_slots.length > 0 ? (
-            <ul className="grid gap-s2">
-              {a.open_slots.map((s) => (
-                <li key={s.slot_id} className="tx-card flex flex-wrap items-center gap-s3" style={{ padding: '12px 16px' }}>
-                  <span className="flex-1 min-w-0"><span className="font-semibold block">{fmtDate(s.starts_at)} · {fmtTime(s.starts_at)} – {fmtTime(s.ends_at)}</span><span className="text-caption text-ink-3">{s.team}{s.location ? ` · ${s.location}` : ''}</span></span>
-                  <Button small onClick={() => setPicked(s)} disabled={!!busy}><CalendarCheck aria-hidden="true" />{a.interview ? 'Choose new time' : 'Choose time'}</Button>
-                </li>
-              ))}
-            </ul>
+            <InterviewSlotPicker slots={a.open_slots} disabled={!!busy} rescheduling={!!a.interview} onChoose={setPicked} />
           ) : <div className="grid gap-s3"><p className="text-ink-2">Your application is saved, but this team has no free interview times yet. Check back here for more times.</p><div><Button small variant="secondary" onClick={load}>Refresh available times</Button></div></div>}
         </section>
       )}
