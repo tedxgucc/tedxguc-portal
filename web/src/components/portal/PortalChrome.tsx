@@ -2,7 +2,7 @@
 // Portal chrome (design system: AppChrome): sticky top bar with the lockup,
 // notifications and avatar; a 248px sidebar on desktop; five tabs on mobile.
 import {
-  Bell, CalendarDays, CircleUser, CreditCard, Globe, Inbox, Settings2, ClipboardCheck, FolderOpen, LayoutDashboard, LogOut, Megaphone, Menu, Package, ScanLine, Sparkles, SquareKanban, UserSearch, Users, Wallet,
+  Bell, CalendarClock, CalendarDays, CircleUser, CreditCard, Globe, Inbox, Settings2, ClipboardCheck, FolderOpen, LayoutDashboard, LogOut, Megaphone, Menu, Package, ScanLine, Sparkles, SquareKanban, UserSearch, Users, Wallet,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -41,7 +41,7 @@ export function useNav() {
     {
       title: 'People',
       items: [
-        { href: '/portal/attendance', label: me.role === 'associate' ? 'My attendance' : 'Attendance', icon: ClipboardCheck },
+        { href: '/portal/meetings', label: 'Meetings', icon: CalendarClock },
         { href: '/portal/team', label: me.role === 'executive' ? 'My team' : 'Team', icon: Users },
         { href: '/portal/recruitment', label: 'Recruitment', icon: UserSearch, show: me.role !== 'associate' && !!me.role },
         { href: '/portal/files', label: 'Files', icon: FolderOpen },
@@ -119,13 +119,13 @@ export function PortalSidebar() {
 export function PortalTabBar() {
   const path = usePathname();
   const { me } = usePortal();
-  // Design system (AppChrome): Home · Tasks · Attendance · Calendar, then a
+  // Design system (AppChrome): Home · Tasks · Meetings · Calendar, then a
   // role slot. People who handle money get Finance; everyone keeps More.
   const money = me.role === 'chairman' || me.role === 'curator' || canRecordCashOut(me) || canRecordDeposits(me);
   const tabs = [
     { href: '/portal', label: 'Home', icon: LayoutDashboard },
     { href: '/portal/tasks', label: 'Tasks', icon: SquareKanban },
-    { href: '/portal/attendance', label: 'Attendance', icon: ClipboardCheck },
+    { href: '/portal/meetings', label: 'Meetings', icon: CalendarClock },
     money ? { href: '/portal/finance', label: 'Finance', icon: Wallet } : { href: '/portal/calendar', label: 'Calendar', icon: CalendarDays },
     { href: '/portal/more', label: 'More', icon: Menu },
   ];

@@ -14,8 +14,8 @@ function pageFor(link: string): string {
   const [, , area, id] = link.split('/');
   switch (area) {
     case 'announcements': return '/portal/news';
-    case 'meetings': return id ? '/portal/attendance/meeting?id=' + id : '/portal/attendance';
-    case 'attendance': return '/portal/attendance';
+    case 'meetings': return id ? '/portal/meetings/view?id=' + id : '/portal/meetings';
+    case 'attendance': return '/portal/meetings';
     case 'expenses': return '/portal/finance';
     case 'orders': return '/portal/packages';
     case 'recruitment': return '/portal/recruitment';

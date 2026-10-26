@@ -76,31 +76,6 @@ export function SettingsTab() {
 
   return (
     <div className="grid gap-s7 max-w-[860px]">
-      <section className="grid gap-s4">
-        <SectionHeading>Attendance</SectionHeading>
-        {numFields(attendance)}
-        <div className="grid gap-s3">
-          <span className="tx-label">Absence levels</span>
-          <p className="caption tx-faint">What happens when a member reaches each level of absences.</p>
-          {levels.map((l, i) => (
-            <div key={i} className="grid grid-cols-[minmax(0,110px)_minmax(0,1fr)_auto] gap-s2 items-end">
-              <TextInput label="Level" type="number" min={1} value={String(l.level)}
-                onChange={(e) => setLevels(levels.map((x, j) => (j === i ? { ...x, level: Number(e.target.value) } : x)))} />
-              <Select label="Then" value={l.action} onChange={(e) => setLevels(levels.map((x, j) => (j === i ? { ...x, action: e.target.value as Level['action'] } : x)))}>
-                <option value="warn_member">Warn the member</option>
-                <option value="notify_curator">Tell their Curator</option>
-              </Select>
-              <button type="button" className="tx-iconbtn mb-[2px]" aria-label={`Remove level ${l.level}`} onClick={() => setLevels(levels.filter((_, j) => j !== i))}><Trash2 size={18} /></button>
-            </div>
-          ))}
-          <div>
-            <Button variant="ghost" small type="button" onClick={() => setLevels([...levels, { level: (levels.at(-1)?.level ?? 1) + 1, action: 'notify_curator' }])}>
-              <Plus size={16} aria-hidden="true" />Add level
-            </Button>
-          </div>
-        </div>
-        <div><Button loading={busy === 'att'} onClick={() => save('att', [...attendance.map((k) => k.key), 'absence_levels'])}>Save attendance rules</Button></div>
-      </section>
 
       <section className="grid gap-s4">
         <SectionHeading>Money</SectionHeading>
