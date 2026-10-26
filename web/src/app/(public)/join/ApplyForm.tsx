@@ -80,7 +80,7 @@ export function ApplyForm({ cycle, positions, teams }: { cycle: Cycle; positions
       <div><Button type="button" small variant="ghost" onClick={() => setStep('teams')}>Change first-choice team</Button></div>
       <TextInput label="Full name" value={f.name} onChange={set('name')} autoComplete="name" error={errors.name} />
       <div className="grid gap-s4 grid-cols-1 sm:grid-cols-2">
-        <TextInput label="GUC ID" value={f.gucId} onChange={set('gucId')} placeholder="49-12345" inputMode="numeric" error={errors.gucId} />
+        <TextInput label="GUC ID" value={f.gucId} onChange={set('gucId')} placeholder="49-12345" inputMode="text" error={errors.gucId} />
         <Select label="Major" value={f.major} onChange={set('major')} error={errors.major}>
           <option value="">Choose</option>
           {GUC_MAJORS.map((m) => <option key={m} value={m}>{m}</option>)}
