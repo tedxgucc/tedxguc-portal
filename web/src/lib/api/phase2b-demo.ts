@@ -226,7 +226,7 @@ export const demoRecruitmentApi: RecruitmentApi = {
     const st = s();
     let emailed = 0;
     for (const a of st.apps.filter((x) => ids.includes(x.id))) {
-      if (!canDecide(u, a)) fail('not_allowed', 'Only the curator decides on applications.');
+      if (!canDecide(u, a) && !(stage === 'rejected' && acceptableTeams(u, a).length)) fail('not_allowed');
       if (['accepted', 'withdrawn'].includes(a.stage)) continue;
       a.stage = stage;
       if (stage !== 'interview') for (const x of st.slots) if (x.application_id === a.id) x.application_id = null;
@@ -267,7 +267,7 @@ export const demoRecruitmentApi: RecruitmentApi = {
     if (!a || !canReview(u, a)) fail('not_allowed');
     if (['accepted', 'withdrawn'].includes(a!.stage)) fail('application_closed');
     const source = [...a!.team_choices, ...(s().referrals ?? []).filter((r) => r.application_id === applicationId && r.status === 'pending').map((r) => r.to_team_id)].find((t) => t !== teamId && manageTeam(u, t));
-    if (!source || !s().positions.some((p) => p.cycle_id === a!.cycle_id && p.team_id === teamId)) fail('not_allowed');
+    if (!source || !fx.teams.some((t) => t.id === teamId)) fail('not_allowed');
     if ((s().referrals ?? []).some((r) => r.application_id === applicationId && r.to_team_id === teamId)) fail('already_referred');
     if (notes.length > 2000) fail('referral_notes_too_long');
     (s().referrals ??= []).push({ id: rid('ref'), application_id: applicationId, from_team_id: source!, to_team_id: teamId, referred_by: u.id, notes: notes.trim(), status: 'pending', created_at: new Date().toISOString() });

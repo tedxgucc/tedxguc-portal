@@ -147,6 +147,7 @@ function ApplicantSheet({ app, positions, decides, onClose, onChanged, onMove }:
   const [contextError, setContextError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [referring, setReferring] = useState(false);
+  const [rejecting, setRejecting] = useState(false);
   const [referTeam, setReferTeam] = useState('');
   const [referNotes, setReferNotes] = useState('');
   const loadContext = useCallback(() => {
@@ -165,8 +166,7 @@ function ApplicantSheet({ app, positions, decides, onClose, onChanged, onMove }:
   const avg = scores.length ? Math.round((scores.reduce((a, s) => a + s.score, 0) / scores.length) * 10) / 10 : null;
   const acceptable = context?.acceptable_team_ids ?? [];
   const sourceTeams = [...app.team_choices, ...(context?.referrals.filter((r) => r.status === 'pending').map((r) => r.to_team_id) ?? [])].filter((id) => canManageTeam(me, team(id)));
-  const referable = teams.filter((t) => positions.some((p) => p.cycle_id === app.cycle_id && p.team_id === t.id)
-    && sourceTeams.some((id) => id !== t.id) && !context?.referrals.some((r) => r.to_team_id === t.id));
+  const referable = teams.filter((t) => sourceTeams.some((id) => id !== t.id) && !context?.referrals.some((r) => r.to_team_id === t.id));
 
   const saveScore = async () => {
     const n = Number(score);
@@ -185,6 +185,15 @@ function ApplicantSheet({ app, positions, decides, onClose, onChanged, onMove }:
     setSaving(true);
     try { await recruitmentApi.refer(app.id, referTeam, referNotes); toast('ok', `Referred to ${team(referTeam)?.name}.`, 'The receiving team reviews and accepts the applicant.'); onChanged(); }
     catch (e) { toast('bad', 'That did not save.', (e as Error).message); }
+    finally { setSaving(false); }
+  };
+  const reject = async () => {
+    setSaving(true);
+    try {
+      const result = await recruitmentApi.setStage([app.id], 'rejected');
+      toast('ok', `${app.applicant_name} rejected.`, result.held_back ? 'The rejection email is held until the round is released.' : undefined);
+      onChanged();
+    } catch (e) { toast('bad', 'That did not save.', (e as Error).message); }
     finally { setSaving(false); }
   };
   const openCv = async () => {
@@ -238,9 +247,9 @@ function ApplicantSheet({ app, positions, decides, onClose, onChanged, onMove }:
             <div className="grid grid-cols-2 gap-s2">
               {decides && app.stage !== 'screened' && app.stage !== 'interview' && <Button small variant="secondary" onClick={() => onMove([app.id], 'screened')}>Screened</Button>}
               {decides && app.stage !== 'interview' && <Button small variant="secondary" onClick={() => onMove([app.id], 'interview')}>Invite to interview</Button>}
-              {decides && app.stage !== 'rejected' && <Button small variant="danger" onClick={() => onMove([app.id], 'rejected')}><X aria-hidden="true" />Reject</Button>}
-              {acceptable.length > 0 && <Button small onClick={() => setAccepting(true)}><UserCheck aria-hidden="true" />Accept</Button>}
-              {context && referable.length > 0 && <Button small variant="secondary" onClick={() => setReferring((v) => !v)}>Refer to another team</Button>}
+              {app.stage !== 'rejected' && <Button small variant="danger" disabled={saving || (!decides && !acceptable.length)} onClick={() => { setRejecting(true); setAccepting(false); setReferring(false); }}><X aria-hidden="true" />Reject</Button>}
+              {acceptable.length > 0 && <Button small disabled={saving} onClick={() => { setAccepting(true); setRejecting(false); setReferring(false); }}><UserCheck aria-hidden="true" />Accept</Button>}
+              <Button small variant="secondary" disabled={saving || !context || !sourceTeams.length} onClick={() => { setReferring((v) => !v); setAccepting(false); setRejecting(false); }}>Reallocate</Button>
             </div>
             {accepting && (
               <div className="tx-card tx-card--outline grid gap-s3">
@@ -251,7 +260,8 @@ function ApplicantSheet({ app, positions, decides, onClose, onChanged, onMove }:
                 <Button small loading={saving} disabled={!acceptTeam} onClick={accept}><Check aria-hidden="true" />Accept {app.applicant_name.split(' ')[0]}</Button>
               </div>
             )}
-            {referring && <div className="tx-card tx-card--outline grid gap-s3"><Select label="Receiving team" value={referTeam} onChange={(e) => setReferTeam(e.target.value)}><option value="">Choose a team</option>{referable.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</Select><TextArea label="Reallocation notes" maxLength={2000} value={referNotes} onChange={(e) => setReferNotes(e.target.value)} placeholder="Why might this applicant suit the receiving team?" /><p className="text-caption text-ink-3">Their original preferences stay unchanged. The receiving Executive makes the acceptance decision.</p><Button small loading={saving} disabled={!referTeam} onClick={refer}>Send referral</Button></div>}
+            {rejecting && <div className="tx-card tx-card--outline grid gap-s3"><p className="text-body-sm">Reject <b>{app.applicant_name}</b>? Their application will be marked rejected. Email follows the round's rejection-release settings.</p><div className="flex flex-wrap gap-s2"><Button small variant="secondary" disabled={saving} onClick={() => setRejecting(false)}>Cancel</Button><Button small variant="danger" loading={saving} onClick={reject}>Confirm rejection</Button></div></div>}
+            {referring && <div className="tx-card tx-card--outline grid gap-s3">{referable.length ? <><Select label="Receiving team" value={referTeam} onChange={(e) => setReferTeam(e.target.value)}><option value="">Choose a team</option>{referable.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</Select><TextArea label="Reallocation notes" maxLength={2000} value={referNotes} onChange={(e) => setReferNotes(e.target.value)} placeholder="Why might this applicant suit the receiving team?" /><p className="text-caption text-ink-3">Their original preferences stay unchanged. The receiving Executive makes the acceptance decision.</p><Button small loading={saving} disabled={!referTeam} onClick={refer}>Send reallocation</Button></> : <p className="text-body-sm text-ink-3">No other destination is available. This applicant has already been referred to the other available teams; see Reallocations above.</p>}</div>}
           </section>
         )}
       </div>

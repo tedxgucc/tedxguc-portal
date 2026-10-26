@@ -119,3 +119,37 @@ test('accepting a recruitment application cannot replace an existing Chairman me
   await rejects(accept(exec, a.application_id, media), /duplicate key|membership/);
   assert.equal((await db.one(`select role from memberships where user_id=$1 and status='active'`, [chair])).role, 'chairman');
 });
+
+test('Executives can reject their applicants but cannot change other stages or reject unrelated applicants', async () => {
+  const a = await application();
+  const rejected = await as(exec, `select set_application_stage($1,'rejected') as data`, [[a.application_id]]);
+  assert.deepEqual(rejected.data, [], 'rejection email remains held until round release');
+  assert.equal((await db.one(`select stage from applications where id=$1`, [a.application_id])).stage, 'rejected');
+  assert.equal((await as('anon', `select get_application_by_token($1) as data`, [a.status_token])).data.stage, 'in_review');
+  const b = await application();
+  await rejects(as(exec, `select set_application_stage($1,'screened')`, [[b.application_id]]), /not_allowed/);
+  await rejects(as(exec, `select set_application_stage($1,'interview')`, [[b.application_id]]), /not_allowed/);
+  await rejects(as(unrelatedExec, `select set_application_stage($1,'rejected')`, [[b.application_id]]), /not_allowed/);
+  await rejects(as(associate, `select set_application_stage($1,'rejected')`, [[b.application_id]]), /not_allowed/);
+});
+
+test('reallocation supports a destination with no recruitment position and its Executive can accept or reject', async () => {
+  const lp = await db.team('logistics_planning');
+  const lpExec = await db.member('executive', 'logistics_planning');
+  assert.equal((await db.one(`select count(*)::int n from positions where cycle_id=$1 and team_id=$2`, [cycle.id, lp])).n, 0);
+  const a = await application();
+  await refer(exec, a.application_id, lp);
+  assert.deepEqual((await context(lpExec, a.application_id)).acceptable_team_ids, [lp]);
+  await accept(lpExec, a.application_id, lp);
+  const b = await application();
+  await refer(exec, b.application_id, lp);
+  await as(lpExec, `select set_application_stage($1,'rejected')`, [[b.application_id]]);
+  assert.equal((await db.one(`select stage from applications where id=$1`, [b.application_id])).stage, 'rejected');
+});
+
+test('mixed-scope bulk rejection rolls back every change', async () => {
+  const own = await application(); const outside = await application();
+  await db.q(`update applications set team_choices=$1 where id=$2`, [[coaching], outside.application_id]);
+  await rejects(as(exec, `select set_application_stage($1,'rejected')`, [[own.application_id, outside.application_id]]), /not_allowed/);
+  assert.equal((await db.one(`select stage from applications where id=$1`, [own.application_id])).stage, 'applied');
+});

@@ -60,7 +60,7 @@ test('who sees applications: chosen teams and their Curator, not other teams or 
   assert.equal(await sees(mediaAssoc), false);
 });
 
-test('stages: only Curators decide; rejections stay hidden until released (FR-4.3, FR-4.6)', async () => {
+test('screening stays with Curators; rejections stay hidden until released (FR-4.3, FR-4.6)', async () => {
   const a = await apply('rej@x.co', [media]);
   const b = await apply('scr@x.co', [media]);
   await rejects(db.as(mediaExec, ({ q }) => q(`select set_application_stage($1, 'screened')`, [`{${b.application_id}}`])), /not_allowed/);
