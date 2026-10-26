@@ -1,5 +1,5 @@
 'use client';
-import { CalendarDays, CreditCard, Handshake, Info, LogIn, Menu, Mic, Sparkles, UserPlus, X } from 'lucide-react';
+import { CalendarDays, Home, Handshake, Info, LogIn, Menu, Mic, Sparkles, UserPlus, X } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -8,11 +8,11 @@ import { Lockup } from './Brand';
 import { ThemeToggle } from './ThemeToggle';
 
 const links = [
+  { href: '/', label: 'Home', icon: Home },
   { href: '/events', label: 'Events', icon: Sparkles },
   { href: '/speakers', label: 'Speakers', icon: Mic },
   { href: '/calendar', label: 'Calendar', icon: CalendarDays },
   { href: '/partners', label: 'Partners', icon: Handshake },
-  { href: '/perks', label: 'X Access', icon: CreditCard },
   { href: '/about', label: 'About', icon: Info },
   { href: '/join', label: 'Join the team', icon: UserPlus },
 ];
@@ -76,10 +76,10 @@ export function PublicFooter() {
           <p className="text-ink-2 text-body-sm max-w-[340px]">Ideas worth spreading at the German University in Cairo, since 2013.</p>
         </div>
         <ul className="grid gap-s2 content-start text-body-sm" aria-label="Site">
+          <li><Link className="text-ink-2 hover:text-ink no-underline" href="/">Home</Link></li>
           <li><Link className="text-ink-2 hover:text-ink no-underline" href="/events">Events</Link></li>
           <li><Link className="text-ink-2 hover:text-ink no-underline" href="/speakers">Speakers</Link></li>
           <li><Link className="text-ink-2 hover:text-ink no-underline" href="/calendar">Calendar</Link></li>
-          <li><Link className="text-ink-2 hover:text-ink no-underline" href="/perks">X Access perks</Link></li>
           <li><Link className="text-ink-2 hover:text-ink no-underline" href="/contact">Contact &amp; FAQ</Link></li>
         </ul>
         <ul className="grid gap-s2 content-start text-body-sm" aria-label="More">

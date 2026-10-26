@@ -51,7 +51,13 @@ function EventInner() {
         <div className="grid gap-s7">
           {event.cover_url && <img src={event.cover_url} alt="" className="w-full aspect-[16/9] object-cover" />} {/* eslint-disable-line @next/next/no-img-element */}
           {event.description && <p className="body-lg text-ink-2 max-w-[68ch]">{event.description}</p>}
+        </div>
 
+        <aside className="lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:sticky lg:top-[88px]" aria-label="Registration">
+          <RegisterPanel event={event} fields={fields} open={open} past={isPast} notYet={notYet} />
+        </aside>
+
+        <div className="grid gap-s7 lg:col-start-1 lg:row-start-2">
           {event.agenda.length > 0 && (
             <section className="grid gap-s4" aria-labelledby="agenda">
               <SectionHeading as="h3"><span id="agenda">Agenda</span></SectionHeading>
@@ -77,9 +83,6 @@ function EventInner() {
           )}
         </div>
 
-        <aside className="lg:sticky lg:top-[88px]" aria-label="Registration">
-          <RegisterPanel event={event} fields={fields} open={open} past={isPast} notYet={notYet} />
-        </aside>
       </div>
     </>
   );

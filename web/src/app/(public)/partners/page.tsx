@@ -47,7 +47,6 @@ export default function PartnersPage() {
           <ul className="tx-stars body">
             <li>Logo placements on stage, screens and the site</li>
             <li>Booths on event day</li>
-            <li>Perks for our X Access card holders</li>
           </ul>
         </div>
         <InquiryForm kind="partner" />
