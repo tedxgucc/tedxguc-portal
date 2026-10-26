@@ -11,6 +11,7 @@ import { useToast } from '@/components/Toast';
 import { Avatar, Button, TextInput } from '@/components/ui';
 import { api } from '@/lib/api';
 import { DEMO_COOKIE, demoPersonas, resetDemo } from '@/lib/api/demo-api';
+import { clearCache } from '@/lib/cache';
 import { DEMO, GOOGLE_LOGIN } from '@/lib/env';
 
 function safeNext(next: string | null) {
@@ -49,6 +50,7 @@ function LoginInner() {
       } else {
         await api.signInWithEmail(email.trim(), password);
       }
+      clearCache();
       router.replace(next);
     } catch (x) {
       setError((x as Error).message);
@@ -63,6 +65,7 @@ function LoginInner() {
     setBusy(null);
   };
   const pickDemo = (userId: string) => {
+    clearCache();
     document.cookie = `${DEMO_COOKIE}=${userId}; path=/; max-age=${60 * 60 * 8}; samesite=lax`;
     router.replace(next);
   };

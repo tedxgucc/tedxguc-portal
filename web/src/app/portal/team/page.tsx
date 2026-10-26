@@ -77,7 +77,7 @@ export default function TeamPage() {
                       <ul className="grid gap-s2">
                         {people.map((m) => (
                           <li key={m.user_id} className="flex items-center gap-s3">
-                            <Avatar name={m.name} small />
+                            <Avatar name={m.name} small photo={m.photo_url} />
                             <span className="flex-1">{m.name}</span>
                             <span className="text-caption text-ink-3">{roleLabel[m.role]}</span>
                             {canRequest(m) && <button type="button" className="tx-iconbtn" aria-label={`Request a role change for ${m.name}`} onClick={() => setChanging(m)}><UserCog size={16} /></button>}

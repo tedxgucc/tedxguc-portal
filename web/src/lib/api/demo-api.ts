@@ -92,7 +92,7 @@ function save() {
 // No artificial delays: demo data answers instantly.
 const wait = (_ms?: number) => Promise.resolve();
 const id = (p: string) => `${p}-${Math.random().toString(36).slice(2, 10)}`;
-const fail = (code: string): never => { throw new ApiError(code, friendly(code)); };
+const fail = (code: string, msg?: string): never => { throw new ApiError(code, msg ?? friendly(code)); };
 const nowIso = () => new Date().toISOString();
 
 function readCookie(name: string): string | null {
@@ -106,7 +106,7 @@ function meFrom(userId: string | null): Me | null {
   if (!mem) return null;
   const t = s().teams.find((x) => x.id === mem.team_id) ?? null;
   return {
-    id: mem.user_id, name: mem.name, email: fx.emailOf(mem.user_id), photo_url: null, role: mem.role,
+    id: mem.user_id, name: mem.name, email: fx.emailOf(mem.user_id), photo_url: mem.photo_url, role: mem.role,
     team_id: mem.team_id, team_name: mem.team, team_kind: t?.kind ?? null,
     division_id: mem.division_id, division_name: mem.division, division_kind: mem.division_kind,
   };
@@ -299,8 +299,26 @@ export const demoApi: Api = {
     const me = requireMe();
     const mem = s().members.find((x) => x.user_id === me.id)!;
     if (patch.name) mem.name = patch.name;
+    if (patch.photo_url !== undefined) mem.photo_url = patch.photo_url;
     save();
   },
+  async uploadAvatar(file) {
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) fail('invalid_image', 'Use a JPG, PNG or WebP photo.');
+    // Demo mode keeps the photo in this browser, so shrink it first.
+    return new Promise<string>((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const k = Math.min(1, 320 / Math.max(img.width, img.height));
+        const c = document.createElement('canvas');
+        c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+        c.getContext('2d')!.drawImage(img, 0, 0, c.width, c.height);
+        resolve(c.toDataURL('image/jpeg', 0.8));
+      };
+      img.onerror = () => reject(new ApiError('invalid_image', 'That photo couldn’t be read.'));
+      img.src = URL.createObjectURL(file);
+    });
+  },
+  async changePassword() { fail('demo_login', 'Passwords don’t exist in demo mode.'); },
   async rotateCalendarToken() { return 'demo' + Math.random().toString(16).slice(2).padEnd(60, '0'); },
 
   // ----- Structure -----

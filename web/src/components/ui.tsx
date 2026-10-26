@@ -26,8 +26,13 @@ export function DivTag({ kind, children }: { kind: DivisionKind | null | undefin
   return <span className={`tx-tag ${c ? `tx-tag--${c}` : ''}`} style={c ? undefined : { color: 'var(--ink-2)' }}>{children}</span>;
 }
 
-export function Avatar({ name, small = false }: { name: string; small?: boolean }) {
-  return <span className={`tx-av ${small ? 'tx-av--sm' : ''}`} title={name} aria-hidden="true">{initials(name)}</span>;
+export function Avatar({ name, small = false, photo, size }: { name: string; small?: boolean; photo?: string | null; size?: number }) {
+  const style = size ? { width: size, height: size, minWidth: size } : undefined;
+  if (photo) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={photo} alt="" title={name} aria-hidden="true" className={`tx-av ${small ? 'tx-av--sm' : ''} object-cover`} style={{ ...style, padding: 0 }} />;
+  }
+  return <span className={`tx-av ${small ? 'tx-av--sm' : ''}`} title={name} aria-hidden="true" style={style}>{initials(name)}</span>;
 }
 
 // ----- Empty state: dashed frame, red X, one line, one action -----

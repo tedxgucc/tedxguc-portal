@@ -97,7 +97,11 @@ export interface Api {
   signInWithEmail(email: string, password: string): Promise<void>;
   sendPasswordReset(email: string): Promise<void>;
   signOut(everywhere?: boolean): Promise<void>;
-  updateProfile(patch: { name?: string; major?: string | null; semester?: number | null; phone?: string | null }): Promise<void>;
+  updateProfile(patch: { name?: string; major?: string | null; semester?: number | null; phone?: string | null; photo_url?: string | null }): Promise<void>;
+  /** Upload my profile photo; returns its address. */
+  uploadAvatar(file: File): Promise<string>;
+  /** Change my password while logged in (no email needed). */
+  changePassword(password: string): Promise<void>;
   rotateCalendarToken(): Promise<string>;
 
   // ----- Structure -----

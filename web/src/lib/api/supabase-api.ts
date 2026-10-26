@@ -153,6 +153,19 @@ export const supabaseApi: Api = {
     if (Object.keys(rest).length) await run(db().from('users').update(rest).eq('id', id));
     if (phone !== undefined) await run(db().from('user_private').update({ phone }).eq('user_id', id));
   },
+  async uploadAvatar(file) {
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) throw new ApiError('invalid_image', 'Use a JPG, PNG or WebP photo.');
+    if (file.size > 2 * 1024 * 1024) throw new ApiError('invalid_image', 'Keep your photo under 2 MB.');
+    const path = `${await uid()}/${crypto.randomUUID()}.${file.type.split('/')[1].replace('jpeg', 'jpg')}`;
+    const { error } = await db().storage.from('avatars').upload(path, file, { contentType: file.type });
+    if (error) throw new ApiError('upload_failed', 'The photo didn’t upload. Try a smaller one.');
+    return db().storage.from('avatars').getPublicUrl(path).data.publicUrl;
+  },
+  async changePassword(password) {
+    if (password.length < 8) throw new ApiError('weak_password', 'Use at least 8 characters.');
+    const { error } = await db().auth.updateUser({ password });
+    if (error) throw toApiError(error);
+  },
   async rotateCalendarToken() {
     return run(db().rpc('rotate_calendar_feed_token'));
   },

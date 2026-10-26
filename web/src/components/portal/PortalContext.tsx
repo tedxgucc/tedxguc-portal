@@ -2,7 +2,7 @@
 // The signed-in member plus the season's structure, loaded once for every
 // portal screen.
 import { useRouter } from 'next/navigation';
-import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import { createContext, Fragment, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { api } from '@/lib/api';
 import { adminApi } from '@/lib/api/admin';
 import { BASE_PATH } from '@/lib/env';
@@ -95,7 +95,8 @@ export function PortalProvider({ children, fallback }: { children: React.ReactNo
   }, [state, unread, refreshUnread, reload]);
 
   if (!value) return <>{fallback}</>;
-  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+  // Keyed by person: if someone else is now logged in, every page starts fresh.
+  return <Ctx.Provider value={value}><Fragment key={value.me.id}>{children}</Fragment></Ctx.Provider>;
 }
 
 export function usePortal(): Portal {
