@@ -329,6 +329,18 @@ Members only. Built to get people from different teams to know each other, not j
 - FR-20.10 Shout-out wall: members thank or praise each other publicly inside the portal.
 - FR-20.11 Birthday reminders on the dashboard (only for members who added a birthday).
 
+**X Moment (BeReal-style), in campaigns only**
+
+- FR-20.12 AE/AD open an **X Moment campaign** with start and end dates (typically the month before the Main Event, when Supabase is on Pro). Outside a campaign the feature is hidden.
+- FR-20.13 During a campaign, once a day (or on the days AE/AD choose) at a random time inside a set window (e.g. 12:00–20:00), every member is prompted: "X Moment: 2 minutes to post". Prompts can follow the event countdown ("12 days to Loose Ends: show your team prepping").
+- FR-20.14 The portal takes the back camera, then the front camera a second later (phone browsers can't use both at once) and combines them. Posts after 2 minutes are marked late.
+- FR-20.15 Members see others' posts only after posting their own. Emoji or selfie reactions. Members only, never on the public site; members can opt out; AE/AD remove posts.
+- FR-20.16 Points for on-time posts, team streaks and a weekly leaderboard, shared with the other games.
+- FR-20.17 Event-day crew mode: a few X Moments during the event build a behind-the-scenes album for Media & Design.
+- FR-20.18 When the campaign ends, AE/AD keep a best-of album; everything else is deleted automatically after 1–2 weeks so storage drops back under the free plan.
+- FR-20.19 Needs web push notifications so phones buzz (iPhone members add the portal to their home screen once; the portal shows a one-time tip).
+- Rough cost per campaign month: 200 members × 2 photos × 30 days ≈ 12,000 photos ≈ 2 GB at ~150 KB each; Supabase Pro (about $25/month) for that month.
+
 **Points and prizes**
 
 - FR-20.12 Leaderboards by member and by team, reset each month or season.
