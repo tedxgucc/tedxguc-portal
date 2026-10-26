@@ -61,6 +61,11 @@ test('Executive accepts into own team and can read the exact invite needed by st
   await rejects(db.as(exec, ({ q }) => q(`insert into invites(email,season_id,role,team_id) select 'forged@example.invalid',season_id,'curator',$1 from recruitment_cycles where id=$2`, [media, cycle.id])), /row-level security|check constraint/);
   const user = await db.one(`insert into auth.users(email,raw_user_meta_data) values ($1,'{"full_name":"Accepted candidate"}') returning id`, [a.applicant_email]);
   assert.deepEqual(await db.one(`select role,team_id from memberships where user_id=$1`, [user.id]), { role: 'associate', team_id: media });
+  const retry = await accept(exec, a.application_id, media);
+  assert.equal(retry.invite_id, result.invite_id);
+  await rejects(accept(exec, a.application_id, coaching), /not_allowed/);
+  await rejects(accept(unrelatedExec, a.application_id, media), /not_allowed/);
+  assert.equal((await db.one(`select count(*)::int as n from memberships where user_id=$1`, [user.id])).n, 1);
 });
 
 test('reallocation preserves preferences, grants the receiving team review, and requires receiving-team acceptance', async () => {
@@ -82,7 +87,7 @@ test('reallocation preserves preferences, grants the receiving team review, and 
   const saved = await db.one(`select stage,accepted_team_id,team_choices from applications where id=$1`, [a.application_id]);
   assert.deepEqual(saved, { stage: 'accepted', accepted_team_id: coaching, team_choices: [media] });
   assert.deepEqual((await db.q(`select status from application_referrals where application_id=$1 order by to_team_id`, [a.application_id])).map((r) => r.status).sort(), ['accepted', 'closed']);
-  await rejects(accept(unrelatedExec, a.application_id, campaigns), /application_closed/);
+  await rejects(accept(unrelatedExec, a.application_id, campaigns), /not_allowed/);
 });
 
 test('Associates, unrelated managers, anonymous callers and direct referral writes cannot bypass authorization', async () => {
