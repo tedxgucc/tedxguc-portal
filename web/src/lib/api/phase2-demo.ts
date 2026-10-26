@@ -1,3 +1,4 @@
+import { isInTeam } from '../roles';
 // Demo mode for attendance and finance. Mirrors the database rules in
 // migrations 0008 and 0010 closely enough to show each role its screens.
 import * as fx from '../demo/fixtures';
@@ -142,7 +143,7 @@ const canManageDivision = (u: Me, did: string | null) => u.role === 'chairman' |
 // ----- Attendance rules (0008) -----
 function expected(m: Meeting) {
   return demoMembers().filter((x) => (m.type === 'board_meeting' ? ['executive', 'curator'].includes(x.role) : x.role === 'associate')
-    && (!m.team_id || x.team_id === m.team_id) && (!m.division_id || x.division_id === m.division_id));
+    && (!m.team_id || isInTeam(x, m.team_id)) && (!m.division_id || x.division_id === m.division_id));
 }
 function canMark(u: Me, target: string) {
   const t = memberOf(target);
@@ -152,10 +153,19 @@ function canMark(u: Me, target: string) {
   if (t.role === 'curator') return u.role === 'chairman';
   return false;
 }
+function canMarkAtMeeting(u: Me, meetingId: string, target: string) {
+  const m = s().meetings.find((x) => x.id === meetingId);
+  const person = m && expected(m).find((x) => x.user_id === target);
+  if (!m || !person) return false;
+  if (!m.team_id) return canMark(u, target);
+  if (person.role === 'associate') return canManageTeam(u, m.team_id);
+  if (person.role === 'executive') return canManageDivision(u, team(m.team_id)?.division_id ?? null);
+  return person.role === 'curator' && u.role === 'chairman';
+}
 function canSeeMeeting(u: Me, m: Meeting) {
   if (u.role === 'chairman') return true;
   if (m.type === 'board_meeting') return ['curator', 'executive'].includes(u.role ?? '') && (!m.division_id || u.division_id === m.division_id);
-  if (m.team_id) return canManageTeam(u, m.team_id) || u.team_id === m.team_id;
+  if (m.team_id) return canManageTeam(u, m.team_id) || isInTeam(u, m.team_id);
   if (m.division_id) return u.division_id === m.division_id;
   return !!u.role;
 }
@@ -199,7 +209,7 @@ export const demoAttendanceApi: AttendanceApi = {
     const u = me();
     const m = s().meetings.find((x) => x.id === meetingId);
     if (!m) return [];
-    return expected(m).filter((x) => canMark(u, x.user_id)).map<RollRow>((x) => {
+    return expected(m).filter((x) => canMarkAtMeeting(u, meetingId, x.user_id)).map<RollRow>((x) => {
       const a = s().attendance.find((r) => r.meeting_id === meetingId && r.user_id === x.user_id);
       const within = !a || u.role !== 'executive' || Date.now() <= new Date(a.first_marked_at).getTime() + 48 * 3600_000;
       return { user_id: x.user_id, name: x.name, photo_url: null, team: x.team, status: a?.status ?? null, via: a?.via ?? null, note: a?.note ?? null, can_edit: within };
@@ -211,7 +221,7 @@ export const demoAttendanceApi: AttendanceApi = {
     if (!m) fail('not_found');
     for (const mk of marks) {
       if (!expected(m!).some((x) => x.user_id === mk.user_id)) fail('not_expected', 'That person isn’t expected at this meeting.');
-      if (!canMark(u, mk.user_id)) fail('not_allowed');
+      if (!canMarkAtMeeting(u, meetingId, mk.user_id)) fail('not_allowed');
       const a = s().attendance.find((r) => r.meeting_id === meetingId && r.user_id === mk.user_id);
       if (a && u.role === 'executive' && Date.now() > new Date(a.first_marked_at).getTime() + 48 * 3600_000) {
         fail('edit_window_closed', 'The 48-hour window to change this has passed. Ask your curator.');
@@ -268,7 +278,7 @@ export const demoAttendanceApi: AttendanceApi = {
   },
   async listExcuses() {
     const u = me();
-    return s().excuses.filter((e) => e.user_id === u.id || canMark(u, e.user_id));
+    return s().excuses.filter((e) => e.user_id === u.id || canMarkAtMeeting(u, e.meeting_id, e.user_id));
   },
   async submitExcuse(meetingId, note) {
     const u = me();
@@ -282,7 +292,7 @@ export const demoAttendanceApi: AttendanceApi = {
   async decideExcuse(exId, accept) {
     const u = me();
     const e = s().excuses.find((x) => x.id === exId);
-    if (!e || !canMark(u, e.user_id)) fail('not_allowed');
+    if (!e || !canMarkAtMeeting(u, e.meeting_id, e.user_id)) fail('not_allowed');
     if (e!.status !== 'pending') fail('already_decided', 'Already decided.');
     e!.status = accept ? 'accepted' : 'rejected';
     if (accept) upsert(e!.meeting_id, e!.user_id, 'excused', 'excuse', e!.note);

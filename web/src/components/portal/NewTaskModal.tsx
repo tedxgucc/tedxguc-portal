@@ -5,7 +5,7 @@ import { useToast } from '@/components/Toast';
 import { Button, Modal, Segmented, Select, TextArea, TextInput } from '@/components/ui';
 import { api } from '@/lib/api';
 import { fromLocalInput } from '@/lib/format';
-import { canSendTaskRequests, manageableTeams } from '@/lib/roles';
+import { canSendTaskRequests, manageableTeams, isInTeam } from '@/lib/roles';
 import type { TaskPriority } from '@/lib/types';
 import { usePortal } from './PortalContext';
 
@@ -31,7 +31,7 @@ export function NewTaskModal({ open, onClose, onCreated }: { open: boolean; onCl
   }, [open, mine]);
 
   const targetTeams = mode === 'task' ? mine : teams.filter((t) => t.id !== fromTeam);
-  const teamMembers = members.filter((m) => m.team_id === teamId);
+  const teamMembers = members.filter((m) => isInTeam(m, teamId));
 
   const save = async () => {
     if (!title.trim()) { setError('Give the task a title.'); return; }

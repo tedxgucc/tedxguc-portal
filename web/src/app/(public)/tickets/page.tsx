@@ -21,6 +21,7 @@ function TicketPageInner() {
   const [t, setT] = useState<TicketView | null | undefined>(undefined);
   const [confirm, setConfirm] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const load = useCallback(() => api.getTicket(token).then(setT).catch(() => setT(null)), [token]);
   useEffect(() => { load(); }, [load]);
@@ -39,15 +40,18 @@ function TicketPageInner() {
     }
   };
 
-  const saveImage = () => {
-    const svg = document.querySelector('#ticket .tx-ticket__qr svg');
-    if (!svg || !t?.ticket_no) return;
-    const blob = new Blob([svg.outerHTML], { type: 'image/svg+xml' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `${t.ticket_no}.svg`;
-    a.click();
-    URL.revokeObjectURL(a.href);
+  const saveImage = async () => {
+    const ticket = document.getElementById('ticket');
+    if (!ticket || !t?.ticket_no) return;
+    setSaving(true);
+    try {
+      const { downloadTicketPng } = await import('@/lib/download-ticket');
+      await downloadTicketPng(ticket, t.ticket_no);
+    } catch {
+      toast('bad', 'Ticket could not be saved.', 'Please try again once the ticket has finished loading.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const calendarLink = (v: TicketView) => {
@@ -75,12 +79,12 @@ function TicketPageInner() {
             <p className="text-ink-2">{isNew ? 'Your ticket is below and in your inbox. ' : ''}Show the QR at the door. It works once.</p>
           </header>
           <div className="grid justify-items-center">
-            <Ticket eventTitle={t.event.title} eventKind="TEDxGUC" guestName={t.guest_name} startsAt={t.event.starts_at}
+            <Ticket eventTitle={t.event.title} eventKind="TEDxGUC" guestName={t.guest_name} guestType={t.guest_type} startsAt={t.event.starts_at}
               venue={t.event.venue} ticketNo={t.ticket_no} code={t.ticket_code} />
           </div>
           {t.checked_in_at && <div className="justify-self-center"><Chip kind="ok">Checked in {fmtTime(t.checked_in_at)}</Chip></div>}
           <div className="grid gap-s2 sm:grid-cols-3">
-            <Button variant="secondary" onClick={saveImage}><Download aria-hidden="true" />Save QR</Button>
+            <Button variant="secondary" onClick={saveImage} loading={saving}><Download aria-hidden="true" />Save ticket PNG</Button>
             <a className="tx-btn tx-btn--secondary" href={calendarLink(t)} target="_blank" rel="noopener noreferrer"><CalendarPlus aria-hidden="true" />Calendar</a>
             <a className="tx-btn tx-btn--secondary" target="_blank" rel="noopener noreferrer"
               href={`https://wa.me/?text=${encodeURIComponent(`My TEDxGUC ticket for ${t.event.title}: ${typeof window !== 'undefined' ? window.location.href.split('?')[0] : ''}`)}`}>

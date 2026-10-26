@@ -4,7 +4,8 @@
 import * as fx from '../demo/fixtures';
 import { clearCache } from '../cache';
 import { cairoDay } from '../format';
-import { canManageTeam } from '../roles';
+import { canManageEvents, canManageTeam, canManageTeamMember, memberTeamIds, isInTeam } from '../roles';
+import { registrationErrors, cleanRegistrationAnswers, guestTypeFor } from '../event-registration';
 import type {
   Announcement, CalendarItem, CheckInResult, Me, Member, Notification, RegistrationRow, Task, TxEvent,
 } from '../types';
@@ -107,7 +108,7 @@ function meFrom(userId: string | null): Me | null {
   const t = s().teams.find((x) => x.id === mem.team_id) ?? null;
   return {
     id: mem.user_id, name: mem.name, email: fx.emailOf(mem.user_id), photo_url: mem.photo_url, role: mem.role,
-    team_id: mem.team_id, team_name: mem.team, team_kind: t?.kind ?? null,
+    team_id: mem.team_id, team_ids: memberTeamIds(mem), team_name: mem.team, team_kind: t?.kind ?? null,
     division_id: mem.division_id, division_name: mem.division, division_kind: mem.division_kind,
   };
 }
@@ -123,16 +124,15 @@ function requireMe(): Me {
 
 const teamOf = (teamId: string | null) => s().teams.find((t) => t.id === teamId) ?? null;
 const canManage = (me: Me, teamId: string | null) => canManageTeam(me, teamOf(teamId));
-const canSeeTeam = (me: Me, teamId: string | null) => canManage(me, teamId) || me.team_id === teamId;
+const canSeeTeam = (me: Me, teamId: string | null) => canManage(me, teamId) || isInTeam(me, teamId);
 const isListed = (e: TxEvent) => e.is_public && ['published', 'completed'].includes(e.status) && e.license_status !== 'pending';
 const isOpen = (e: TxEvent) => isListed(e) && e.status === 'published' && new Date(e.starts_at) > new Date()
   && (!e.registration_closes_at || new Date(e.registration_closes_at) > new Date());
 const canSeeTask = (me: Me, t: Task) =>
   canManage(me, t.team_id) || t.created_by === me.id || t.assignees.includes(me.id)
   || (!!t.requested_by_team_id && canManage(me, t.requested_by_team_id));
-const leadsOps = (me: Me) => me.role === 'chairman' || (me.role === 'curator' && me.division_kind === 'operations');
 const isToday = (eventId?: string) => { const e = s().events.find((x) => x.id === eventId); return !!e && cairoDay(e.starts_at) === cairoDay(new Date()); };
-const canScan = (me: Me, eventId?: string) => leadsOps(me) || (me.role === 'executive' && me.team_kind === 'logistics_planning')
+const canScan = (me: Me, eventId?: string) => canManageEvents(me) || (me.role === 'executive' && me.team_kind === 'logistics_planning')
   || (me.role === 'associate' && me.team_kind === 'logistics_planning' && isToday(eventId))
   || (!!eventId && s().staff.some((x) => x.event_id === eventId && x.user_id === me.id));
 
@@ -140,7 +140,7 @@ function inAudience(me: Me, a: Announcement): boolean {
   switch (a.audience_type) {
     case 'all': return true;
     case 'division': return me.division_id === a.division_id;
-    case 'team': return me.team_id === a.team_id || (me.role === 'curator' && teamOf(a.team_id)?.division_id === me.division_id);
+    case 'team': return isInTeam(me, a.team_id) || (me.role === 'curator' && teamOf(a.team_id)?.division_id === me.division_id);
     case 'role': return me.role === a.audience_role;
   }
 }
@@ -212,6 +212,8 @@ export const demoApi: Api = {
     const e = st.events.find((x) => x.id === input.event_id);
     if (!e || !isOpen(e)) fail('event_not_open');
     if (!input.consent) fail('consent_required');
+    const issues = registrationErrors(input);
+    if (Object.keys(issues).length) fail('invalid_form', Object.values(issues)[0]);
     if (!input.name.trim()) fail('invalid_name');
     const email = input.email.trim().toLowerCase();
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) fail('invalid_email');
@@ -225,9 +227,9 @@ export const demoApi: Api = {
     const token = id('tok') + id('k');
     const g: Guest = {
       id: id('r'), event_id: e!.id, guest_name: input.name.trim(), guest_email: email, guest_phone: input.phone ?? '',
-      guest_type: 'attendee', status: full ? 'waitlisted' : 'registered',
+      guest_type: guestTypeFor(input.answers.guest_category), status: full ? 'waitlisted' : 'registered',
       ticket_no: full ? '' : ticketFor(e!, mine.filter((x) => x.ticket_no).length + 1),
-      ticket_code: full ? null : id('code'), status_token: token, answers: input.answers, checked_in_at: null, created_at: nowIso(),
+      ticket_code: full ? null : id('code'), status_token: token, answers: cleanRegistrationAnswers(input.answers), checked_in_at: null, created_at: nowIso(),
     };
     st.guests.push(g);
     save();
@@ -246,7 +248,7 @@ export const demoApi: Api = {
     const e = st.events.find((x) => x.id === g.event_id)!;
     const waiting = st.guests.filter((x) => x.event_id === g.event_id && x.status === 'waitlisted');
     return {
-      registration_id: g.id, status: g.status, guest_name: g.guest_name, ticket_no: g.ticket_no || null,
+      registration_id: g.id, status: g.status, guest_name: g.guest_name, guest_type: g.guest_type, ticket_no: g.ticket_no || null,
       ticket_code: g.status === 'registered' ? g.ticket_code : null, checked_in_at: g.checked_in_at,
       waitlist_position: g.status === 'waitlisted' ? waiting.findIndex((x) => x.id === g.id) + 1 : null,
       event: { id: e.id, title: e.title, starts_at: e.starts_at, ends_at: e.ends_at, venue: e.venue },
@@ -325,6 +327,29 @@ export const demoApi: Api = {
   async listDivisions() { return s().divisions; },
   async listTeams() { return s().teams; },
   async listMembers() { requireMe(); return s().members; },
+  async addTeamMember(teamId, userId) {
+    const actor = requireMe();
+    const team = teamOf(teamId);
+    const member = s().members.find((m) => m.user_id === userId);
+    if (!team || !member || !canManageTeamMember(actor, team, member, 'add', s().teams)) fail('not_allowed');
+    if (isInTeam(member!, teamId)) fail('already_in_team');
+    member!.team_ids = [...memberTeamIds(member!), teamId];
+    if (['executive', 'associate'].includes(member!.role) && !member!.team_id) {
+      const division = s().divisions.find((d) => d.id === team!.division_id)!;
+      Object.assign(member!, { team_id: teamId, team: team!.name, division_id: division.id, division: division.name, division_kind: division.kind });
+    }
+    save();
+  },
+  async removeTeamMember(teamId, userId) {
+    const actor = requireMe();
+    const team = teamOf(teamId);
+    const member = s().members.find((m) => m.user_id === userId);
+    if (!team || !member || !canManageTeamMember(actor, team, member, 'remove', s().teams)) fail('not_allowed');
+    if (!isInTeam(member!, teamId)) fail('not_in_team');
+    member!.team_ids = memberTeamIds(member!).filter((id) => id !== teamId);
+    if (member!.team_id === teamId) Object.assign(member!, { team_id: null, team: null });
+    save();
+  },
   async listInvites() {
     const me = requireMe();
     return s().invites.filter((i) => me.role === 'chairman' || (me.role === 'curator' && i.division_id === me.division_id));
@@ -361,7 +386,7 @@ export const demoApi: Api = {
     const mayRequest = me.role === 'chairman' || (me.role === 'curator' && reqDivision === me.division_id);
     if (isRequest ? !mayRequest : !canManage(me, input.team_id)) fail('not_allowed');
     for (const a of input.assignees) {
-      if (s().members.find((x) => x.user_id === a)?.team_id !== input.team_id) fail('assignee_not_in_team');
+      if (!s().members.some((x) => x.user_id === a && isInTeam(x, input.team_id))) fail('assignee_not_in_team');
     }
     const task: Task = {
       id: id('k'), team_id: input.team_id, title: input.title, description: input.description ?? null, created_by: me.id,
@@ -465,7 +490,7 @@ export const demoApi: Api = {
       || (me.role === 'curator' && ((input.audience_type === 'division' && input.division_id === me.division_id)
         || (input.audience_type === 'team' && t?.division_id === me.division_id)))
       || (me.role === 'executive' && input.audience_type === 'team' && input.team_id === me.team_id)
-      || (input.audience_type === 'all' && leadsOps(me));
+      || (input.audience_type === 'all' && canManageEvents(me));
     if (!ok) fail('not_allowed');
     s().announcements.unshift({
       id: id('a'), author_id: me.id, audience_type: input.audience_type, division_id: input.division_id ?? null,
@@ -493,12 +518,12 @@ export const demoApi: Api = {
   // ----- Events admin & door -----
   async listAllEvents() {
     const me = requireMe();
-    return s().events.filter((e) => e.status !== 'draft' || leadsOps(me)).sort((a, b) => b.starts_at.localeCompare(a.starts_at));
+    return s().events.filter((e) => e.status !== 'draft' || canManageEvents(me)).sort((a, b) => b.starts_at.localeCompare(a.starts_at));
   },
   async saveEvent(input) {
     await wait(300);
     const me = requireMe();
-    if (!leadsOps(me)) fail('not_allowed');
+    if (!canManageEvents(me)) fail('not_allowed');
     const st = s();
     if (input.id) {
       const e = st.events.find((x) => x.id === input.id)!;
@@ -513,15 +538,15 @@ export const demoApi: Api = {
   },
   async listRegistrations(eventId) {
     const me = requireMe();
-    if (!leadsOps(me)) return [];
+    if (!canManageEvents(me)) return [];
     return s().guests.filter((g) => g.event_id === eventId).map<RegistrationRow>((g) => ({
-      id: g.id, guest_name: g.guest_name, guest_email: g.guest_email, guest_phone: g.guest_phone, guest_type: g.guest_type,
+      id: g.id, guest_name: g.guest_name, guest_email: g.guest_email, guest_phone: g.guest_phone, guest_type: g.guest_type, answers: g.answers,
       status: g.status, ticket_no: g.ticket_no || null, checked_in_at: g.checked_in_at, created_at: g.created_at,
     })).sort((a, b) => b.created_at.localeCompare(a.created_at));
   },
   async eventStats(eventId) {
     const me = requireMe();
-    if (!canScan(me, eventId) && !leadsOps(me)) fail('not_allowed');
+    if (!canScan(me, eventId) && !canManageEvents(me)) fail('not_allowed');
     const st = s();
     const gs = st.guests.filter((g) => g.event_id === eventId);
     const e = st.events.find((x) => x.id === eventId);

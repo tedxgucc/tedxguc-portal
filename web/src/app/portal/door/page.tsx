@@ -11,6 +11,7 @@ import { useToast } from '@/components/Toast';
 import { Button, Chip, EmptyState, Modal, Select, TextInput } from '@/components/ui';
 import { api } from '@/lib/api';
 import { cairoDay, fmtDate, fmtTime } from '@/lib/format';
+import { ticketTier } from '@/lib/event-registration';
 import { clearQueue, deviceId, loadManifest, offlineCheckIn, queue, saveManifest } from '@/lib/offline';
 import { canScanAlways, isLpAssociate } from '@/lib/roles';
 import type { CheckInResult, EventStats, SearchRow, TxEvent } from '@/lib/types';
@@ -18,7 +19,7 @@ import type { CheckInResult, EventStats, SearchRow, TxEvent } from '@/lib/types'
 type Shown = { kind: 'ok' | 'again' | 'bad'; title: string; detail: string };
 
 const RESULT: Record<string, (r: Partial<CheckInResult>) => Shown> = {
-  ok: (r) => ({ kind: 'ok', title: 'You’re in', detail: `${r.guest_name ?? ''}${r.guest_type === 'vip' ? ' · VIP' : ''}${r.ticket_no ? ` · ${r.ticket_no}` : ''}` }),
+  ok: (r) => ({ kind: 'ok', title: 'You’re in', detail: `${r.guest_name ?? ''} · ${ticketTier(r.guest_type)}${r.ticket_no ? ` · ${r.ticket_no}` : ''}` }),
   already_checked_in: (r) => ({ kind: 'again', title: 'Already in', detail: `${r.guest_name ?? 'This ticket'} was scanned${r.checked_in_at ? ` at ${fmtTime(r.checked_in_at)}` : ' before'}.` }),
   not_found: () => ({ kind: 'bad', title: 'Not a ticket', detail: 'This code isn’t a ticket for this event.' }),
   cancelled: (r) => ({ kind: 'bad', title: 'Cancelled', detail: `${r.guest_name ?? 'This ticket'} was cancelled.` }),

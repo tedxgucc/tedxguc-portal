@@ -1,6 +1,6 @@
 // Role and division helpers for the screens. These only decide what to
 // SHOW; the database enforces every rule again (row-level security).
-import type { DivisionKind, Me, Role, Team } from './types';
+import type { DivisionKind, Me, Member, Role, Team } from './types';
 
 // Division accent class suffix used by tx-tag / tx-kcard / tx-pill.
 export function divClass(kind: DivisionKind | null | undefined): 'talks' | 'ops' | 'od' | 'mc' | null {
@@ -23,6 +23,19 @@ export const roleLabel: Record<Role, string> = {
 export const isBoard = (me: Me | null) => me?.role === 'chairman' || me?.role === 'curator' || me?.role === 'executive';
 export const isChairman = (me: Me | null) => me?.role === 'chairman';
 
+export const memberTeamIds = (member: Pick<Member, 'team_id' | 'team_ids'>): string[] => member.team_ids ?? (member.team_id ? [member.team_id] : []);
+export const isInTeam = (member: Pick<Member, 'team_id' | 'team_ids'>, teamId: string | null) => !!teamId && memberTeamIds(member).includes(teamId);
+
+export function canManageTeamMember(me: Me | null, team: Team, member: Member, action: 'add' | 'remove', teams: Team[] = []): boolean {
+  if (!me || !canManageTeam(me, team)) return false;
+  if (me.role === 'chairman') return true;
+  const ids = memberTeamIds(member);
+  if (me.role === 'curator') return ['executive', 'associate'].includes(member.role)
+    && (member.division_id === me.division_id || teams.some((t) => t.division_id === me.division_id && ids.includes(t.id)));
+  return me.role === 'executive' && member.role === 'associate'
+    && (action === 'remove' ? ids.includes(team.id) : member.team_id === null && ids.length === 0 && member.division_id === team.division_id);
+}
+
 // Chairman, the Curator of the team's division, or an Executive of the team.
 export function canManageTeam(me: Me | null, team: Pick<Team, 'id' | 'division_id'> | null | undefined): boolean {
   if (!me || !team) return false;
@@ -37,10 +50,12 @@ export function manageableTeams(me: Me | null, teams: Team[]): Team[] {
   return teams.filter((t) => canManageTeam(me, t));
 }
 
-export const canManageEvents = (me: Me | null) =>
+export const canLeadOperations = (me: Me | null) =>
   me?.role === 'chairman' || (me?.role === 'curator' && me.division_kind === 'operations');
 
-// Door scanner: the Chairman, the Ops Curator and L&P Executives always;
+export const canManageEvents = (me: Me | null) => me?.role === 'chairman' || me?.role === 'curator';
+
+// Door scanner: the Chairman, all Curators and L&P Executives always;
 // L&P Associates only on the day of an event; anyone added as door staff.
 export const canScanAlways = (me: Me | null) => canManageEvents(me) || (me?.role === 'executive' && me.team_kind === 'logistics_planning');
 export const isLpAssociate = (me: Me | null) => me?.role === 'associate' && me.team_kind === 'logistics_planning';
@@ -50,7 +65,7 @@ export const canPostClubWide = (me: Me | null) => me?.role === 'chairman' || me?
 
 // ----- Phase 2 -----
 // Chairman and Operations Curator see all money and the balances.
-export const isFinanceAdmin = (me: Me | null) => canManageEvents(me);
+export const isFinanceAdmin = (me: Me | null) => canLeadOperations(me);
 export const isLpExec = (me: Me | null) => me?.role === 'executive' && me.team_kind === 'logistics_planning';
 export const isPartnershipsExec = (me: Me | null) => me?.role === 'executive' && me.team_kind === 'partnerships';
 export const canRecordCashOut = (me: Me | null) => isFinanceAdmin(me) || isLpExec(me);
@@ -71,7 +86,7 @@ export const canEditSection = (me: Me | null, owner: DivisionKind | null) =>
   me?.role === 'chairman' || (!!owner && me?.role === 'curator' && me.division_kind === owner);
 export const canOpenSiteEditor = (me: Me | null) => me?.role === 'chairman' || me?.role === 'curator';
 // Inquiries: partner leads go to Operations leads and Partnerships; contact messages to the Chairman and Curators.
-export const seesPartnerInquiries = (me: Me | null) => canManageEvents(me) || me?.team_kind === 'partnerships';
+export const seesPartnerInquiries = (me: Me | null) => canLeadOperations(me) || me?.team_kind === 'partnerships';
 export const seesContactInquiries = (me: Me | null) => me?.role === 'chairman' || me?.role === 'curator';
 export const canOpenInbox = (me: Me | null) => seesPartnerInquiries(me) || seesContactInquiries(me);
 
@@ -82,5 +97,5 @@ export const canManageSignUps = (me: Me | null) => !!me && (me.role === 'chairma
 
 // X Access (FR-18): Partnerships Executives, the Operations Curator and the
 // Chairman manage it; Partnerships Associates can view.
-export const canManageXAccess = (me: Me | null) => canManageEvents(me) || (me?.role === 'executive' && me.team_kind === 'partnerships');
+export const canManageXAccess = (me: Me | null) => canLeadOperations(me) || (me?.role === 'executive' && me.team_kind === 'partnerships');
 export const canViewXAccess = (me: Me | null) => canManageXAccess(me) || me?.team_kind === 'partnerships';

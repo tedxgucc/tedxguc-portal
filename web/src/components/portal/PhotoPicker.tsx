@@ -5,6 +5,7 @@ import { useRef, useState } from 'react';
 import { useToast } from '@/components/Toast';
 import { Button } from '@/components/ui';
 import { adminApi } from '@/lib/api/admin';
+import { assetUrl } from '@/lib/env';
 
 export function PhotoPicker({ url, onChange, label, folder, round }: { url: string | null; onChange: (u: string | null) => void; label: string; folder: 'events' | 'speakers' | 'announcements' | 'partners'; round?: boolean }) {
   const toast = useToast();
@@ -21,7 +22,7 @@ export function PhotoPicker({ url, onChange, label, folder, round }: { url: stri
       <span className="tx-label">{label}</span>
       <input ref={ref} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(e) => { pick(e.target.files?.[0]); e.target.value = ''; }} />
       <div className={`relative ${size} bg-surface-2 border border-dashed border-line-strong overflow-hidden grid place-items-center ${round ? 'rounded-full' : ''}`}>
-        {url ? <img src={url} alt="" className="absolute inset-0 w-full h-full object-cover" /> /* eslint-disable-line @next/next/no-img-element */
+        {url ? <img src={assetUrl(url)} alt="" className={`absolute inset-0 w-full h-full ${folder === 'partners' ? 'object-contain' : 'object-cover'}`} /> /* eslint-disable-line @next/next/no-img-element */
           : <button type="button" onClick={() => ref.current?.click()} className="grid justify-items-center gap-s1 text-ink-3 bg-transparent border-0 cursor-pointer p-s3" disabled={busy}>
               <ImagePlus aria-hidden="true" />{!round && <span className="text-caption">{busy ? 'Uploading…' : 'Add a photo'}</span>}
             </button>}

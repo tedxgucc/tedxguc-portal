@@ -8,22 +8,7 @@ import { Button, EmptyState, Skeleton } from '@/components/ui';
 import { api } from '@/lib/api';
 import { fmtRelative } from '@/lib/format';
 import type { Notification } from '@/lib/types';
-
-// The database writes links like /portal/tasks/<id>; send each to the page that shows it.
-function pageFor(link: string): string {
-  const [, , area, id] = link.split('/');
-  switch (area) {
-    case 'announcements': return '/portal/news';
-    case 'meetings': return id ? '/portal/meetings/view?id=' + id : '/portal/meetings';
-    case 'attendance': return '/portal/meetings';
-    case 'expenses': return '/portal/finance';
-    case 'orders': return '/portal/packages';
-    case 'recruitment': return '/portal/recruitment';
-    case 'tasks': return '/portal/tasks';
-    case 'events': return id ? '/portal/events/view?id=' + id : '/portal/events';
-    default: return link;
-  }
-}
+import { notificationPage as pageFor } from '@/lib/notification-link';
 
 export default function NotificationsPage() {
   const { refreshUnread } = usePortal();

@@ -13,6 +13,7 @@ import { Button, Check2, Chip, EmptyState, Modal, Segmented, Select, Skeleton, T
 import { CardPair, CardState, cardUrl, PerkList, ShowCard } from '@/components/XAccess';
 import { cairoToday, xaccessApi, type XCard, type XPartner, type XPartnerInput, type XUsage } from '@/lib/api/xaccess';
 import { fmtDate, fmtRelative } from '@/lib/format';
+import { assetUrl } from '@/lib/env';
 import { canManageXAccess, canViewXAccess } from '@/lib/roles';
 
 type Tab = 'card' | 'perks' | 'cards' | 'partners' | 'usage';
@@ -33,7 +34,7 @@ export default function XAccessPage() {
         <Segmented label="X Access view" value={tab} onChange={setTab} options={tabs} />
       </div></div>
       {tab === 'card' && <MyCard />}
-      {tab === 'perks' && <Perks />}
+      {tab === 'perks' && <><Perks />{canManageXAccess(me) && <Button className="mt-s4" variant="secondary" onClick={() => setTab('partners')}>Manage perks</Button>}</>}
       {tab === 'cards' && <Cards />}
       {tab === 'partners' && <Partners />}
       {tab === 'usage' && <Usage />}
@@ -205,6 +206,7 @@ function Partners() {
           {list.map((p) => (
             <li key={p.id} className="tx-card grid gap-s2 content-start">
               <div className="flex items-start justify-between gap-s2">
+                {p.logo_url && <img src={assetUrl(p.logo_url)} alt="" className="w-[72px] h-[44px] object-contain shrink-0 bg-white rounded" />}
                 <span className="grid min-w-0"><span className="font-semibold">{p.name}</span><span className="text-body-sm text-ink-2">{p.perk}</span></span>
                 <span className="flex flex-wrap gap-s1 justify-end">
                   {!p.is_active ? <Chip kind="void">Hidden</Chip> : p.expires_on && p.expires_on < cairoToday() ? <Chip kind="pending">Expired</Chip> : <Chip kind="ok">Live</Chip>}
@@ -255,6 +257,7 @@ function PartnerEditor({ value, onClose, onSaved }: { value: XPartnerInput; onCl
           <TextInput label="Perk ends (optional)" type="date" value={f.expires_on ?? ''} onChange={(e) => set('expires_on', e.target.value || null)} />
         </div>
         <Check2 label="Live: show it on the Perks page" checked={f.is_active} onChange={(e) => set('is_active', e.target.checked)} />
+        <TextInput label="Promo code (optional)" value={f.promo_code ?? ''} onChange={(e) => set('promo_code', e.target.value || null)} placeholder="TEDX20" />
       </section>
 
       <section className="tx-card grid gap-s3">
@@ -270,7 +273,6 @@ function PartnerEditor({ value, onClose, onSaved }: { value: XPartnerInput; onCl
         {f.in_banner && (
           <div className="grid gap-s4 grid-cols-1 sm:grid-cols-2">
             <TextInput label="Big offer text" value={f.banner_offer ?? ''} onChange={(e) => set('banner_offer', e.target.value || null)} placeholder="20% OFF" />
-            <TextInput label="Promo code (optional)" value={f.promo_code ?? ''} onChange={(e) => set('promo_code', e.target.value.toUpperCase() || null)} placeholder="TEDX20" />
             <TextInput label="Banner starts" type="date" value={f.banner_starts ?? ''} onChange={(e) => set('banner_starts', e.target.value || null)} />
             <TextInput label="Banner ends" type="date" value={f.banner_ends ?? ''} onChange={(e) => set('banner_ends', e.target.value || null)} />
           </div>

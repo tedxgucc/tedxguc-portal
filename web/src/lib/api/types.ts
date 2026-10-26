@@ -108,6 +108,8 @@ export interface Api {
   listDivisions(): Promise<Division[]>;
   listTeams(): Promise<Team[]>;
   listMembers(): Promise<Member[]>;
+  addTeamMember(teamId: string, userId: string): Promise<void>;
+  removeTeamMember(teamId: string, userId: string): Promise<void>;
   listInvites(): Promise<Invite[]>;
   createInvite(input: { email: string; role: Role; team_id?: string | null; division_id?: string | null }): Promise<void>;
   revokeInvite(id: string): Promise<void>;
