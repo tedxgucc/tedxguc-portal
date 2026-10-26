@@ -8,7 +8,7 @@ import type {
   Package, Position, SlotView,
 } from '../types';
 import { friendly } from './errors';
-import { demoCurrentMe, demoMembers } from './demo-api';
+import { demoCurrentMe, demoMembers, demoSave } from './demo-api';
 import type { FilesApi, PackagesApi, RecruitmentApi } from './phase2b';
 import { ApiError } from './types';
 import { canManageSignUps } from '../roles';
@@ -250,7 +250,14 @@ export const demoRecruitmentApi: RecruitmentApi = {
   async accept(applicationId, teamId) {
     const u = me();
     const a = s().apps.find((x) => x.id === applicationId);
-    if (!a || !acceptableTeams(u, a).includes(teamId)) fail('not_allowed');
+    if (!a || !(a.stage === 'accepted' && a.accepted_team_id === teamId && manageTeam(u, teamId)) && !acceptableTeams(u, a).includes(teamId)) fail('not_allowed');
+    const memberId = `applicant-${applicationId}`;
+    if (!demoMembers().some((m) => m.user_id === memberId)) {
+      const t = team(teamId)!;
+      const division = fx.divisions.find((d) => d.id === t.division_id);
+      demoMembers().push({ user_id: memberId, name: a!.applicant_name, photo_url: null, role: 'associate', team_id: teamId, team_ids: [teamId], team: t.name, division_id: t.division_id, division: division?.name ?? null, division_kind: division?.kind ?? null });
+      demoSave();
+    }
     a!.stage = 'accepted';
     a!.accepted_team_id = teamId;
     for (const r of s().referrals ?? []) if (r.application_id === applicationId && r.status === 'pending') r.status = r.to_team_id === teamId ? 'accepted' : 'closed';

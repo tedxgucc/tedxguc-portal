@@ -136,7 +136,7 @@ function ApplicantSheet({ app, positions, decides, onClose, onChanged, onMove }:
   app: Application; positions: Position[]; decides: boolean; onClose: () => void; onChanged: () => void;
   onMove: (ids: string[], s: Exclude<Stage, 'accepted' | 'withdrawn'>) => Promise<void>;
 }) {
-  const { me, team, teams, memberName } = usePortal();
+  const { me, team, teams, memberName, refreshMembers } = usePortal();
   const toast = useToast();
   const [scores, setScores] = useState<InterviewScore[]>([]);
   const [score, setScore] = useState('');
@@ -176,7 +176,7 @@ function ApplicantSheet({ app, positions, decides, onClose, onChanged, onMove }:
   };
   const accept = async () => {
     setSaving(true);
-    try { const r = await recruitmentApi.accept(app.id, acceptTeam); toast('ok', `${app.applicant_name} accepted into ${r.team}.`, 'They get an invite to the portal by email.'); onChanged(); }
+    try { const r = await recruitmentApi.accept(app.id, app.accepted_team_id || acceptTeam); await refreshMembers(); toast('ok', `${app.applicant_name} added to ${r.team} as an Associate.`, 'Their team membership is active. Portal setup instructions are sent by email.'); onChanged(); }
     catch (e) { toast('bad', 'That didn’t save.', (e as Error).message); }
     finally { setSaving(false); }
   };
@@ -240,6 +240,7 @@ function ApplicantSheet({ app, positions, decides, onClose, onChanged, onMove }:
 
         {context?.referrals.length ? <section className="grid gap-s2 border-t border-line pt-s4"><h3 className="h4">Reallocations</h3>{context.referrals.map((r) => <div key={r.id} className="tx-card grid gap-s1"><p className="text-body-sm font-semibold">{team(r.from_team_id)?.name} → {team(r.to_team_id)?.name} · {r.status}</p>{r.notes && <p className="text-body-sm text-ink-2 whitespace-pre-line">{r.notes}</p>}</div>)}</section> : null}
         {contextError && <div role="alert" className="grid gap-s2"><p className="tx-help">{contextError}</p><div><Button small variant="secondary" onClick={loadContext}>Retry decision permissions</Button></div></div>}
+        {app.stage === 'accepted' && app.accepted_team_id && canManageTeam(me, team(app.accepted_team_id)) && <Button small variant="secondary" loading={saving} onClick={accept}>Retry team setup / resend access email</Button>}
         {(decides || me.role === 'executive') && !['accepted', 'withdrawn'].includes(app.stage) && (
           <section className="grid gap-s2 border-t border-line pt-s4">
             <h3 className="h4">Interview decision</h3>
@@ -256,7 +257,7 @@ function ApplicantSheet({ app, positions, decides, onClose, onChanged, onMove }:
                 <Select label="Into which team?" value={acceptTeam} onChange={(e) => setAcceptTeam(e.target.value)}>
                   {acceptable.map((t) => <option key={t} value={t}>{team(t)?.name}</option>)}
                 </Select>
-                <p className="text-caption text-ink-3">One step: they become an Associate and get an invite to the portal.</p>
+                <p className="text-caption text-ink-3">Accepting adds them directly to the team as an Associate. They receive an email to set up portal access.</p>
                 <Button small loading={saving} disabled={!acceptTeam} onClick={accept}><Check aria-hidden="true" />Accept {app.applicant_name.split(' ')[0]}</Button>
               </div>
             )}

@@ -21,7 +21,7 @@ type Db = ReturnType<typeof asUser>;
 
 // Email an invite (FR-2.3). The member can see the invite row only if
 // they were allowed to create it, so that read is the permission check.
-async function sendInvite(db: Db, inviteId: string) {
+async function sendInvite(db: Db, inviteId: string, applicantName?: string) {
   const { data: invite, error } = await db.from('invites')
     .select('id, email, accepted_at, revoked_at, expires_at')
     .eq('id', inviteId).maybeSingle();
@@ -32,17 +32,36 @@ async function sendInvite(db: Db, inviteId: string) {
   }
   if (invite.accepted_at) {
     // Returning member: the role was applied at once; just let them know.
+    if (applicantName) {
+      const { data, error } = await admin.auth.admin.generateLink({
+        type: 'magiclink', email: invite.email, options: { redirectTo: `${siteUrl}/auth/callback` },
+      });
+      if (error) throw new HttpError(502, 'access_link_failed', 'The Associate is already on the team, but their access link could not be generated. Retry to resend it.');
+      await sendPlain(invite.email, 'Welcome to the TEDxGUC team',
+        `Your team membership is active. Open your portal here:\n${data.properties.action_link}`);
+      return { existing_member: true };
+    }
     await sendPlain(invite.email, 'You have a new role in TEDxGUC',
       `You have been added to this season's team. Log in at ${siteUrl}/login to see your dashboard.`);
     return { existing_member: true };
   }
-  const { error: inviteError } = await admin.auth.admin.inviteUserByEmail(invite.email, {
-    redirectTo: `${siteUrl}/auth/callback`,
+  if (!applicantName) {
+    const { error } = await admin.auth.admin.inviteUserByEmail(invite.email, { redirectTo: `${siteUrl}/auth/callback` });
+    if (error) throw new HttpError(502, 'invite_email_failed', 'The invite is saved, but the email could not be sent. Try again later.');
+    return { existing_member: false };
+  }
+  // Creating the invitation account runs handle_new_auth_user, which adds
+  // the profile and Associate membership before any email delivery happens.
+  const { data: account, error: inviteError } = await admin.auth.admin.generateLink({
+    type: 'invite', email: invite.email,
+    options: { redirectTo: `${siteUrl}/auth/callback`, data: { full_name: applicantName } },
   });
   if (inviteError) {
-    console.error('inviteUserByEmail failed', inviteError);
-    throw new HttpError(502, 'invite_email_failed', 'The invite is saved, but the email could not be sent. Try again later.');
+    console.error('Account provisioning failed', inviteError);
+    throw new HttpError(502, 'member_creation_failed', 'The acceptance is saved, but the team account could not be created. Retry acceptance to finish adding the Associate.');
   }
+  await sendPlain(invite.email, 'Welcome to the TEDxGUC team',
+    `You have been added to this season's team. Set up your portal access here:\n${account.properties.action_link}`);
   return { existing_member: false };
 }
 
@@ -94,8 +113,8 @@ Deno.serve(handle(async (req) => {
         p_application_id: s('application_id'), p_team_id: s('team_id') || null,
       });
       if (error) throw fromDbError(error);
+      const invite = await sendInvite(db, data.invite_id, data.applicant_name);
       await sendApplicationNotice(data);
-      const invite = await sendInvite(db, data.invite_id);
       return json({ ok: true, team: data.team, ...invite });
     }
 
