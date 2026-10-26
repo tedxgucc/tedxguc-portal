@@ -147,7 +147,6 @@ function ApplicantSheet({ app, positions, decides, onClose, onChanged, onMove }:
   const [contextError, setContextError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [referring, setReferring] = useState(false);
-  const [rejecting, setRejecting] = useState(false);
   const [referTeam, setReferTeam] = useState('');
   const [referNotes, setReferNotes] = useState('');
   const loadContext = useCallback(() => {
@@ -248,9 +247,9 @@ function ApplicantSheet({ app, positions, decides, onClose, onChanged, onMove }:
             <div className="grid grid-cols-2 gap-s2">
               {decides && app.stage !== 'screened' && app.stage !== 'interview' && <Button small variant="secondary" onClick={() => onMove([app.id], 'screened')}>Screened</Button>}
               {decides && app.stage !== 'interview' && <Button small variant="secondary" onClick={() => onMove([app.id], 'interview')}>Invite to interview</Button>}
-              {app.stage !== 'rejected' && <Button small variant="danger" disabled={saving || (!decides && !acceptable.length)} onClick={() => { setRejecting(true); setAccepting(false); setReferring(false); }}><X aria-hidden="true" />Reject</Button>}
-              {acceptable.length > 0 && <Button small disabled={saving} onClick={() => { setAccepting(true); setRejecting(false); setReferring(false); }}><UserCheck aria-hidden="true" />Accept</Button>}
-              <Button small variant="secondary" disabled={saving || !context || !sourceTeams.length} onClick={() => { setReferring((v) => !v); setAccepting(false); setRejecting(false); }}>Reallocate</Button>
+              {app.stage !== 'rejected' && <Button small variant="danger" loading={saving} disabled={saving || (!decides && !acceptable.length)} onClick={reject}><X aria-hidden="true" />Reject</Button>}
+              {acceptable.length > 0 && <Button small disabled={saving} onClick={() => { setAccepting(true); setReferring(false); }}><UserCheck aria-hidden="true" />Accept</Button>}
+              <Button small variant="secondary" disabled={saving || !context || !sourceTeams.length} onClick={() => { setReferring((v) => !v); setAccepting(false); }}>Reallocate</Button>
             </div>
             {accepting && (
               <div className="tx-card tx-card--outline grid gap-s3">
@@ -261,7 +260,6 @@ function ApplicantSheet({ app, positions, decides, onClose, onChanged, onMove }:
                 <Button small loading={saving} disabled={!acceptTeam} onClick={accept}><Check aria-hidden="true" />Accept {app.applicant_name.split(' ')[0]}</Button>
               </div>
             )}
-            {rejecting && <div className="tx-card tx-card--outline grid gap-s3"><p className="text-body-sm">Reject <b>{app.applicant_name}</b>? Their application will be marked rejected. Email follows the round's rejection-release settings.</p><div className="flex flex-wrap gap-s2"><Button small variant="secondary" disabled={saving} onClick={() => setRejecting(false)}>Cancel</Button><Button small variant="danger" loading={saving} onClick={reject}>Confirm rejection</Button></div></div>}
             {referring && <div className="tx-card tx-card--outline grid gap-s3">{referable.length ? <><Select label="Receiving team" value={referTeam} onChange={(e) => setReferTeam(e.target.value)}><option value="">Choose a team</option>{referable.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</Select><TextArea label="Reallocation notes" maxLength={2000} value={referNotes} onChange={(e) => setReferNotes(e.target.value)} placeholder="Why might this applicant suit the receiving team?" /><p className="text-caption text-ink-3">Their original preferences stay unchanged. The receiving Executive makes the acceptance decision.</p><Button small loading={saving} disabled={!referTeam} onClick={refer}>Send reallocation</Button></> : <p className="text-body-sm text-ink-3">No other destination is available. This applicant has already been referred to the other available teams; see Reallocations above.</p>}</div>}
           </section>
         )}
