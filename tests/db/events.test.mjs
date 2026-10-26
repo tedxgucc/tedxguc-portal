@@ -3,12 +3,13 @@ import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
 import { createDb, rejects } from './harness.mjs';
 
-let db, chairman, opsCurator, mediaExec, mediaAssoc, lpAssoc, coachingAssoc;
+let db, chairman, opsCurator, mediaExec, mediaAssoc, lpAssoc, coachingAssoc, talksCurator;
 
 before(async () => {
   db = await createDb();
   chairman = await db.member('chairman');
   opsCurator = await db.member('curator', 'operations');
+  talksCurator = await db.member('curator', 'talks');
   mediaExec = await db.member('executive', 'media_design');
   mediaAssoc = await db.member('associate', 'media_design');
   lpAssoc = await db.member('associate', 'logistics_planning');
@@ -28,11 +29,34 @@ const register = (eventId, email, name = 'Guest') =>
   db.as('service', ({ one }) => one(
     `select register_for_event($1, $2, $3, '01000000000', '{}') as r`, [eventId, name, email])).then((x) => x.r);
 
-test('only Operations leadership creates events', async () => {
+test('executives cannot create events', async () => {
   await rejects(db.as(mediaExec, ({ q }) => q(
     `insert into events (type, title, starts_at) values ('salon', 'x', now())`)), /row-level security/);
   const e = await newEvent();
   assert.equal(e.title, 'Salon');
+});
+
+test('Chairman and every Curator can create, edit and delete event setup', async () => {
+  const managers = [chairman, opsCurator, talksCurator];
+  for (const division of ['marketing', 'org_development']) managers.push(await db.member('curator', division));
+  for (const manager of managers) {
+    await db.as(manager, async ({ one, q }) => {
+      const event = await one(`insert into events (type, title, starts_at) values ('workshop', 'Draft', now() + interval '30 days') returning id`);
+      const updated = await one(`update events set title = 'Edited', status = 'published', license_status = 'not_required', cover_url = '/cover.png', agenda = '[{"title":"Welcome"}]' where id = $1 returning title`, [event.id]);
+      assert.equal(updated.title, 'Edited');
+      const field = await one(`insert into event_fields (event_id, label) values ($1, 'Question') returning id`, [event.id]);
+      await q(`update event_fields set label = 'Edited question' where id = $1`, [field.id]);
+      await q(`delete from event_fields where id = $1`, [field.id]);
+      await q(`insert into event_staff (event_id, user_id) values ($1, $2)`, [event.id, mediaAssoc]);
+      await q(`delete from event_staff where event_id = $1`, [event.id]);
+      const speaker = await one(`insert into speakers (event_id, name) values ($1, 'Speaker') returning id`, [event.id]);
+      await q(`update speakers set name = 'Edited speaker' where id = $1`, [speaker.id]);
+      await q(`delete from speakers where id = $1`, [speaker.id]);
+      await q(`insert into run_of_show (event_id, starts_at, item) values ($1, now(), 'Doors')`, [event.id]);
+      await q(`delete from run_of_show where event_id = $1`, [event.id]);
+      assert.equal((await q(`delete from events where id = $1 returning id`, [event.id])).length, 1);
+    });
+  }
 });
 
 test('guests see only published, licensed, public events (FR-1.8)', async () => {
@@ -225,9 +249,8 @@ test('run of show: L&P Executives edit, other members read', async () => {
   assert.equal((await db.as(mediaAssoc, ({ q }) => q(`select item from run_of_show where event_id = $1`, [e.id]))).length, 1);
 });
 
-test('event managers can announce to the whole club; other Curators cannot', async () => {
+test('all Curators can announce events to the whole club', async () => {
   const season = (await db.one(`select id from seasons where is_active`)).id;
   await db.as(opsCurator, ({ q }) => q(`insert into announcements (season_id, audience_type, title, body) values ($1, 'all', 'Salon on Thursday', 'Internal event')`, [season]));
-  const talksCurator = await db.member('curator', 'talks');
-  await rejects(db.as(talksCurator, ({ q }) => q(`insert into announcements (season_id, audience_type, title, body) values ($1, 'all', 'x', 'y')`, [season])), /row-level security/);
+  await db.as(talksCurator, ({ q }) => q(`insert into announcements (season_id, audience_type, title, body) values ($1, 'all', 'x', 'y')`, [season]));
 });

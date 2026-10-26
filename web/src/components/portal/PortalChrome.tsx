@@ -9,7 +9,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Lockup } from '@/components/Brand';
 import { Avatar } from '@/components/ui';
 import { api } from '@/lib/api';
-import { canManageEvents, canManageSignUps, canOpenInbox, canOpenSiteEditor, canRecordCashOut, canRecordDeposits, canScanTickets, roleLabel } from '@/lib/roles';
+import { canLeadOperations, canManageSignUps, canOpenInbox, canOpenSiteEditor, canRecordCashOut, canRecordDeposits, canScanTickets, roleLabel } from '@/lib/roles';
 import { AccountMenu } from './AccountMenu';
 import { usePortal } from './PortalContext';
 
@@ -50,7 +50,7 @@ export function useNav() {
     },
     {
       title: 'Money',
-      items: [{ href: '/portal/finance', label: 'Finance', icon: Wallet, show: canRecordCashOut(me) || canRecordDeposits(me) || canManageEvents(me) }],
+      items: [{ href: '/portal/finance', label: 'Finance', icon: Wallet, show: canRecordCashOut(me) || canRecordDeposits(me) || canLeadOperations(me) }],
     },
     {
       title: 'Club',

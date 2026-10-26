@@ -15,7 +15,7 @@ import { Button, Check2, Chip, EmptyState, Modal, Segmented, Select, Skeleton, T
 import { packagesApi, type PickupResult } from '@/lib/api/phase2b';
 import { egp, fmtRelative, fromLocalInput, toLocalInput } from '@/lib/format';
 import { answerText, FormBuilder } from '@/components/portal/FormBuilder';
-import { canManageEvents, canManageSignUps } from '@/lib/roles';
+import { canLeadOperations, canManageSignUps } from '@/lib/roles';
 import { kindLabel } from '@/lib/signups';
 import type { FormQuestion, Order, OrderStatus, Package, SalesRow, SignUpKind } from '@/lib/types';
 
@@ -33,7 +33,7 @@ const methodName = { instapay: 'InstaPay', telda: 'Telda', cash: 'Cash' } as con
 
 export default function PortalPackages() {
   const { me } = usePortal();
-  const lead = canManageEvents(me);
+  const lead = canLeadOperations(me);
   const tabs: { value: Tab; label: string }[] = [
     { value: 'packages', label: 'Sign-ups' }, { value: 'orders', label: 'Responses' }, { value: 'pickup', label: 'Pickup' }, { value: 'sales', label: 'Money' },
   ];

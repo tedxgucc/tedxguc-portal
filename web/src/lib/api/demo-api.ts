@@ -4,7 +4,7 @@
 import * as fx from '../demo/fixtures';
 import { clearCache } from '../cache';
 import { cairoDay } from '../format';
-import { canManageTeam } from '../roles';
+import { canManageEvents, canManageTeam } from '../roles';
 import type {
   Announcement, CalendarItem, CheckInResult, Me, Member, Notification, RegistrationRow, Task, TxEvent,
 } from '../types';
@@ -130,9 +130,8 @@ const isOpen = (e: TxEvent) => isListed(e) && e.status === 'published' && new Da
 const canSeeTask = (me: Me, t: Task) =>
   canManage(me, t.team_id) || t.created_by === me.id || t.assignees.includes(me.id)
   || (!!t.requested_by_team_id && canManage(me, t.requested_by_team_id));
-const leadsOps = (me: Me) => me.role === 'chairman' || (me.role === 'curator' && me.division_kind === 'operations');
 const isToday = (eventId?: string) => { const e = s().events.find((x) => x.id === eventId); return !!e && cairoDay(e.starts_at) === cairoDay(new Date()); };
-const canScan = (me: Me, eventId?: string) => leadsOps(me) || (me.role === 'executive' && me.team_kind === 'logistics_planning')
+const canScan = (me: Me, eventId?: string) => canManageEvents(me) || (me.role === 'executive' && me.team_kind === 'logistics_planning')
   || (me.role === 'associate' && me.team_kind === 'logistics_planning' && isToday(eventId))
   || (!!eventId && s().staff.some((x) => x.event_id === eventId && x.user_id === me.id));
 
@@ -465,7 +464,7 @@ export const demoApi: Api = {
       || (me.role === 'curator' && ((input.audience_type === 'division' && input.division_id === me.division_id)
         || (input.audience_type === 'team' && t?.division_id === me.division_id)))
       || (me.role === 'executive' && input.audience_type === 'team' && input.team_id === me.team_id)
-      || (input.audience_type === 'all' && leadsOps(me));
+      || (input.audience_type === 'all' && canManageEvents(me));
     if (!ok) fail('not_allowed');
     s().announcements.unshift({
       id: id('a'), author_id: me.id, audience_type: input.audience_type, division_id: input.division_id ?? null,
@@ -493,12 +492,12 @@ export const demoApi: Api = {
   // ----- Events admin & door -----
   async listAllEvents() {
     const me = requireMe();
-    return s().events.filter((e) => e.status !== 'draft' || leadsOps(me)).sort((a, b) => b.starts_at.localeCompare(a.starts_at));
+    return s().events.filter((e) => e.status !== 'draft' || canManageEvents(me)).sort((a, b) => b.starts_at.localeCompare(a.starts_at));
   },
   async saveEvent(input) {
     await wait(300);
     const me = requireMe();
-    if (!leadsOps(me)) fail('not_allowed');
+    if (!canManageEvents(me)) fail('not_allowed');
     const st = s();
     if (input.id) {
       const e = st.events.find((x) => x.id === input.id)!;
@@ -513,7 +512,7 @@ export const demoApi: Api = {
   },
   async listRegistrations(eventId) {
     const me = requireMe();
-    if (!leadsOps(me)) return [];
+    if (!canManageEvents(me)) return [];
     return s().guests.filter((g) => g.event_id === eventId).map<RegistrationRow>((g) => ({
       id: g.id, guest_name: g.guest_name, guest_email: g.guest_email, guest_phone: g.guest_phone, guest_type: g.guest_type,
       status: g.status, ticket_no: g.ticket_no || null, checked_in_at: g.checked_in_at, created_at: g.created_at,
@@ -521,7 +520,7 @@ export const demoApi: Api = {
   },
   async eventStats(eventId) {
     const me = requireMe();
-    if (!canScan(me, eventId) && !leadsOps(me)) fail('not_allowed');
+    if (!canScan(me, eventId) && !canManageEvents(me)) fail('not_allowed');
     const st = s();
     const gs = st.guests.filter((g) => g.event_id === eventId);
     const e = st.events.find((x) => x.id === eventId);
