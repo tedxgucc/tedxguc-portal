@@ -4,7 +4,7 @@
 // "in review" until the curator releases them for the whole round.
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Suspense, useCallback, useEffect, useState } from 'react';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { TxLabel } from '@/components/Brand';
 import { InterviewInvitation } from '@/components/InterviewInvitation';
 import { InterviewSlotPicker } from '@/components/InterviewSlotPicker';
@@ -14,8 +14,8 @@ import { recruitmentApi } from '@/lib/api/phase2b';
 import { fmtDate, fmtTime } from '@/lib/format';
 import type { ApplicationView, SlotView } from '@/lib/types';
 
-const STEPS = ['application', 'slot', 'confirmed', 'decision'] as const;
-const stepLabel = ['Application', 'Choose a time', 'Confirmed', 'Decision'];
+const STEPS = ['application', 'slot', 'confirm', 'ticket'] as const;
+const stepLabel = ['Application', 'Choose a time', 'Confirm', 'Ticket'];
 
 function StatusInner() {
   const token = useSearchParams().get('t') ?? '';
@@ -25,8 +25,20 @@ function StatusInner() {
   const [confirm, setConfirm] = useState(false);
   const [picked, setPicked] = useState<SlotView | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const [rescheduling, setRescheduling] = useState(false);
+  const interviewInfo = useRef<HTMLDivElement>(null);
+  const interviewId = a?.interview?.slot_id;
   const load = useCallback(() => recruitmentApi.getApplication(token).then(setA).catch(() => setA(null)), [token]);
   useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    if (!interviewId) return;
+    setRescheduling(false);
+    const frame = requestAnimationFrame(() => {
+      interviewInfo.current?.focus({ preventScroll: true });
+      interviewInfo.current?.scrollIntoView({ block: 'start', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [interviewId]);
 
   const book = async (slotId: string) => {
     setBusy(slotId);
@@ -49,7 +61,7 @@ function StatusInner() {
   );
 
   const canBook = a.open_slots !== null;
-  const step = ['accepted', 'not_selected'].includes(a.stage) ? 3 : a.interview ? 2 : canBook ? 1 : 0;
+  const step = a.interview ? 3 : picked ? 2 : canBook ? 1 : 0;
   return (
     <div className="mx-auto max-w-[720px] px-s4 md:px-s6 pt-s7 grid gap-s6">
       <header className="grid gap-s2">
@@ -63,11 +75,11 @@ function StatusInner() {
         </p>
       </header>
 
-      {a.stage !== 'withdrawn' && (
+      {!['withdrawn', 'accepted', 'not_selected'].includes(a.stage) && (
         <ol className="grid grid-cols-4 gap-s1" aria-label="Progress">
           {STEPS.map((s, i) => (
             <li key={s} className="grid gap-s1" aria-current={i === step ? 'step' : undefined}>
-              <span className="h-[6px]" style={{ background: i <= step ? (i === 3 && a.stage === 'not_selected' ? 'var(--void)' : 'var(--accent)') : 'var(--surface-3)' }} />
+              <span className="h-[6px]" style={{ background: i <= step ? 'var(--accent)' : 'var(--surface-3)' }} />
               <span className={`tx-label ${i === step ? '' : 'text-ink-3'}`} style={i === step ? { color: 'var(--ink)' } : undefined}>{stepLabel[i]}</span>
             </li>
           ))}
@@ -79,9 +91,12 @@ function StatusInner() {
         <div className="flex flex-wrap gap-s2">{a.teams.map((t, i) => <span key={t} className="tx-chip tx-chip--soft">{i + 1}. {t}</span>)}</div>
       </div>
 
-      {a.interview && <InterviewInvitation key={a.interview.slot_id} application={a} />}
+      {a.interview && <div ref={interviewInfo} id="interview-info" tabIndex={-1} role="region" aria-label="Interview information and ticket" className="scroll-mt-[88px] focus:outline-none grid gap-s3">
+        <InterviewInvitation key={a.interview.slot_id} application={a} />
+        {canBook && <div><Button small variant="ghost" onClick={() => setRescheduling((value) => !value)}>{rescheduling ? 'Keep my current time' : 'Change interview time'}</Button></div>}
+      </div>}
 
-      {canBook && (
+      {canBook && (!a.interview || rescheduling) && (
         <section className="grid gap-s3" aria-labelledby="slots">
           <h2 id="slots" className="tx-heading h3">{a.interview ? 'Need another time?' : 'Pick your interview time'}</h2>
           {a.open_slots && a.open_slots.length > 0 ? (
