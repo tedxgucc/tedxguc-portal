@@ -122,8 +122,7 @@ const canReview = (u: Me, a: Application) => a.team_choices.some((t) => manageTe
 const interviewed = (appId: string) => s().slots.some((x) => x.application_id === appId && Date.parse(x.ends_at) <= Date.now());
 const acceptableTeams = (u: Me, a: Application) => fx.teams.filter((t) => manageTeam(u, t.id)
   && (a.team_choices.includes(t.id) || (s().referrals ?? []).some((r) => r.application_id === a.id && r.to_team_id === t.id && r.status === 'pending'))
-  && !['accepted', 'withdrawn'].includes(a.stage)
-  && (u.role !== 'executive' || (a.stage === 'interview' && interviewed(a.id)))).map((t) => t.id);
+  && !['accepted', 'withdrawn'].includes(a.stage)).map((t) => t.id);
 const canDecide = (u: Me, a: Application) => u.role === 'chairman' || a.team_choices.some((t) => manageDivision(u, team(t)?.division_id ?? null));
 const isOpen = (c: Cycle) => Date.now() >= new Date(c.opens_at).getTime() && Date.now() <= new Date(c.closes_at).getTime();
 
@@ -266,7 +265,7 @@ export const demoRecruitmentApi: RecruitmentApi = {
   async refer(applicationId, teamId, notes) {
     const u = me(); const a = s().apps.find((x) => x.id === applicationId);
     if (!a || !canReview(u, a)) fail('not_allowed');
-    if (a!.stage !== 'interview' || !interviewed(applicationId)) fail('interview_not_completed');
+    if (['accepted', 'withdrawn'].includes(a!.stage)) fail('application_closed');
     const source = [...a!.team_choices, ...(s().referrals ?? []).filter((r) => r.application_id === applicationId && r.status === 'pending').map((r) => r.to_team_id)].find((t) => t !== teamId && manageTeam(u, t));
     if (!source || !s().positions.some((p) => p.cycle_id === a!.cycle_id && p.team_id === teamId)) fail('not_allowed');
     if ((s().referrals ?? []).some((r) => r.application_id === applicationId && r.to_team_id === teamId)) fail('already_referred');

@@ -1,7 +1,7 @@
 'use client';
 // Pipeline (FR-4.3, 4.4, 4.5, 4.6): Applied → Screened → Interview → Accepted / Rejected.
-// Curators and the Chairman move stages; Executives accept completed
-// interviews into their own team and send reallocation referrals.
+// Curators and the Chairman move stages; Executives accept applicants
+// into their own team and send reallocation referrals.
 import { Check, ExternalLink, FileText, Send, Star, UserCheck, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { usePortal } from '@/components/portal/PortalContext';
@@ -34,7 +34,7 @@ export function PipelineTab({ decisionsOnly = false }: { decisionsOnly?: boolean
   const [apps, setApps] = useState<Application[] | null>(null);
   const [positions, setPositions] = useState<Position[]>([]);
   const [teamFilter, setTeamFilter] = useState('');
-  const [stage, setStage] = useState<Stage | ''>(decisionsOnly ? 'interview' : '');
+  const [stage, setStage] = useState<Stage | ''>('');
   const [picked, setPicked] = useState<string[]>([]);
   const [open, setOpen] = useState<Application | null>(null);
   const decides = me.role === 'chairman' || me.role === 'curator';
@@ -68,7 +68,7 @@ export function PipelineTab({ decisionsOnly = false }: { decisionsOnly?: boolean
 
   return (
     <div className="grid gap-s4">
-      {decisionsOnly && <p className="text-body-sm text-ink-2">Review your team's interviews and incoming reallocations. After an interview finishes, accept the applicant into your team or refer them to another team for review.</p>}
+      {decisionsOnly && <p className="text-body-sm text-ink-2">Review applicants and incoming reallocations. Accept an applicant into your team or refer them to another team for review at any time.</p>}
       <div className="grid gap-s3 sm:grid-cols-3">
         <Select label="Round" value={cycleId} onChange={(e) => { setCycleId(e.target.value); setPicked([]); }}>
           {cycles.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -235,13 +235,12 @@ function ApplicantSheet({ app, positions, decides, onClose, onChanged, onMove }:
           <section className="grid gap-s2 border-t border-line pt-s4">
             <h3 className="h4">Interview decision</h3>
             {!context && !contextError && <p className="text-body-sm text-ink-3">Loading decision permissions…</p>}
-            {me.role === 'executive' && context && !context.interview_completed && <><p className="text-body-sm text-ink-3">Acceptance and reallocation become available after the scheduled interview finishes.</p><div><Button small variant="ghost" onClick={loadContext}>Refresh interview status</Button></div></>}
             <div className="grid grid-cols-2 gap-s2">
               {decides && app.stage !== 'screened' && app.stage !== 'interview' && <Button small variant="secondary" onClick={() => onMove([app.id], 'screened')}>Screened</Button>}
               {decides && app.stage !== 'interview' && <Button small variant="secondary" onClick={() => onMove([app.id], 'interview')}>Invite to interview</Button>}
               {decides && app.stage !== 'rejected' && <Button small variant="danger" onClick={() => onMove([app.id], 'rejected')}><X aria-hidden="true" />Reject</Button>}
               {acceptable.length > 0 && <Button small onClick={() => setAccepting(true)}><UserCheck aria-hidden="true" />Accept</Button>}
-              {app.stage === 'interview' && context?.interview_completed && referable.length > 0 && <Button small variant="secondary" onClick={() => setReferring((v) => !v)}>Refer to another team</Button>}
+              {context && referable.length > 0 && <Button small variant="secondary" onClick={() => setReferring((v) => !v)}>Refer to another team</Button>}
             </div>
             {accepting && (
               <div className="tx-card tx-card--outline grid gap-s3">

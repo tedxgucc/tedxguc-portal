@@ -27,12 +27,27 @@ before(async () => {
   for (const team of [media, coaching, campaigns]) await db.q(`insert into positions(cycle_id,team_id) values ($1,$2)`, [cycle.id, team]);
 });
 
-test('Executives cannot accept or refer applicants until their interview has finished', async () => {
+test('Executives can accept and refer before booking or before the scheduled interview finishes', async () => {
   for (const a of [await application(), await application({ future: true })]) {
-    assert.deepEqual((await context(exec, a.application_id)).acceptable_team_ids, []);
-    await rejects(accept(exec, a.application_id, media), /not_allowed/);
-    await rejects(refer(exec, a.application_id, coaching), /interview_not_completed/);
+    assert.equal((await context(exec, a.application_id)).interview_completed, false);
+    assert.deepEqual((await context(exec, a.application_id)).acceptable_team_ids, [media]);
+    await refer(exec, a.application_id, coaching);
+    await accept(exec, a.application_id, media);
+    await rejects(refer(exec, a.application_id, campaigns), /application_closed/);
   }
+});
+
+test('screened and rejected applicants can be reconsidered; withdrawn applications stay closed', async () => {
+  for (const stage of ['screened', 'rejected']) {
+    const a = await application();
+    await db.q(`update applications set stage=$1 where id=$2`, [stage, a.application_id]);
+    await refer(exec, a.application_id, coaching);
+    await accept(receivingExec, a.application_id, coaching);
+  }
+  const withdrawn = await application();
+  await db.q(`update applications set stage='withdrawn' where id=$1`, [withdrawn.application_id]);
+  await rejects(accept(exec, withdrawn.application_id, media), /application_closed/);
+  await rejects(refer(exec, withdrawn.application_id, coaching), /application_closed/);
 });
 
 test('Executive accepts into own team and can read the exact invite needed by staff-actions', async () => {
