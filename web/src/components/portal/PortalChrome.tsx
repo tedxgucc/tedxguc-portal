@@ -36,7 +36,6 @@ export function useNav() {
         { href: '/portal/events', label: 'Events', icon: Sparkles, show: !!me.role },
         { href: '/portal/door', label: 'Door check-in', icon: ScanLine, show: door },
         { href: '/portal/signups', label: 'Sign-ups', icon: Package, show: !!me.role },
-        { href: '/portal/packages', label: 'Manage sign-ups', icon: Settings2, show: canManageSignUps(me) },
       ],
     },
     {
