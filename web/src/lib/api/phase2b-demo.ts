@@ -1,6 +1,7 @@
 // Demo mode for recruitment, files and packages. Mirrors migrations 0007,
 // 0009 and 0011 closely enough to show each stakeholder their screens.
 import * as fx from '../demo/fixtures';
+import type { InterviewAvailability } from '../interview-availability';
 import type {
   Application, ApplicationView, BoardPlan, Cycle, InterviewScore, InterviewSlot, LibFile, Me, Order, OrderStatus,
   Package, Position, SlotView,
@@ -23,6 +24,7 @@ const TELDA = 'https://telda.me/tedxguc-demo';
 type App = Application & { token: string; released?: boolean };
 type Ord = Order & { token: string; pickup_code: string | null };
 type Store = {
+  availability?: Record<string, InterviewAvailability>;
   cycles: Cycle[]; positions: Position[]; apps: App[]; slots: InterviewSlot[]; scores: InterviewScore[]; plans: BoardPlan[];
   files: LibFile[]; packages: Omit<Package, 'stock_left'>[]; orders: Ord[]; approvers: string[]; counter: number;
 };
@@ -256,6 +258,26 @@ export const demoRecruitmentApi: RecruitmentApi = {
     if (!manageTeam(me(), input.team_id)) fail('not_allowed');
     s().slots.push({ ...input, id: rid('s'), location: input.location ?? null, application_id: null });
     save();
+  },
+  async getAvailability(cycleId, teamId) {
+    if (!manageTeam(me(), teamId)) fail('not_allowed');
+    return s().availability?.[`${me().id}:${cycleId}:${teamId}`] ?? null;
+  },
+  async saveAvailability(cycleId, teamId, schedule, slots) {
+    const u = me();
+    if (!manageTeam(u, teamId) || !s().cycles.some((c) => c.id === cycleId && c.kind === 'associates')) fail('not_allowed');
+    const pending: InterviewSlot[] = [];
+    let skipped = 0;
+    for (const slot of slots) {
+      if (Date.parse(slot.starts_at) <= Date.now() || Date.parse(slot.ends_at) <= Date.parse(slot.starts_at)) fail('invalid_interview_time');
+      if (s().slots.some((x) => x.team_id === teamId && x.cycle_id === cycleId && x.starts_at === slot.starts_at && x.ends_at === slot.ends_at && x.interviewer_ids.includes(u.id))) { skipped++; continue; }
+      if ([...s().slots, ...pending].some((x) => x.interviewer_ids.includes(u.id) && x.starts_at < slot.ends_at && x.ends_at > slot.starts_at)) fail('interview_time_conflict', 'An interview already overlaps these hours. Adjust the time range.');
+      pending.push({ ...slot, cycle_id: cycleId, team_id: teamId, id: rid('s'), location: schedule.location || null, interviewer_ids: [u.id], application_id: null });
+    }
+    s().slots.push(...pending);
+    (s().availability ??= {})[`${u.id}:${cycleId}:${teamId}`] = structuredClone(schedule);
+    save();
+    return { added: pending.length, skipped };
   },
   async deleteSlot(id) {
     const st = s();

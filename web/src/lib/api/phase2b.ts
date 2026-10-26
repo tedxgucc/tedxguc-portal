@@ -2,6 +2,7 @@
 // Supabase when configured, sample data in demo mode.
 import { DEMO } from '../env';
 import { db } from '../supabase';
+import type { InterviewAvailability } from '../interview-availability';
 import type {
   Application, ApplicationView, BoardPlan, Cycle, FileScope, HandoverRow, InterviewScore, InterviewSlot, LibFile,
   FormAnswer, Order, OrderMethod, OrderPlaced, OrderView, Package, Position, Question, SalesRow, Stage,
@@ -43,6 +44,8 @@ export interface RecruitmentApi {
   cvUrl(path: string): Promise<string | null>;
   listSlots(): Promise<InterviewSlot[]>;
   addSlot(input: SlotInput): Promise<void>;
+  getAvailability(cycleId: string, teamId: string): Promise<InterviewAvailability | null>;
+  saveAvailability(cycleId: string, teamId: string, schedule: InterviewAvailability, slots: { starts_at: string; ends_at: string }[]): Promise<{ added: number; skipped: number }>;
   deleteSlot(id: string): Promise<void>;
   listScores(applicationId: string): Promise<InterviewScore[]>;
   saveScore(applicationId: string, score: number, notes: string): Promise<void>;
@@ -159,6 +162,14 @@ const liveRecruitment: RecruitmentApi = {
   },
   async addSlot(input) {
     await run(db().from('interview_slots').insert(input));
+  },
+  async getAvailability(cycleId, teamId) {
+    const { data: auth } = await db().auth.getUser();
+    const row = await run<{ schedule: InterviewAvailability } | null>(db().from('interview_availability').select('schedule').eq('user_id', auth.user?.id ?? '').eq('cycle_id', cycleId).eq('team_id', teamId).maybeSingle());
+    return row ? row.schedule as InterviewAvailability : null;
+  },
+  async saveAvailability(cycleId, teamId, schedule, slots) {
+    return run(db().rpc('save_interview_availability', { p_cycle_id: cycleId, p_team_id: teamId, p_schedule: schedule, p_slots: slots }));
   },
   async deleteSlot(id) {
     await run(db().from('interview_slots').delete().eq('id', id));

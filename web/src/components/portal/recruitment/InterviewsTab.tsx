@@ -1,14 +1,15 @@
 'use client';
-// Interview availability, Calendly style (FR-4.4). Executives say when
+// Interview availability, Calendly style (FR-4.4). Board members say when
 // they're free (a day, a from–to window, an interview length); the portal
 // cuts it into slots and invited applicants book one from their link.
-import { ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { usePortal } from '@/components/portal/PortalContext';
 import { useToast } from '@/components/Toast';
-import { Button, Chip, Modal, Select, Skeleton, TextInput } from '@/components/ui';
+import { Button, Chip, Modal, Skeleton } from '@/components/ui';
 import { recruitmentApi } from '@/lib/api/phase2b';
-import { cairoDay, fmtTime, fromLocalInput } from '@/lib/format';
+import { cairoDay, fmtTime } from '@/lib/format';
+import { AvailabilitySettings } from './AvailabilitySettings';
 import { manageableTeams } from '@/lib/roles';
 import type { Application, Cycle, InterviewSlot } from '@/lib/types';
 
@@ -51,7 +52,7 @@ export function InterviewsTab() {
 
   return (
     <div className="grid gap-s6">
-      <AddAvailability cycles={active} teamIds={mine.map((t) => t.id)} onSaved={load} />
+      <AvailabilitySettings cycles={active} teamIds={mine.map((t) => t.id)} onSaved={load} />
 
       <section className="grid gap-s3">
         <div className="flex flex-wrap items-center justify-between gap-s3">
@@ -114,73 +115,5 @@ export function InterviewsTab() {
         })()}
       </Modal>
     </div>
-  );
-}
-
-function AddAvailability({ cycles, teamIds, onSaved }: { cycles: Cycle[]; teamIds: string[]; onSaved: () => void }) {
-  const { me, team } = usePortal();
-  const toast = useToast();
-  const [cycleId, setCycleId] = useState('');
-  const [teamId, setTeamId] = useState('');
-  const [date, setDate] = useState(() => cairoDay(new Date(Date.now() + DAY)));
-  const [from, setFrom] = useState('14:00');
-  const [to, setTo] = useState('17:00');
-  const [len, setLen] = useState('20');
-  const [gap, setGap] = useState('0');
-  const [place, setPlace] = useState('');
-  const [busy, setBusy] = useState(false);
-  useEffect(() => { setCycleId((c) => c || cycles[0]?.id || ''); }, [cycles]);
-  useEffect(() => { setTeamId((t) => t || teamIds[0] || ''); }, [teamIds]);
-
-  const starts = useMemo(() => {
-    if (!date || !from || !to) return [];
-    const a = new Date(fromLocalInput(`${date}T${from}`)).getTime();
-    const b = new Date(fromLocalInput(`${date}T${to}`)).getTime();
-    const step = (Number(len) + Number(gap)) * 60_000;
-    const out: number[] = [];
-    for (let t = a; t + Number(len) * 60_000 <= b && out.length < 40; t += step) out.push(t);
-    return out;
-  }, [date, from, to, len, gap]);
-
-  if (!teamIds.length) return null;
-  if (!cycles.length) return <p className="text-ink-2">There is no open recruitment round. The Chairman opens one under Rounds.</p>;
-
-  const save = async () => {
-    if (!starts.length) { toast('bad', 'That window is too short.', 'Make “to” later than “from”.'); return; }
-    if (starts[0] < Date.now()) { toast('bad', 'Pick a time in the future.'); return; }
-    setBusy(true);
-    try {
-      for (const t of starts) {
-        await recruitmentApi.addSlot({ cycle_id: cycleId, team_id: teamId, starts_at: new Date(t).toISOString(), ends_at: new Date(t + Number(len) * 60_000).toISOString(), location: place.trim() || undefined, interviewer_ids: [me.id] });
-      }
-      toast('ok', `${starts.length} times added on ${dayLabel(date)}.`, 'Invited applicants can book them now.');
-      onSaved();
-    } catch (e) { toast('bad', 'That didn’t save.', (e as Error).message); } finally { setBusy(false); }
-  };
-
-  return (
-    <section className="tx-card grid gap-s4" aria-label="Add when you're free">
-      <h2 className="tx-heading h3">When are you free?</h2>
-      <div className="grid gap-s4 grid-cols-2 md:grid-cols-4">
-        <TextInput label="Day" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-        <TextInput label="From" type="time" step={300} value={from} onChange={(e) => setFrom(e.target.value)} />
-        <TextInput label="To" type="time" step={300} value={to} onChange={(e) => setTo(e.target.value)} />
-        <Select label="Each interview" value={len} onChange={(e) => setLen(e.target.value)}>
-          {['15', '20', '30', '45', '60'].map((m) => <option key={m} value={m}>{m} min</option>)}
-        </Select>
-        <Select label="Break between" value={gap} onChange={(e) => setGap(e.target.value)}>
-          {['0', '5', '10', '15'].map((m) => <option key={m} value={m}>{m === '0' ? 'None' : `${m} min`}</option>)}
-        </Select>
-        <div className="col-span-2 md:col-span-3"><TextInput label="Room or meeting link" value={place} onChange={(e) => setPlace(e.target.value)} placeholder="C3.201 or a Meet link" /></div>
-        {cycles.length > 1 && <Select label="Round" value={cycleId} onChange={(e) => setCycleId(e.target.value)}>{cycles.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</Select>}
-        {teamIds.length > 1 && <Select label="Team" value={teamId} onChange={(e) => setTeamId(e.target.value)}>{teamIds.map((t) => <option key={t} value={t}>{team(t)?.name}</option>)}</Select>}
-      </div>
-      {starts.length > 0 && (
-        <div className="flex flex-wrap gap-s1" aria-label="Times that will be added">
-          {starts.map((t) => <span key={t} className="tx-chip tx-chip--soft tx-num">{fmtTime(new Date(t).toISOString())}</span>)}
-        </div>
-      )}
-      <div><Button loading={busy} onClick={save} disabled={!starts.length}><Plus size={18} aria-hidden="true" />Add {starts.length || ''} times</Button></div>
-    </section>
   );
 }
