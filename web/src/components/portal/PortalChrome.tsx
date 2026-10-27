@@ -5,6 +5,7 @@ import {
   Bell, CalendarClock, CalendarDays, CircleUser, CreditCard, Globe, Inbox, Settings2, ClipboardCheck, FolderOpen, LayoutDashboard, LogOut, Megaphone, Menu, Package, ScanLine, Sparkles, SquareKanban, UserSearch, Users, Wallet,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { Lockup } from '@/components/Brand';
 import { Avatar } from '@/components/ui';
@@ -67,12 +68,33 @@ export function useNav() {
 
 const isOn = (path: string, href: string) => (href === '/portal' ? path === '/portal' : path === href || path.startsWith(`${href}/`));
 
+// Opens and closes the left menu on desktop; the choice is remembered.
+function MenuToggle() {
+  const [closed, setClosed] = useState(false);
+  useEffect(() => setClosed(document.documentElement.dataset.nav === 'closed'), []);
+  const flip = () => {
+    const next = !closed;
+    if (next) document.documentElement.dataset.nav = 'closed'; else delete document.documentElement.dataset.nav;
+    try { localStorage.setItem('tx-nav', next ? 'closed' : 'open'); } catch { /* private mode */ }
+    setClosed(next);
+  };
+  return (
+    <button type="button" className="tx-iconbtn hidden lg:grid" onClick={flip} aria-label={closed ? 'Open the menu' : 'Close the menu'} aria-expanded={!closed} aria-controls="portal-menu" title={closed ? 'Open the menu' : 'Close the menu'}>
+      <Menu aria-hidden="true" />
+    </button>
+  );
+}
+
 export function PortalTopBar() {
   const { me } = usePortal();
   return (
     <header className="tx-top">
       <Link href="/portal" aria-label="Portal home" className="lg:hidden"><Lockup height={22} /></Link>
-      <span className="hidden lg:block tx-label">{me.role ? roleLabel[me.role] : 'Alumni'}{me.team_name ? ` · ${me.team_name}` : me.division_name ? ` · ${me.division_name}` : ''}</span>
+      <span className="hidden lg:flex items-center gap-s3">
+        <MenuToggle />
+        <Link href="/portal" aria-label="Portal home" className="tx-nav-closed-logo"><Lockup height={20} /></Link>
+      </span>
+      <span className="hidden xl:block tx-label">{me.role ? roleLabel[me.role] : 'Alumni'}{me.team_name ? ` · ${me.team_name}` : me.division_name ? ` · ${me.division_name}` : ''}</span>
       <div className="flex items-center gap-s1">
         <HeaderDropdowns />
         <AccountMenu />
@@ -86,7 +108,7 @@ export function PortalSidebar() {
   const router = useRouter();
   const groups = useNav();
   return (
-    <aside className="tx-sidebar" aria-label="Portal">
+    <aside className="tx-sidebar" id="portal-menu" aria-label="Portal">
       <Link href="/portal" className="px-s4 h-[60px] flex items-center border-b border-line" aria-label="Portal home" style={{ borderLeft: 0 }}>
         <Lockup height={22} />
       </Link>

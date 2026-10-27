@@ -29,7 +29,7 @@ export const viewport: Viewport = {
 
 // Runs before paint so the page never flashes the wrong theme
 // (design system: "10 · Tokens as code → Theme switching").
-const themeScript = `(function(){try{var s=localStorage.getItem('tx-theme');var t=s||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');document.documentElement.dataset.theme=t;}catch(e){document.documentElement.dataset.theme='dark';}})();`;
+const themeScript = `(function(){try{var s=localStorage.getItem('tx-theme');var t=s||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');document.documentElement.dataset.theme=t;if(localStorage.getItem('tx-nav')==='closed')document.documentElement.dataset.nav='closed';}catch(e){document.documentElement.dataset.theme='dark';}})();`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
