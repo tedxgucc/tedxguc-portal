@@ -140,7 +140,7 @@ export function PortalSidebar() {
         // A mouse click focuses the link; that focus must not pin a hover preview.
         if ((event.target as HTMLElement).closest('a')) delete document.documentElement.dataset.navPreview;
       }}>
-      <Link href="/portal" className="px-s4 h-[60px] flex items-center border-b border-line" aria-label="Portal home" style={{ borderLeft: 0 }}>
+      <Link href="/portal" className="tx-sidebar-logo px-s4 h-[60px] flex items-center border-b border-line" aria-label="Portal home" style={{ borderLeft: 0 }}>
         <Lockup height={22} />
       </Link>
       <nav className="flex-1 py-s3 grid content-start gap-s4">

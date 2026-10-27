@@ -73,6 +73,7 @@ a { color: inherit; }
   [data-nav="closed"] .tx-shell { grid-template-columns: 0 1fr; }
   [data-nav="closed"] .tx-sidebar { transform: translateX(-100%); opacity: 0; border-right-color: transparent; pointer-events: none; visibility: hidden; transition: transform .32s cubic-bezier(.65,0,.35,1), opacity .2s ease, visibility 0s .32s; }
   [data-nav="closed"] .tx-nav-closed-logo { display: block; }
+  [data-nav="closed"] .tx-sidebar .tx-sidebar-logo { display: none; }
   [data-nav="closed"] .tx-shell > div { grid-column: 2; }
   [data-nav="closed"] .tx-sidebar { position: fixed; left: 0; width: 248px; z-index: 50; }
   [data-nav="closed"][data-nav-preview="open"] .tx-sidebar {
