@@ -476,7 +476,7 @@ export const demoPackagesApi: PackagesApi = {
       delivery_address: input.address?.trim() || null, proof_path: null, payment_reference: null,
       status: free ? 'approved' : cash ? 'awaiting_cash' : 'pending_proof',
       hold_expires_at: free ? null : new Date(Date.now() + (cash ? 3 * DAY : DAY)).toISOString(), reject_reason: null, approved_by: null, delivered_at: null,
-      created_at: new Date().toISOString(), token: tok(), pickup_code: free ? tok() : null, user_id: u.id, answers: input.answers,
+      created_at: new Date().toISOString(), token: tok(), pickup_code: free || input.method !== 'cash' ? tok() : null, user_id: u.id, answers: input.answers,
     };
     st.orders.unshift(order);
     save();
@@ -511,7 +511,7 @@ export const demoPackagesApi: PackagesApi = {
     const p = s().packages.find((x) => x.id === o.package_id)!;
     return {
       order_no: o.order_no, status: o.status, package: p.name, quantity: o.quantity, total_egp: o.total_egp, method: o.method, hold_expires_at: o.hold_expires_at,
-      reject_reason: o.reject_reason, fulfilment: o.fulfilment, pickup_info: p.pickup_info, pickup_code: o.status === 'approved' ? o.pickup_code : null,
+      reject_reason: o.reject_reason, fulfilment: o.fulfilment, pickup_info: p.pickup_info, pickup_code: ['pending_proof', 'pending_approval', 'approved'].includes(o.status) ? o.pickup_code : null,
       payment_link: o.status === 'pending_proof' ? (o.method === 'instapay' ? INSTAPAY : o.method === 'telda' ? TELDA : null) : null,
     };
   },
@@ -532,7 +532,7 @@ export const demoPackagesApi: PackagesApi = {
     if (!canApprove(u)) fail('not_allowed');
     const o = s().orders.find((x) => x.id === id);
     if (!o || o.status !== 'pending_approval') fail('order_not_pending', 'This order is not waiting for approval.');
-    Object.assign(o!, approve ? { status: 'approved', pickup_code: rid('pick'), approved_by: u.id } : { status: 'rejected', reject_reason: reason ?? null, approved_by: u.id });
+    Object.assign(o!, approve ? { status: 'approved', pickup_code: o!.pickup_code ?? rid('pick'), approved_by: u.id } : { status: 'rejected', reject_reason: reason ?? null, approved_by: u.id });
     save();
   },
   async markCashPaid(id) {
@@ -540,7 +540,7 @@ export const demoPackagesApi: PackagesApi = {
     if (!canApprove(u)) fail('not_allowed');
     const o = s().orders.find((x) => x.id === id);
     if (!o || o.status !== 'awaiting_cash') fail('order_not_awaiting_cash', 'This order is not waiting for cash payment.');
-    Object.assign(o!, { status: 'approved', pickup_code: rid('pick'), approved_by: u.id, hold_expires_at: null });
+    Object.assign(o!, { status: 'approved', pickup_code: o!.pickup_code ?? rid('pick'), approved_by: u.id, hold_expires_at: null });
     save();
   },
   async pickup(code) {

@@ -16,7 +16,7 @@ import { egp, fmtDateTime } from '@/lib/format';
 import type { OrderView } from '@/lib/types';
 
 const title: Record<OrderView['status'], string> = {
-  pending_proof: 'Pay now', pending_approval: 'Payment received', awaiting_cash: 'Pay at the booth', approved: 'You’re set',
+  pending_proof: 'You’re booked', pending_approval: 'You’re booked', awaiting_cash: 'Pay at the booth', approved: 'You’re set',
   delivered: 'Picked up', rejected: 'Payment not confirmed', expired: 'Order expired', cancelled: 'Order cancelled', refunded: 'Refunded',
 };
 
@@ -39,7 +39,7 @@ function OrderInner() {
     try {
       const path = file ? await packagesApi.uploadProof(token, file) : null;
       await packagesApi.submitProof(token, path, ref.trim() || null);
-      toast('ok', 'Payment received.', 'We’ll confirm within 24 hours.');
+      toast('ok', 'Proof sent. Thank you.');
       setFile(null); setRef('');
       load();
     } catch (e) { toast('bad', 'We can’t read that screenshot.', (e as Error).message); } finally { setBusy(null); }
@@ -61,33 +61,7 @@ function OrderInner() {
         <p className="text-ink-2">{o.quantity} × {o.package} · {egp(o.total_egp)}{isNew ? '. You can reopen it any time from Sign-ups in the portal.' : ''}</p>
       </header>
 
-      {o.status === 'pending_proof' && (
-        <section className="tx-card grid gap-s4" aria-labelledby="pay">
-          <h2 id="pay" className="tx-heading h3">1. Transfer {egp(o.total_egp)}</h2>
-          <p className="text-ink-2">Write <b className="code">{o.order_no}</b> in the transfer note so we can match it.
-            <button className="tx-iconbtn align-middle" aria-label="Copy order number" onClick={() => { navigator.clipboard?.writeText(o.order_no); toast('ok', 'Order number copied.'); }}><Copy size={16} /></button></p>
-          {o.payment_link && <a className="tx-btn tx-btn--primary justify-self-start" href={o.payment_link} target="_blank" rel="noopener noreferrer"><ExternalLink aria-hidden="true" />Open {o.method === 'telda' ? 'Telda' : 'InstaPay'}</a>}
-          {o.hold_expires_at && <p className="text-caption text-ink-3">We hold your order until {fmtDateTime(o.hold_expires_at)}.</p>}
-          <h2 className="tx-heading h3">2. Send us the proof</h2>
-          <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp,application/pdf" className="hidden" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
-          {file ? <div className="tx-file"><div className="tx-file__thumb"><Upload aria-hidden="true" /></div><div className="min-w-0"><div className="font-semibold truncate text-body-sm">{file.name}</div></div>
-            <button className="tx-link text-caption bg-transparent border-0 cursor-pointer" onClick={() => setFile(null)}>Change</button></div>
-            : <button type="button" className="tx-upload w-full" onClick={() => fileRef.current?.click()}><Upload aria-hidden="true" /><span className="tx-upload__t">Upload the transfer screenshot</span><span className="tx-upload__d">Show the amount and the reference. Up to 5 MB.</span></button>}
-          <TextInput label="Or the transaction reference" value={ref} onChange={(e) => setRef(e.target.value)} autoComplete="off" />
-          <Button onClick={sendProof} loading={busy === 'proof'}>Send proof</Button>
-        </section>
-      )}
-
-      {o.status === 'pending_approval' && <div className="tx-card grid gap-s2"><Chip kind="pending">Checking your transfer</Chip><p className="text-ink-2">Our Operations team checks the {o.method === 'telda' ? 'Telda' : 'InstaPay'} account and confirms within 24 hours. You’ll get an email with your pickup QR.</p></div>}
-
-      {o.status === 'awaiting_cash' && (
-        <div className="tx-card grid gap-s2">
-          <Chip kind="pending">Reserved</Chip>
-          <p className="text-ink-2">Pay {egp(o.total_egp)} in cash at the TEDxGUC booth{o.pickup_info ? ` (${o.pickup_info})` : ''}{o.hold_expires_at ? ` before ${fmtDateTime(o.hold_expires_at)}` : ''}. Tell them order <b className="code">{o.order_no}</b>.</p>
-        </div>
-      )}
-
-      {o.status === 'approved' && o.pickup_code && (
+      {['pending_proof', 'pending_approval', 'approved'].includes(o.status) && o.pickup_code && (
         <div className="grid justify-items-center gap-s3">
           <div className="tx-ticket">
             <div className="tx-ticket__top"><div className="tx-ticket__event">{o.package}</div><div className="caption" style={{ color: '#b8b8b8' }}>{o.quantity} × · {egp(o.total_egp)}</div></div>
@@ -99,7 +73,33 @@ function OrderInner() {
             </div>
             <div className="tx-ticket__bar" />
           </div>
-          <p className="text-ink-2 text-center">Show this QR when you collect. It works once.</p>
+          <p className="text-ink-2 text-center">Show this QR when you collect. It works once{o.status === 'approved' ? '' : ', after we match your transfer'}.</p>
+        </div>
+      )}
+
+      {o.status === 'pending_proof' && (
+        <section className="tx-card grid gap-s4" aria-labelledby="pay">
+          <h2 id="pay" className="tx-heading h3">Pay {egp(o.total_egp)}</h2>
+          <p className="text-ink-2">Write <b className="code">{o.order_no}</b> in the transfer note so we can match it.
+            <button className="tx-iconbtn align-middle" aria-label="Copy order number" onClick={() => { navigator.clipboard?.writeText(o.order_no); toast('ok', 'Order number copied.'); }}><Copy size={16} /></button></p>
+          {o.payment_link && <a className="tx-btn tx-btn--primary justify-self-start" href={o.payment_link} target="_blank" rel="noopener noreferrer"><ExternalLink aria-hidden="true" />Open {o.method === 'telda' ? 'Telda' : 'InstaPay'}</a>}
+          {o.hold_expires_at && <p className="text-caption text-ink-3">Send the proof before {fmtDateTime(o.hold_expires_at)}, or the order is released.</p>}
+          <h2 className="tx-heading h3">Send the proof (now or later)</h2>
+          <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp,application/pdf" className="hidden" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+          {file ? <div className="tx-file"><div className="tx-file__thumb"><Upload aria-hidden="true" /></div><div className="min-w-0"><div className="font-semibold truncate text-body-sm">{file.name}</div></div>
+            <button className="tx-link text-caption bg-transparent border-0 cursor-pointer" onClick={() => setFile(null)}>Change</button></div>
+            : <button type="button" className="tx-upload w-full" onClick={() => fileRef.current?.click()}><Upload aria-hidden="true" /><span className="tx-upload__t">Upload the transfer screenshot</span><span className="tx-upload__d">Show the amount and the reference. Up to 5 MB.</span></button>}
+          <TextInput label="Or the transaction reference" value={ref} onChange={(e) => setRef(e.target.value)} autoComplete="off" />
+          <Button onClick={sendProof} loading={busy === 'proof'}>Send proof</Button>
+        </section>
+      )}
+
+      {o.status === 'pending_approval' && <div className="tx-card grid gap-s2"><Chip kind="ok">Proof received</Chip><p className="text-ink-2">We got your proof. Keep the QR above for pickup.</p></div>}
+
+      {o.status === 'awaiting_cash' && (
+        <div className="tx-card grid gap-s2">
+          <Chip kind="pending">Reserved</Chip>
+          <p className="text-ink-2">Pay {egp(o.total_egp)} in cash at the TEDxGUC booth{o.pickup_info ? ` (${o.pickup_info})` : ''}{o.hold_expires_at ? ` before ${fmtDateTime(o.hold_expires_at)}` : ''}. Tell them order <b className="code">{o.order_no}</b>.</p>
         </div>
       )}
 

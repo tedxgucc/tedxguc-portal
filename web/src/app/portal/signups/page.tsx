@@ -33,7 +33,7 @@ export default function SignUpsPage() {
   }, []);
   const name = (id: string) => list?.find((p) => p.id === id)?.name ?? 'Sign-up';
   const open = async (o: Order) => {
-    try { router.push(`/orders?t=${await packagesApi.orderLink(o.id)}`); } catch (e) { toast('bad', 'Couldn’t open it.', (e as Error).message); }
+    try { router.push(`/portal/signups/order?t=${await packagesApi.orderLink(o.id)}`); } catch (e) { toast('bad', 'Couldn’t open it.', (e as Error).message); }
   };
 
   return (
