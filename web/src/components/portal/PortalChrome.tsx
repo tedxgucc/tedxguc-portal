@@ -18,7 +18,7 @@ import { HeaderDropdowns } from './HeaderDropdowns';
 type Item = { href: string; label: string; icon: typeof Bell; show?: boolean };
 
 export function useNav() {
-  const { me, doorEvents, eventsToday } = usePortal();
+  const { me, doorEvents, eventsToday, pickupScanner } = usePortal();
   // L&P Associates see the scanner only on event days.
   const door = canScanTickets(me, eventsToday.length > 0) || doorEvents.length > 0;
   const groups: { title: string; items: Item[] }[] = [
@@ -37,6 +37,7 @@ export function useNav() {
         { href: '/portal/events', label: 'Events', icon: Sparkles, show: !!me.role },
         { href: '/portal/door', label: 'Door check-in', icon: ScanLine, show: door },
         { href: '/portal/signups', label: 'Sign-ups', icon: Package, show: !!me.role },
+        { href: '/portal/pickup', label: 'Pickup scanner', icon: ScanLine, show: !!pickupScanner && !canManageSignUps(me) },
       ],
     },
     {
