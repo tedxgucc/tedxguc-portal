@@ -68,12 +68,42 @@ export function useNav() {
 
 const isOn = (path: string, href: string) => (href === '/portal' ? path === '/portal' : path === href || path.startsWith(`${href}/`));
 
-// Opens and closes the left menu on desktop; the choice is remembered.
+// The button pins the desktop menu; an unpinned menu previews at the left edge.
 function MenuToggle() {
   const [closed, setClosed] = useState(false);
-  useEffect(() => setClosed(document.documentElement.dataset.nav === 'closed'), []);
+  useEffect(() => {
+    const root = document.documentElement;
+    setClosed(root.dataset.nav === 'closed');
+    const desktop = window.matchMedia('(min-width: 1024px) and (hover: hover) and (pointer: fine)');
+    const hidePreview = () => { delete root.dataset.navPreview; };
+    const onPointerMove = (event: PointerEvent) => {
+      if (!desktop.matches || root.dataset.nav !== 'closed' || event.pointerType !== 'mouse') return;
+      const sidebar = document.getElementById('portal-menu');
+      if (event.clientX <= 8) root.dataset.navPreview = 'open';
+      else if (root.dataset.navPreview === 'open' && event.clientX > 248
+        && !sidebar?.contains(document.activeElement)) hidePreview();
+    };
+    const onPointerLeave = () => {
+      if (!document.getElementById('portal-menu')?.contains(document.activeElement)) hidePreview();
+    };
+    const onFocusOut = () => {
+      if (!document.getElementById('portal-menu')?.matches(':hover')) hidePreview();
+    };
+    document.addEventListener('pointermove', onPointerMove);
+    document.documentElement.addEventListener('pointerleave', onPointerLeave);
+    document.getElementById('portal-menu')?.addEventListener('focusout', onFocusOut);
+    desktop.addEventListener('change', hidePreview);
+    return () => {
+      document.removeEventListener('pointermove', onPointerMove);
+      document.documentElement.removeEventListener('pointerleave', onPointerLeave);
+      document.getElementById('portal-menu')?.removeEventListener('focusout', onFocusOut);
+      desktop.removeEventListener('change', hidePreview);
+      hidePreview();
+    };
+  }, []);
   const flip = () => {
     const next = !closed;
+    delete document.documentElement.dataset.navPreview;
     if (next) document.documentElement.dataset.nav = 'closed'; else delete document.documentElement.dataset.nav;
     try { localStorage.setItem('tx-nav', next ? 'closed' : 'open'); } catch { /* private mode */ }
     setClosed(next);
