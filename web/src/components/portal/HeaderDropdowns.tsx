@@ -1,6 +1,6 @@
 'use client';
 
-import { Bell, CreditCard, X } from 'lucide-react';
+import { Bell, CreditCard, Globe, X } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useId, useRef, useState } from 'react';
@@ -43,6 +43,7 @@ export function HeaderDropdowns() {
   const toggle = (panel: Panel) => setOpen((current) => current === panel ? null : panel);
   return (
     <div ref={box} className="relative flex items-center gap-s1">
+      <Link href="/" className="tx-iconbtn" aria-label="Open the website" title="Open the website"><Globe aria-hidden="true" /></Link>
       <button ref={card} type="button" className="tx-iconbtn" aria-label="My X Access card" aria-expanded={open === 'card'} aria-controls={`${id}-card`} onClick={() => toggle('card')}><CreditCard aria-hidden="true" /></button>
       <button ref={bell} type="button" className="tx-iconbtn relative" aria-label={unread ? `Notifications, ${unread} unread` : 'Notifications'} aria-expanded={open === 'notifications'} aria-controls={`${id}-notifications`} onClick={() => toggle('notifications')}>
         <Bell aria-hidden="true" />

@@ -46,7 +46,7 @@ function SignUpFormInner() {
     try {
       const r = await packagesApi.signUp({ package_id: p.id, phone: phone.trim(), quantity: qty, method: free ? 'cash' : method, fulfilment, address: address.trim() || undefined, answers });
       if (free) { toast('ok', 'You’re signed up.', p.pickup_info ?? undefined); router.push('/portal/signups'); }
-      else router.push(`/orders?t=${r.status_token}&new=1`);
+      else router.push(`/portal/signups/order?t=${r.status_token}&new=1`);
     } catch (x) {
       toast('bad', 'That didn’t go through.', (x as Error).message);
       setBusy(false);
