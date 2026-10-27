@@ -9,10 +9,10 @@ import { useCallback, useEffect, useState } from 'react';
 import { PageTitle } from '@/components/Brand';
 import { downloadCsv } from '@/components/portal/FinanceBits';
 import { usePortal } from '@/components/portal/PortalContext';
-import { QrScanner } from '@/components/QrScanner';
+import { Pickup, PickupScanners } from '@/components/portal/Pickup';
 import { useToast } from '@/components/Toast';
 import { Button, Check2, Chip, EmptyState, Modal, Segmented, Select, Skeleton, TextArea, TextInput } from '@/components/ui';
-import { packagesApi, type PickupResult } from '@/lib/api/phase2b';
+import { packagesApi } from '@/lib/api/phase2b';
 import { egp, fmtRelative, fromLocalInput, toLocalInput } from '@/lib/format';
 import { answerText, FormBuilder } from '@/components/portal/FormBuilder';
 import { canLeadOperations, canManageSignUps } from '@/lib/roles';
@@ -44,7 +44,7 @@ export default function PortalPackages() {
       <PageTitle label="Manage sign-ups" title={tabs.find((t) => t.value === tab)!.label} />
       <div className="mb-s5 overflow-x-auto -mx-s4 px-s4"><div className="min-w-[400px] max-w-[640px]"><Segmented label="Packages view" value={tab} onChange={setTab} options={tabs} /></div></div>
       {tab === 'orders' && <Orders lead={lead} />}
-      {tab === 'pickup' && <Pickup />}
+      {tab === 'pickup' && <div className="grid gap-s6"><Pickup /><PickupScanners /></div>}
       {tab === 'packages' && <Packages />}
       {tab === 'sales' && <Sales />}
     </>
@@ -159,47 +159,6 @@ function ReasonModal({ order, title, action, required, onClose, onConfirm }: { o
       actions={<><Button variant="secondary" onClick={onClose}>Keep</Button><Button variant="danger" disabled={required && !reason.trim()} onClick={() => { onConfirm(reason.trim()); setReason(''); }}>{action}</Button></>}>
       <TextInput label={required ? 'Reason' : 'Reason (sent to the buyer)'} value={reason} onChange={(e) => setReason(e.target.value)} />
     </Modal>
-  );
-}
-
-function Pickup() {
-  const [camera, setCamera] = useState(false);
-  const [code, setCode] = useState('');
-  const [res, setRes] = useState<PickupResult | null>(null);
-  const toast = useToast();
-  const scan = async (c: string) => {
-    if (!c.trim()) return;
-    try {
-      const r = await packagesApi.pickup(c.trim());
-      setRes(r);
-      if (navigator.vibrate) navigator.vibrate(r.result === 'ok' ? 30 : [60, 40, 60]);
-      setTimeout(() => setRes((cur) => (cur === r ? null : cur)), 2500);
-    } catch (e) { toast('bad', 'That didn’t work.', (e as Error).message); }
-  };
-  const words: Record<PickupResult['result'], [string, string]> = {
-    ok: ['Hand it over', `${res?.quantity ?? ''} × ${res?.package ?? ''} for ${res?.buyer_name ?? ''}`],
-    already_delivered: ['Already picked up', `${res?.order_no ?? ''} was collected before.`],
-    not_paid: ['Not paid', `${res?.order_no ?? ''} isn’t confirmed yet (${(res?.status ?? '').replace('_', ' ')}).`],
-    not_found: ['Not an order', 'This code isn’t a package order.'],
-  };
-  return (
-    <div className="grid gap-s4 max-w-[560px]">
-      <div className="tx-card grid gap-s4">
-        <QrScanner active={camera} onCode={(t) => { setCamera(false); scan(t); }} />
-        {res && (
-          <div className="tx-checkin py-s3">
-            <div className={`tx-checkin__stamp ${res.result === 'ok' ? '' : res.result === 'already_delivered' ? 'is-warn' : 'is-bad'}`}>{res.result === 'ok' ? <Check aria-hidden="true" /> : <X aria-hidden="true" />}</div>
-            <div className="tx-checkin__t">{words[res.result][0]}</div>
-            <p className="text-ink-2">{words[res.result][1]}</p>
-          </div>
-        )}
-        <Button onClick={() => setCamera((c) => !c)}><ScanLine aria-hidden="true" />{camera ? 'Stop camera' : 'Scan pickup QR'}</Button>
-        <div className="grid gap-s2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-          <TextInput label="Or type the code or order number" value={code} onChange={(e) => setCode(e.target.value)} autoComplete="off" />
-          <Button variant="secondary" onClick={() => { scan(code); setCode(''); }}>Check</Button>
-        </div>
-      </div>
-    </div>
   );
 }
 

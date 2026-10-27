@@ -28,7 +28,7 @@ type Store = {
   availability?: Record<string, InterviewAvailability>;
   referrals?: ApplicationReferral[];
   cycles: Cycle[]; positions: Position[]; apps: App[]; slots: InterviewSlot[]; scores: InterviewScore[]; plans: BoardPlan[];
-  files: LibFile[]; packages: Omit<Package, 'stock_left'>[]; orders: Ord[]; approvers: string[]; counter: number;
+  files: LibFile[]; packages: Omit<Package, 'stock_left'>[]; orders: Ord[]; approvers: string[]; pickupScanners?: string[]; counter: number;
 };
 
 function fresh(): Store {
@@ -428,6 +428,7 @@ const HELD: OrderStatus[] = ['pending_proof', 'pending_approval', 'awaiting_cash
 const reserved = (pid: string) => s().orders.filter((o) => o.package_id === pid && HELD.includes(o.status)).reduce((a, o) => a + o.quantity, 0);
 const leadsOps = (u: Me) => u.role === 'chairman' || (u.role === 'curator' && u.division_kind === 'operations');
 const canApprove = (u: Me) => canManageSignUps(u) || (u.division_kind === 'operations' && s().approvers.includes(u.id));
+const canPickup = (u: Me) => canApprove(u) || u.division_kind === 'operations' || (s().pickupScanners ?? []).includes(u.id);
 const onSale = (p: Omit<Package, 'stock_left'>) => p.is_active && (!p.opens_at || Date.now() >= new Date(p.opens_at).getTime()) && (!p.closes_at || Date.now() < new Date(p.closes_at).getTime());
 function expire() {
   let changed = false;
@@ -545,7 +546,7 @@ export const demoPackagesApi: PackagesApi = {
   },
   async pickup(code) {
     const u = me();
-    if (!(canApprove(u) || u.division_kind === 'operations')) fail('not_allowed');
+    if (!canPickup(u)) fail('not_allowed');
     const o = s().orders.find((x) => x.pickup_code === code.trim() || x.order_no.toLowerCase() === code.trim().toLowerCase());
     if (!o) return { result: 'not_found' };
     const p = s().packages.find((x) => x.id === o.package_id)!;
@@ -577,6 +578,15 @@ export const demoPackagesApi: PackagesApi = {
     return [...out.values()];
   },
   async proofUrl() { return null; },
+  async listPickupScanners() { return [...(s().pickupScanners ?? [])]; },
+  async setPickupScanner(userId, on) {
+    if (!canManageSignUps(me())) fail('not_allowed');
+    const st = s();
+    const cur = st.pickupScanners ?? [];
+    st.pickupScanners = on ? [...new Set([...cur, userId])] : cur.filter((x) => x !== userId);
+    save();
+  },
+  async canScanPickups() { return canPickup(me()); },
   async listApprovers() { return [...s().approvers]; },
   async setApprover(userId, on) {
     if (!leadsOps(me())) fail('not_allowed');

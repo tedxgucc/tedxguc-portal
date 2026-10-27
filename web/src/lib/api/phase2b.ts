@@ -89,6 +89,10 @@ export interface PackagesApi {
   proofUrl(path: string): Promise<string | null>;
   listApprovers(): Promise<string[]>;
   setApprover(userId: string, on: boolean): Promise<void>;
+  /** Members (beyond Operations) who may scan pickup QRs. */
+  listPickupScanners(): Promise<string[]>;
+  setPickupScanner(userId: string, on: boolean): Promise<void>;
+  canScanPickups(): Promise<boolean>;
 }
 
 // ---------------------------------------------------------------- helpers
@@ -310,6 +314,15 @@ const livePackages: PackagesApi = {
   },
   async setApprover(userId, on) {
     await run(on ? db().from('package_approvers').insert({ user_id: userId }) : db().from('package_approvers').delete().eq('user_id', userId));
+  },
+  async listPickupScanners() {
+    return (await run<{ user_id: string }[]>(db().from('pickup_scanners').select('user_id'))).map((r) => r.user_id);
+  },
+  async setPickupScanner(userId, on) {
+    await run(on ? db().from('pickup_scanners').insert({ user_id: userId }) : db().from('pickup_scanners').delete().eq('user_id', userId));
+  },
+  async canScanPickups() {
+    return !!(await run<boolean>(db().rpc('can_scan_pickups')));
   },
 };
 

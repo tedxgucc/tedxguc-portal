@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createContext, Fragment, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { api } from '@/lib/api';
 import { adminApi } from '@/lib/api/admin';
+import { packagesApi } from '@/lib/api/phase2b';
 import { BASE_PATH } from '@/lib/env';
 import { clearCache, readCache, writeCache } from '@/lib/cache';
 import { cairoDay } from '@/lib/format';
@@ -19,6 +20,8 @@ type Portal = {
   doorEvents: string[];
   /** Events happening today (Cairo time). */
   eventsToday: string[];
+  /** May scan pickup QRs. */
+  pickupScanner?: boolean;
   memberName: (id: string) => string;
   team: (id: string | null | undefined) => Team | undefined;
   divisionOfTeam: (teamId: string | null | undefined) => Division | undefined;
@@ -77,18 +80,19 @@ export function PortalProvider({ children, fallback }: { children: React.ReactNo
     let alive = true;
     (async () => {
       // Everything at once: no waiting for one request before the next.
-      const [me, teams, divisions, members, doorEvents, allEvents] = await Promise.all([
+      const [me, teams, divisions, members, doorEvents, allEvents, pickupScanner] = await Promise.all([
         api.getMe().catch(() => null),
         api.listTeams().catch(() => []),
         api.listDivisions().catch(() => []),
         api.listMembers().catch(() => []),
         adminApi.myStaffEvents().catch(() => [] as string[]),
         api.listAllEvents().catch(() => [] as TxEvent[]),
+        packagesApi.canScanPickups().catch(() => false),
       ]);
       if (!me) { clearCache(); router.replace(`/login?next=${encodeURIComponent(window.location.pathname.slice(BASE_PATH.length) + window.location.search)}`); return; }
       const today = cairoDay(new Date());
       const eventsToday = allEvents.filter((e) => e.status !== 'cancelled' && e.status !== 'draft' && cairoDay(e.starts_at) === today).map((e) => e.id);
-      const next = { me, teams, divisions, members, doorEvents, eventsToday };
+      const next = { me, teams, divisions, members, doorEvents, eventsToday, pickupScanner };
       writeCache('portal', next);
       if (alive) setState(next);
     })();
