@@ -30,6 +30,7 @@ const messages: Record<string, string> = {
   only_creator_or_executive_marks_done: 'Only your executive can mark this done. Move it to review instead.',
   only_managers_edit_task_details: 'Only your executive can change the task details.',
   only_receiving_team_accepts_requests: 'The other team accepts or declines this request.',
+  assignee_not_allowed: 'Choose an eligible person for your role and the selected team.',
   assignee_not_in_team: 'Pick people from the task’s team.',
   team_not_in_active_season: 'That team is from another season.',
   network: "That didn't send. Check your connection and try again.",

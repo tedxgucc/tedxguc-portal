@@ -140,3 +140,19 @@ test('reminders 24 h before and overdue flags to Executive and Curator (FR-6.4)'
   assert.equal((await db.as(talksCurator, ({ q }) => q(`select 1 from notifications where type = 'task_overdue'`))).length, 0);
   assert.ok(soon.id);
 });
+
+test('task delegation follows chair, curator, executive hierarchy', async () => {
+  const t = await newTask('Delegation', []);
+  const assign = (actor, target) => db.as(actor, ({ q }) => q(
+    `insert into task_assignees (task_id, user_id) values ($1, $2)`, [t.id, target]));
+  await assign(chairman, mktCurator);
+  await assign(chairman, mediaExec);
+  assert.equal(await visible(mktCurator, t.id), true);
+  await rejects(assign(chairman, mediaAssoc), /assignee_not_allowed/);
+  await rejects(assign(chairman, talksCurator), /assignee_not_in_team/);
+  await rejects(assign(mktCurator, chairman), /assignee_not_in_team/);
+  await rejects(assign(mediaExec, mktCurator), /assignee_not_allowed/);
+  await rejects(assign(mediaExec, mediaExec), /assignee_not_allowed/);
+  await assign(mktCurator, mediaAssoc);
+  await assign(mediaExec, mediaAssoc2);
+});
