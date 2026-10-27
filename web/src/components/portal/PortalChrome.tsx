@@ -79,14 +79,10 @@ function MenuToggle() {
     const hidePreview = () => { delete root.dataset.navPreview; };
     const onPointerMove = (event: PointerEvent) => {
       if (!desktop.matches || root.dataset.nav !== 'closed' || event.pointerType !== 'mouse') return;
-      const sidebar = document.getElementById('portal-menu');
       if (event.clientX <= 8) root.dataset.navPreview = 'open';
-      else if (root.dataset.navPreview === 'open' && event.clientX > 248
-        && !sidebar?.contains(document.activeElement)) hidePreview();
+      else if (root.dataset.navPreview === 'open' && event.clientX > 248) hidePreview();
     };
-    const onPointerLeave = () => {
-      if (!document.getElementById('portal-menu')?.contains(document.activeElement)) hidePreview();
-    };
+    const onPointerLeave = hidePreview;
     const onFocusOut = () => {
       if (!document.getElementById('portal-menu')?.matches(':hover')) hidePreview();
     };
@@ -139,7 +135,11 @@ export function PortalSidebar() {
   const router = useRouter();
   const groups = useNav();
   return (
-    <aside className="tx-sidebar" id="portal-menu" aria-label="Portal">
+    <aside className="tx-sidebar" id="portal-menu" aria-label="Portal"
+      onClick={(event) => {
+        // A mouse click focuses the link; that focus must not pin a hover preview.
+        if ((event.target as HTMLElement).closest('a')) delete document.documentElement.dataset.navPreview;
+      }}>
       <Link href="/portal" className="px-s4 h-[60px] flex items-center border-b border-line" aria-label="Portal home" style={{ borderLeft: 0 }}>
         <Lockup height={22} />
       </Link>
