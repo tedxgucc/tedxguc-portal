@@ -34,3 +34,17 @@ test('existing other-team assignments are preserved and never treated as unassig
   assert.equal(canManageTeamMember(actor('curator'), own, member('associate', outside), 'add', teams), false);
   assert.equal(canManageTeamMember(null, own, shared, 'add', teams), false);
 });
+
+import { canAssignTask } from '../../web/src/lib/roles.ts';
+
+test('task assignee picker follows the delegation hierarchy and scope', () => {
+  for (const role of ['chairman', 'curator', 'executive', 'associate'] as Role[]) {
+    for (const target of ['chairman', 'curator', 'executive', 'associate'] as Role[]) {
+      const allowed = role === 'chairman' ? ['curator', 'executive'] : role === 'curator' ? ['executive', 'associate'] : role === 'executive' ? ['associate'] : [];
+      assert.equal(canAssignTask(actor(role), own, member(target)), allowed.includes(target));
+      assert.equal(canAssignTask(actor(role), own, member(target, outside)), false);
+    }
+  }
+  assert.equal(canAssignTask(actor('chairman'), own, member('curator', null)), true);
+  assert.equal(canAssignTask(null, own, member('associate')), false);
+});

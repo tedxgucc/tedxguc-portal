@@ -5,7 +5,7 @@ import * as fx from '../demo/fixtures';
 import { clearCache } from '../cache';
 import { publicCalendarEvents } from '../calendar';
 import { cairoDay } from '../format';
-import { canManageEvents, canManageTeam, canManageTeamMember, memberTeamIds, isInTeam } from '../roles';
+import { canAssignTask, canManageEvents, canManageTeam, canManageTeamMember, memberTeamIds, isInTeam } from '../roles';
 import { registrationErrors, cleanRegistrationAnswers, guestTypeFor } from '../event-registration';
 import type {
   Announcement, CalendarItem, CheckInResult, Me, Member, Notification, RegistrationRow, Task, TxEvent,
@@ -382,7 +382,7 @@ export const demoApi: Api = {
     const mayRequest = me.role === 'chairman' || (me.role === 'curator' && reqDivision === me.division_id);
     if (isRequest ? !mayRequest : !canManage(me, input.team_id)) fail('not_allowed');
     for (const a of input.assignees) {
-      if (!s().members.some((x) => x.user_id === a && isInTeam(x, input.team_id))) fail('assignee_not_in_team');
+      if (!s().members.some((x) => x.user_id === a && canAssignTask(me, teamOf(input.team_id), x))) fail('assignee_not_allowed');
     }
     const task: Task = {
       id: id('k'), team_id: input.team_id, title: input.title, description: input.description ?? null, created_by: me.id,
@@ -416,6 +416,9 @@ export const demoApi: Api = {
     const me = requireMe();
     const t = s().tasks.find((x) => x.id === taskId);
     if (!t || !canManage(me, t.team_id)) fail('not_allowed');
+    for (const a of userIds.filter((id) => !t!.assignees.includes(id))) {
+      if (!s().members.some((x) => x.user_id === a && canAssignTask(me, teamOf(t!.team_id), x))) fail('assignee_not_allowed');
+    }
     t!.assignees = userIds;
     save();
   },
