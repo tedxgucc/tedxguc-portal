@@ -52,7 +52,7 @@ export function Pickup() {
 }
 
 export function PickupScanners() {
-  const { members } = usePortal();
+  const { members, me } = usePortal();
   const toast = useToast();
   const [ids, setIds] = useState<string[] | null>(null);
   const [pick, setPick] = useState('');
@@ -60,7 +60,7 @@ export function PickupScanners() {
   useEffect(() => { load(); }, [load]);
   if (!ids) return <Skeleton h={160} />;
   const staff = ids.map((id) => members.find((m) => m.user_id === id)).filter(Boolean) as typeof members;
-  const candidates = members.filter((m) => !ids.includes(m.user_id) && m.division_kind !== 'operations').sort((x, y) => x.name.localeCompare(y.name));
+  const candidates = members.filter((m) => !ids.includes(m.user_id) && m.user_id !== me.id && m.division_kind !== 'operations' && m.role !== 'chairman').sort((x, y) => x.name.localeCompare(y.name));
   const set = async (userId: string, on: boolean) => {
     try {
       await packagesApi.setPickupScanner(userId, on);
@@ -72,7 +72,7 @@ export function PickupScanners() {
   return (
     <section className="grid gap-s4 max-w-[760px]" aria-labelledby="pickup-team">
       <h2 id="pickup-team" className="tx-heading h3">Who can scan pickups</h2>
-      <p className="text-ink-2 text-body-sm">Operations and sign-up managers can always scan. Add any other member who hands out orders.</p>
+      <p className="text-ink-2 text-body-sm">Operations and sign-up managers can always scan. Add any other member who hands out orders. Everyone in Operations already sees the Pickup scanner in their menu.</p>
       {staff.length === 0 ? <EmptyState title="No extra scanners">Only Operations and sign-up managers can scan pickups.</EmptyState> : (
         <ul className="grid gap-s2">
           {staff.map((m) => (
@@ -84,7 +84,7 @@ export function PickupScanners() {
           ))}
         </ul>
       )}
-      <div className="flex flex-wrap items-end gap-s2">
+      {candidates.length === 0 ? <p className="text-ink-3 text-body-sm">Everyone in the portal can already scan. New members from other divisions will show up here.</p> : <div className="flex flex-wrap items-end gap-s2">
         <div className="w-full sm:w-[320px]">
           <Select label="Add someone" value={pick} onChange={(e) => setPick(e.target.value)}>
             <option value="">Choose a member</option>
@@ -92,7 +92,7 @@ export function PickupScanners() {
           </Select>
         </div>
         <Button disabled={!pick} onClick={() => set(pick, true)}><Plus size={16} aria-hidden="true" />Add to pickup</Button>
-      </div>
+      </div>}
     </section>
   );
 }
