@@ -191,3 +191,37 @@ test('bank out: finance admins only, always from the bank, no VAT; bank in can s
     `insert into transactions (kind, method, amount_gross, vat_applies, description, created_by) values ('bank_deposit', 'bank', 1000, false, 'Transfer from GUC', auth.uid()) returning *`));
   assert.equal(Number(inn.amount_net), 1000);
 });
+
+
+test('bank corrections replace entries atomically and enforce direction permissions', async () => {
+  const db = await createDb();
+  const chair = await db.member('chairman');
+  const partnerships = await db.member('executive', 'partnerships');
+  const associate = await db.member('associate', 'partnerships');
+  const entry = await db.as(partnerships, ({ one }) => one(
+    "insert into transactions (kind, method, amount_gross, vat_applies, description) values ('bank_deposit', 'bank', 100, false, 'Wrong direction') returning id"));
+  const correct = (who, direction, amount = 150) => db.as(who, ({ one }) => one(
+    "select edit_bank_transaction($1, $2, $3, current_date, 'Corrected', false, 'Entry error') as id", [entry.id, direction, amount]));
+  await rejects(correct(associate, 'in'), /not_allowed/);
+  await rejects(correct(partnerships, 'out'), /not_allowed/);
+  await rejects(correct(chair, 'sideways'), /invalid_direction/);
+  await rejects(correct(chair, 'out', -1), /invalid_amount/);
+  assert.equal((await db.one('select status from transactions where id = $1', [entry.id])).status, 'approved');
+  const replacement = await correct(chair, 'out');
+  const old = await db.one('select status, void_reason from transactions where id = $1', [entry.id]);
+  assert.equal(old.status, 'void');
+  assert.equal(old.void_reason, 'Entry error');
+  const fixed = await db.one('select * from transactions where id = $1', [replacement.id]);
+  assert.equal(fixed.direction, 'out');
+  assert.equal(fixed.kind, 'bank_out');
+  assert.equal(Number(fixed.amount_net), 150);
+  const back = await db.as(chair, ({ one }) => one("select edit_bank_transaction($1, 'in', 200, current_date, 'Income', true, 'Correct again') as id", [replacement.id]));
+  const income = await db.one('select * from transactions where id = $1', [back.id]);
+  assert.equal(income.direction, 'in');
+  assert.equal(income.kind, 'bank_deposit');
+  assert.equal(Number(income.vat_amount), 24.56);
+  await rejects(correct(chair, 'in'), /already_void/);
+  await db.as(chair, ({ q }) => q("select void_transaction($1, 'Delete duplicate')", [back.id]));
+  const totals = await db.as(chair, ({ one }) => one('select finance_balances() as balances'));
+  assert.equal(Number(totals.balances.bank), 0);
+});

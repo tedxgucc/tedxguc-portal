@@ -39,6 +39,8 @@ export interface AttendanceApi {
   attendanceRates(teamId: string | null, divisionId: string | null): Promise<RateRow[]>;
 }
 
+export type BankEdit = { direction: 'in' | 'out'; amount: number; date: string; description: string; vat: boolean; reason: string };
+
 export interface FinanceApi {
   listExpenseRequests(): Promise<ExpenseRequest[]>;
   createExpenseRequest(input: NewExpenseRequest): Promise<void>;
@@ -53,6 +55,7 @@ export interface FinanceApi {
   attachFatora(txnId: string, file: File): Promise<void>;
   openFile(path: string): Promise<string | null>;
   voidTransaction(id: string, reason: string): Promise<void>;
+  editBankTransaction(id: string, patch: BankEdit): Promise<void>;
   balances(): Promise<Balances>;
   makePaperwork(txnId: string): Promise<{ expense_form_url: string | null; memo_url: string | null }>;
   listSponsorships(): Promise<Sponsorship[]>;
@@ -174,6 +177,10 @@ const liveFinance: FinanceApi = {
   async openFile(path) {
     const { data } = await db().storage.from('finance').createSignedUrl(path, 300);
     return data?.signedUrl ?? null;
+  },
+  async editBankTransaction(id, patch) {
+    await run(db().rpc('edit_bank_transaction', { p_id: id, p_direction: patch.direction, p_amount: patch.amount,
+      p_date: patch.date, p_description: patch.description, p_vat: patch.vat, p_reason: patch.reason }));
   },
   async voidTransaction(id, reason) {
     await run(db().rpc('void_transaction', { p_id: id, p_reason: reason }));

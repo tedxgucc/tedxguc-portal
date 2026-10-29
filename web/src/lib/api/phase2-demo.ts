@@ -411,6 +411,25 @@ export const demoFinanceApi: FinanceApi = {
     save();
   },
   async openFile() { return null; },
+  async editBankTransaction(tid, patch) {
+    const u = me();
+    const t = s().txns.find((x) => x.id === tid);
+    if (!t || t.account !== 'bank' || !['bank_deposit', 'sponsorship', 'bank_out'].includes(t.kind)) fail('entry_not_editable');
+    const kind = patch.direction === 'out' ? 'bank_out' : t!.kind === 'sponsorship' ? 'sponsorship' : 'bank_deposit';
+    if (!(isAdmin(u) || (t!.created_by === u.id && canWriteKind(u, t!.kind))) || !canWriteKind(u, kind)) fail('not_allowed');
+    if (t!.status === 'void') fail('already_void');
+    if (!patch.reason.trim()) fail('reason_required');
+    if (!(patch.amount > 0) || !patch.date) fail('invalid_amount');
+    const replacement = txn({ ...t!, id: id('t'), kind, method: kind === 'bank_out' ? 'bank' : t!.method,
+      item: null, direction: patch.direction, amount_gross: patch.amount, occurred_on: patch.date, description: patch.description.trim() || null,
+      doc_number: nextDoc(kind === 'bank_out' ? 'BO' : kind === 'sponsorship' ? 'SP' : 'DEP'),
+      status: 'approved', void_reason: null, created_by: u.id, created_at: new Date().toISOString(),
+      expense_form_path: null, memo_path: null, sponsorship_id: patch.direction === 'in' ? t!.sponsorship_id : null });
+    replacement.vat_amount = patch.direction === 'in' && patch.vat ? Math.round(patch.amount * VAT / (1 + VAT) * 100) / 100 : 0;
+    replacement.amount_net = patch.amount - replacement.vat_amount;
+    t!.status = 'void'; t!.void_reason = patch.reason.trim();
+    s().txns.unshift(replacement); save();
+  },
   async voidTransaction(tid, reason) {
     const u = me();
     const t = s().txns.find((x) => x.id === tid);

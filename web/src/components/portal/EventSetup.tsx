@@ -124,7 +124,7 @@ export function StaffSection({ event }: { event: TxEvent }) {
         <ul className="grid gap-s2">
           {staff.map((m) => (
             <li key={m.user_id} className="tx-card flex items-center gap-s3">
-              <Avatar name={m.name} small />
+              <Avatar photo={members.find((member) => member.user_id === m.user_id)?.photo_url} name={m.name} small />
               <span className="flex-1 min-w-0"><span className="font-semibold">{m.name}</span><span className="caption tx-faint block">{roleLabel[m.role]}{m.team ? ` · ${m.team}` : ''}</span></span>
               <button type="button" className="tx-iconbtn" aria-label={`Remove ${m.name} from the door team`} onClick={() => set(m.user_id, false)}><UserMinus size={18} /></button>
             </li>

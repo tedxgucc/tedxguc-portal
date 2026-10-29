@@ -150,3 +150,54 @@ test('rate limit allows N hits per window, then blocks', async () => {
   assert.deepEqual([await hit(), await hit(), await hit(), await hit()], [true, true, true, false]);
   await rejects(db.as('anon', ({ q }) => q(`select hit_rate_limit('x', 1, 60)`)), /permission denied/);
 });
+
+
+test('announcement edits and deletes stay with the author or chairman', async () => {
+  const media = await db.team('media_design');
+  const post = await db.as(mediaExec, ({ one }) => one(
+    "insert into announcements (audience_type, team_id, title, body) values ('team', $1, 'Original', 'Message') returning id", [media]));
+  await db.as(mediaAssoc, ({ q }) => q('insert into announcement_reads (announcement_id) values ($1)', [post.id]));
+  const denied = await db.as(mktCurator, ({ q }) => q("update announcements set title = 'Unauthorized' where id = $1 returning id", [post.id]));
+  assert.equal(denied.length, 0);
+  const deniedDelete = await db.as(mediaAssoc, ({ q }) => q('delete from announcements where id = $1 returning id', [post.id]));
+  assert.equal(deniedDelete.length, 0);
+  const edited = await db.as(mediaExec, ({ one }) => one(
+    "update announcements set title = 'Edited', body = 'Updated', image_url = 'https://example.com/photo.jpg', pinned = true, needs_confirmation = true where id = $1 returning *", [post.id]));
+  assert.equal(edited.title, 'Edited');
+  assert.equal(edited.image_url, 'https://example.com/photo.jpg');
+  assert.equal(edited.author_id, mediaExec);
+  const reads = await db.as(mediaExec, ({ q }) => q('select user_id from announcement_reads where announcement_id = $1', [post.id]));
+  assert.equal(reads.length, 1);
+  await db.as(chairman, ({ q }) => q("update announcements set body = 'Chairman correction' where id = $1", [post.id]));
+  const removed = await db.as(chairman, ({ q }) => q('delete from announcements where id = $1 returning id', [post.id]));
+  assert.equal(removed.length, 1);
+  assert.equal((await db.q('select 1 from announcement_reads where announcement_id = $1', [post.id])).length, 0);
+  const own = await db.as(mediaExec, ({ one }) => one(
+    "insert into announcements (audience_type, team_id, title, body) values ('team', $1, 'Own', 'Message') returning id", [media]));
+  assert.equal((await db.as(mediaExec, ({ q }) => q('delete from announcements where id = $1 returning id', [own.id]))).length, 1);
+});
+
+
+test('scheduled announcements hide content and delay notifications; expiry and reports respect access', async () => {
+  const media = await db.team('media_design');
+  const a = await db.as(mediaExec, ({ one }) => one("insert into announcements (audience_type, team_id, title, body, publish_at, expires_at, needs_confirmation) values ('team', $1, 'Scheduled test', 'Later', now() + interval '1 day', now() + interval '2 days', true) returning id", [media]));
+  assert.equal(await sees(mediaAssoc, 'announcements', a.id), false);
+  assert.equal(await sees(mediaExec, 'announcements', a.id), true);
+  assert.equal((await db.q("select 1 from notifications where title = 'Scheduled test'")).length, 0);
+  await rejects(db.as(mediaAssoc, ({ q }) => q('insert into announcement_reads (announcement_id) values ($1)', [a.id])), /row-level security/);
+  await rejects(db.as(mediaAssoc, ({ q }) => q('select * from announcement_confirmations($1)', [a.id])), /not_allowed/);
+  await db.q("update announcements set publish_at = now() - interval '1 minute' where id = $1", [a.id]);
+  assert.equal(await sees(mediaAssoc, 'announcements', a.id), true);
+  const sent = (await db.q("select 1 from notifications where title = 'Scheduled test'")).length;
+  assert.ok(sent > 0);
+  await db.q('select private.publish_due_announcements()');
+  assert.equal((await db.q("select 1 from notifications where title = 'Scheduled test'")).length, sent);
+  await db.as(mediaAssoc, ({ q }) => q('insert into announcement_reads (announcement_id) values ($1)', [a.id]));
+  const report = await db.as(mediaExec, ({ q }) => q('select * from announcement_confirmations($1)', [a.id]));
+  assert.equal(report.some((r) => r.user_id === mediaExec), false);
+  assert.ok(report.find((r) => r.user_id === mediaAssoc).read_at);
+  await db.q("update announcements set expires_at = now() - interval '1 second' where id = $1", [a.id]);
+  assert.equal(await sees(mediaAssoc, 'announcements', a.id), false);
+  assert.equal(await sees(mediaExec, 'announcements', a.id), true);
+  await rejects(db.as(mediaExec, ({ q }) => q("update announcements set expires_at = publish_at - interval '1 minute' where id = $1", [a.id])), /announcement_dates/);
+});

@@ -277,6 +277,15 @@ export const supabaseApi: Api = {
     const me = await uid();
     await run(db().from('announcements').insert({ ...input, author_id: me }));
   },
+  async updateAnnouncement(id, patch) {
+    await run(db().from('announcements').update(patch).eq('id', id).select('id').single());
+  },
+  async announcementConfirmations(id) {
+    return run(db().rpc('announcement_confirmations', { p_id: id }));
+  },
+  async deleteAnnouncement(id) {
+    await run(db().from('announcements').delete().eq('id', id).select('id').single());
+  },
   async confirmRead(id) {
     const me = await uid();
     await run(db().from('announcement_reads').upsert({ announcement_id: id, user_id: me }, { ignoreDuplicates: true }));

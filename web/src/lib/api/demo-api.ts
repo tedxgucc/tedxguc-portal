@@ -29,7 +29,7 @@ type Store = {
   tasks: Task[];
   comments: typeof fx.comments;
   entries: Entry[];
-  announcements: (Announcement & { reads: string[] })[];
+  announcements: (Announcement & { reads: string[]; readTimes?: Record<string, string>; notified?: boolean })[];
   notifications: Record<string, Notification[]>;
   invites: typeof fx.invites;
   members: Member[];
@@ -138,6 +138,19 @@ const canScan = (me: Me, eventId?: string) => canManageEvents(me) || (me.role ==
   || (me.role === 'associate' && me.team_kind === 'logistics_planning' && isToday(eventId))
   || (!!eventId && s().staff.some((x) => x.event_id === eventId && x.user_id === me.id));
 
+function publishDemoAnnouncements() {
+  const current = demoCurrentMe();
+  if (!current) return;
+  let changed = false;
+  for (const a of s().announcements) {
+    if (a.notified !== false || (a.publish_at && Date.parse(a.publish_at) > Date.now()) || (a.expires_at && Date.parse(a.expires_at) <= Date.now())) continue;
+    const ids = s().members.filter((m) => m.user_id !== a.author_id && inAudience({ ...current, id: m.user_id, role: m.role, team_id: m.team_id, team_ids: m.team_ids, division_id: m.division_id }, a)).map((m) => m.user_id);
+    notify(ids, a.title, '/portal/news', 'announcement');
+    a.notified = true; changed = true;
+  }
+  if (changed) save();
+}
+
 function inAudience(me: Me, a: Announcement): boolean {
   switch (a.audience_type) {
     case 'all': return true;
@@ -197,7 +210,7 @@ export const demoApi: Api = {
     return Object.fromEntries(s().sections.filter((x) => keys.includes(x.key) && x.is_published).map((x) => [x.key, { key: x.key, title: x.title, body: x.body }]));
   },
   async getBoard() {
-    return s().members.filter((x) => x.role !== 'associate').map((x) => ({ name: x.name, photo_url: null, role: x.role, division: x.division, team: x.team }));
+    return s().members.filter((x) => x.role !== 'associate').map((x) => ({ name: x.name, photo_url: x.photo_url, role: x.role, division: x.division, team: x.team }));
   },
   async publicCalendar(from, to) {
     return publicCalendarEvents(s().events, from, to);
@@ -476,10 +489,11 @@ export const demoApi: Api = {
     save();
   },
   async listAnnouncements() {
+    publishDemoAnnouncements();
     await wait(100);
     const me = requireMe();
     return s().announcements
-      .filter((a) => a.author_id === me.id || me.role === 'chairman' || inAudience(me, a))
+      .filter((a) => a.author_id === me.id || me.role === 'chairman' || ((!a.publish_at || Date.parse(a.publish_at) <= Date.now()) && (!a.expires_at || Date.parse(a.expires_at) > Date.now()) && inAudience(me, a)))
       .map(({ reads, ...a }) => ({ ...a, read_by_me: reads.includes(me.id) }))
       .sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.created_at.localeCompare(a.created_at));
   },
@@ -494,19 +508,50 @@ export const demoApi: Api = {
       || (input.audience_type === 'all' && canManageEvents(me));
     if (!ok) fail('not_allowed');
     s().announcements.unshift({
-      id: id('a'), author_id: me.id, audience_type: input.audience_type, division_id: input.division_id ?? null,
+      notified: false, publish_at: input.publish_at ?? nowIso(), expires_at: input.expires_at ?? null, id: id('a'), author_id: me.id, audience_type: input.audience_type, division_id: input.division_id ?? null,
       team_id: input.team_id ?? null, audience_role: input.audience_role ?? null, title: input.title, body: input.body,
       pinned: !!input.pinned, needs_confirmation: !!input.needs_confirmation, created_at: nowIso(), read_by_me: false, reads: [], image_url: input.image_url ?? null,
     });
     save();
   },
+  async updateAnnouncement(id, patch) {
+    const me = requireMe();
+    const a = s().announcements.find((a) => a.id === id);
+    if (!a || (a.author_id !== me.id && me.role !== 'chairman')) fail('not_allowed');
+    const t = teamOf(a!.team_id);
+    const allowed = me.role === 'chairman'
+      || (me.role === 'curator' && ((a!.audience_type === 'division' && a!.division_id === me.division_id)
+        || (a!.audience_type === 'team' && t?.division_id === me.division_id)))
+      || (me.role === 'executive' && a!.audience_type === 'team' && a!.team_id === me.team_id)
+      || (a!.audience_type === 'all' && canManageEvents(me));
+    if (!allowed) fail('not_allowed');
+    Object.assign(a!, patch);
+    save();
+  },
+  async announcementConfirmations(id) {
+    const me = requireMe();
+    const a = s().announcements.find((a) => a.id === id);
+    if (!a || (a.author_id !== me.id && me.role !== 'chairman')) fail('not_allowed');
+    return s().members.filter((m) => m.user_id !== a!.author_id && inAudience({ ...me, id: m.user_id, role: m.role, team_id: m.team_id, team_ids: m.team_ids, division_id: m.division_id }, a!))
+      .map((m) => ({ user_id: m.user_id, name: m.name, read_at: a!.reads.includes(m.user_id) ? a!.readTimes?.[m.user_id] ?? a!.created_at : null }));
+  },
+  async deleteAnnouncement(id) {
+    const me = requireMe();
+    const a = s().announcements.find((a) => a.id === id);
+    if (!a || (a.author_id !== me.id && me.role !== 'chairman')) fail('not_allowed');
+    s().announcements = s().announcements.filter((a) => a.id !== id);
+    save();
+  },
   async confirmRead(annId) {
     const me = requireMe();
     const a = s().announcements.find((x) => x.id === annId);
-    if (a && !a.reads.includes(me.id)) a.reads.push(me.id);
+    if (a && (!a.publish_at || Date.parse(a.publish_at) <= Date.now()) && (!a.expires_at || Date.parse(a.expires_at) > Date.now()) && (a.author_id === me.id || me.role === 'chairman' || inAudience(me, a)) && !a.reads.includes(me.id)) {
+      a.reads.push(me.id); a.readTimes = { ...a.readTimes, [me.id]: nowIso() };
+    }
     save();
   },
   async listNotifications() {
+    publishDemoAnnouncements();
     const me = requireMe();
     return s().notifications[me.id] ?? [];
   },

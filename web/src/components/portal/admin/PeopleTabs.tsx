@@ -25,7 +25,7 @@ function useTarget() {
 }
 
 export function RoleChangesTab() {
-  const { memberName, reload } = usePortal();
+  const { memberName, members, reload } = usePortal();
   const toast = useToast();
   const target = useTarget();
   const [rows, setRows] = useState<RoleRequest[] | null>(null);
@@ -50,7 +50,7 @@ export function RoleChangesTab() {
   const card = (r: RoleRequest, actions: boolean) => (
     <li key={r.id} className="tx-card grid gap-s3">
       <div className="flex items-center gap-s3 min-w-0">
-        <Avatar name={r.name} />
+        <Avatar photo={members.find((m) => m.user_id === r.user_id)?.photo_url} name={r.name} />
         <div className="grid min-w-0">
           <span className="font-semibold truncate">{r.name}</span>
           <span className="caption tx-faint">Asked by {memberName(r.requested_by)} · {fmtRelative(r.created_at)}</span>

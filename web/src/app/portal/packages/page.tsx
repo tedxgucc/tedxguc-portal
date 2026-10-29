@@ -16,6 +16,7 @@ import { packagesApi } from '@/lib/api/phase2b';
 import { egp, fmtRelative, fromLocalInput, toLocalInput } from '@/lib/format';
 import { answerText, FormBuilder } from '@/components/portal/FormBuilder';
 import { canLeadOperations, canManageSignUps } from '@/lib/roles';
+import { signupMoney } from '@/lib/signup-money';
 import { kindLabel } from '@/lib/signups';
 import type { FormQuestion, Order, OrderStatus, Package, SalesRow, SignUpKind } from '@/lib/types';
 
@@ -32,10 +33,10 @@ const orderChip = (s: OrderStatus) => {
 const methodName = { instapay: 'InstaPay', telda: 'Telda', cash: 'Cash' } as const;
 
 export default function PortalPackages() {
-  const { me } = usePortal();
+  const { me, pickupScanner } = usePortal();
   const lead = canLeadOperations(me);
   const tabs: { value: Tab; label: string }[] = [
-    { value: 'packages', label: 'Sign-ups' }, { value: 'orders', label: 'Responses' }, { value: 'pickup', label: 'Pickup' }, { value: 'sales', label: 'Money' },
+    { value: 'packages', label: 'Sign-ups' }, { value: 'orders', label: 'Responses' }, ...(pickupScanner ? [{ value: 'pickup' as const, label: 'Pickup' }] : []), { value: 'sales', label: 'Money' },
   ];
   const [tab, setTab] = useState<Tab>('packages');
   if (!canManageSignUps(me)) return <EmptyState title="For sign-up managers">The Chairman, the OD and Operations Curators, and the L&P and AE Executives manage sign-ups.</EmptyState>;
@@ -44,7 +45,7 @@ export default function PortalPackages() {
       <PageTitle label="Manage sign-ups" title={tabs.find((t) => t.value === tab)!.label} />
       <div className="mb-s5 overflow-x-auto -mx-s4 px-s4"><div className="min-w-[400px] max-w-[640px]"><Segmented label="Packages view" value={tab} onChange={setTab} options={tabs} /></div></div>
       {tab === 'orders' && <Orders lead={lead} />}
-      {tab === 'pickup' && <div className="grid gap-s6"><Pickup /><PickupScanners /></div>}
+      {tab === 'pickup' && pickupScanner && <div className="grid gap-s6"><Pickup /><PickupScanners /></div>}
       {tab === 'packages' && <Packages />}
       {tab === 'sales' && <Sales />}
     </>
@@ -119,7 +120,7 @@ function Orders({ lead }: { lead: boolean }) {
                   <div className="flex flex-wrap gap-s2">
                     {o.proof_path && <Button small variant="ghost" onClick={() => setProof(o)}><ImageIcon aria-hidden="true" />Screenshot</Button>}
                     <Button small variant="secondary" onClick={() => setRejecting(o)}><X aria-hidden="true" />Reject</Button>
-                    <Button small onClick={() => act(() => packagesApi.decideOrder(o.id, true), `${o.order_no} confirmed.`, 'The buyer gets their pickup QR. It’s in the cashbook.')}><Check aria-hidden="true" />Approve</Button>
+                    <Button small onClick={() => act(() => packagesApi.decideOrder(o.id, true), `${o.order_no} confirmed.`, 'The buyer gets their pickup QR. Record the money manually in Bank.')}><Check aria-hidden="true" />Approve</Button>
                   </div>
                 </div>
               )}
@@ -133,7 +134,7 @@ function Orders({ lead }: { lead: boolean }) {
         </ul>
       )}
       <ReasonModal order={rejecting} title="Reject this payment?" action="Reject" onClose={() => setRejecting(null)} onConfirm={(r) => act(() => packagesApi.decideOrder(rejecting!.id, false, r), 'Payment rejected.', 'The buyer is emailed with your reason.').then(() => setRejecting(null))} />
-      <ReasonModal order={refunding} title="Refund this order?" action="Refund" required onClose={() => setRefunding(null)} onConfirm={(r) => act(() => packagesApi.refund(refunding!.id, r), 'Refunded.', 'A reversing entry is in the cashbook.').then(() => setRefunding(null))} />
+      <ReasonModal order={refunding} title="Refund this order?" action="Refund" required onClose={() => setRefunding(null)} onConfirm={(r) => act(() => packagesApi.refund(refunding!.id, r), 'Refunded.', 'Record the refund manually in Bank.').then(() => setRefunding(null))} />
       {proof && <ProofModal order={proof} onClose={() => setProof(null)} />}
     </div>
   );
@@ -256,12 +257,28 @@ function PackageEditor({ pkg, onClose, onSaved }: { pkg: Package | null; onClose
 }
 
 function Sales() {
+  const [orders, setOrders] = useState<Order[] | null>(null);
+  const [packages, setPackages] = useState<Package[]>([]);
+  const [selected, setSelected] = useState('');
+  const [summaryError, setSummaryError] = useState<string | null>(null);
+  useEffect(() => { Promise.all([packagesApi.listOrders(), packagesApi.listPackages()]).then(([o, p]) => { setOrders(o); setPackages(p); }).catch((e) => setSummaryError((e as Error).message)); }, []);
+  const summary = signupMoney((orders ?? []).filter((o) => !selected || o.package_id === selected));
   const [rows, setRows] = useState<SalesRow[] | null>(null);
   useEffect(() => { packagesApi.sales().then(setRows).catch(() => setRows([])); }, []);
   const total = (rows ?? []).reduce((a, r) => a + r.total_egp, 0);
   const byMethod = (m: SalesRow['method']) => (rows ?? []).filter((r) => r.method === m).reduce((a, r) => a + r.total_egp, 0);
   return (
     <div className="grid gap-s4">
+      <section className="grid gap-s3" aria-label="Payment summary">
+        <h2 className="h3">Payment summary</h2>
+        <Select label="Signup" value={selected} onChange={(e) => setSelected(e.target.value)}><option value="">All signups</option>{packages.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</Select>
+        {summaryError ? <p role="alert">{summaryError}</p> : orders === null ? <Skeleton h={120} /> : <>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-s2">{(['expected', 'collected', 'refunded', 'outstanding'] as const).map((key) => <div key={key} className="tx-card tx-kpi"><span className="tx-label">{key}</span><span className="money">{egp(summary[key])}</span></div>)}</div>
+          <p className="text-caption text-ink-3">Collected excludes refunded orders. Expected is collected plus outstanding payments on live reservations. Cancelled, rejected and expired reservations are excluded. These totals do not post to Bank.</p>
+          <div className="overflow-x-auto"><table className="tx-table"><thead><tr><th>Signup</th><th>Expected</th><th>Collected</th><th>Refunded</th><th>Outstanding</th></tr></thead><tbody>{packages.filter((p) => !selected || p.id === selected).map((p) => { const m = signupMoney(orders.filter((o) => o.package_id === p.id)); return <tr key={p.id}><td>{p.name}</td><td>{egp(m.expected)}</td><td>{egp(m.collected)}</td><td>{egp(m.refunded)}</td><td>{egp(m.outstanding)}</td></tr>; })}</tbody></table></div>
+          <Button small variant="secondary" className="justify-self-start" onClick={() => downloadCsv('signup-payment-summary.csv', ['Signup', 'Expected', 'Collected', 'Refunded', 'Outstanding'], packages.filter((p) => !selected || p.id === selected).map((p) => { const m = signupMoney(orders.filter((o) => o.package_id === p.id)); return [p.name, m.expected, m.collected, m.refunded, m.outstanding]; }))}><Download aria-hidden="true" />Export payment summary</Button>
+        </>}
+      </section>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-s2">
         <div className="tx-card tx-card--red tx-kpi"><span className="tx-label" style={{ color: '#fff' }}>Total sold</span><span className="money">{egp(total)}</span></div>
         {(['instapay', 'telda', 'cash'] as const).map((m) => <div key={m} className="tx-card tx-kpi"><span className="tx-label">{methodName[m]}</span><span className="money">{egp(byMethod(m))}</span></div>)}
@@ -275,7 +292,7 @@ function Sales() {
           <Button small variant="secondary" className="justify-self-start" onClick={() => downloadCsv('package-sales.csv', ['Package', 'Method', 'Orders', 'Units', 'Total EGP'], rows.map((r) => [r.package, methodName[r.method], r.orders, r.units, r.total_egp]))}><Download aria-hidden="true" />Export</Button>
         </>
       )}
-      <p className="text-caption text-ink-3">Every approved order is already in the cashbook: InstaPay as bank, Telda as Telda, cash as cash on hand.</p>
+      <p className="text-caption text-ink-3">Signup payments and refunds do not change Bank balances. The executive records money manually in Bank.</p>
     </div>
   );
 }

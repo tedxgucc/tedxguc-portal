@@ -14,6 +14,8 @@ const links = [
   { href: '/calendar', label: 'Calendar', icon: CalendarDays },
   { href: '/partners', label: 'Partners', icon: Handshake },
   { href: '/about', label: 'About', icon: Info },
+  { href: '/portal/signups', label: 'Signups', icon: UserPlus },
+  { href: '/xaccess/card', label: 'X Access', icon: Sparkles },
   { href: '/join', label: 'Join the team', icon: UserPlus },
 ];
 
@@ -24,10 +26,10 @@ export function PublicHeader() {
   const isOn = (href: string) => path === href || path.startsWith(`${href}/`);
 
   return (
-    <header className="tx-top" style={{ height: 64 }}>
+    <header className={'tx-top ' + (path === '/' ? 'hm-header' : '')} style={path === '/' ? undefined : { height: 64 }}>
       <Link href="/" aria-label="TEDxGUC home" className="py-s3"><Lockup height={22} /></Link>
-      <nav className="hidden xl:flex items-center gap-s1" aria-label="Main">
-        {links.map((l) => (
+      <nav className="hm-desktop-links hidden 2xl:flex items-center gap-s1" aria-label="Main">
+        {links.filter((l) => !['/', '/join', '/about'].includes(l.href)).map((l) => (
           <Link key={l.href} href={l.href} aria-current={isOn(l.href) ? 'page' : undefined}
             className={`px-s3 py-s2 text-body-sm font-semibold no-underline whitespace-nowrap ${isOn(l.href) ? 'text-ink shadow-[inset_0_-2px_0_var(--accent)]' : 'text-ink-2 hover:text-ink'}`}>
             {l.label}
@@ -36,17 +38,18 @@ export function PublicHeader() {
       </nav>
       <div className="flex items-center gap-s1">
         <ThemeToggle />
+        <Link href="/join" className="tx-btn tx-btn--ghost tx-btn--sm hidden 2xl:inline-flex">Join the team</Link>
         {/* Team portal is always one tap away for members, on every screen size. */}
         <Link href="/login" className="tx-btn tx-btn--secondary tx-btn--sm" style={{ padding: '0 12px' }}>
           <LogIn aria-hidden="true" style={{ width: 18, height: 18 }} />Portal
         </Link>
         <Link href="/events" className="tx-btn tx-btn--primary tx-btn--sm hidden md:inline-flex">Get your ticket</Link>
-        <button className="tx-iconbtn xl:hidden" aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} onClick={() => setOpen(!open)}>
+        <button className="tx-iconbtn 2xl:hidden" aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} onClick={() => setOpen(!open)}>
           {open ? <X /> : <Menu />}
         </button>
       </div>
       {open && (
-        <nav className="xl:hidden fixed inset-x-0 top-[64px] bottom-0 z-nav bg-bg tx-page overflow-y-auto" aria-label="Main">
+        <nav className="2xl:hidden fixed inset-x-0 top-[64px] bottom-0 z-nav bg-bg tx-page overflow-y-auto" aria-label="Main">
           <ul className="grid">
             {links.map((l) => (
               <li key={l.href}>

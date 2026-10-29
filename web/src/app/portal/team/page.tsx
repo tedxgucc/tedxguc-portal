@@ -52,7 +52,7 @@ export default function TeamPage() {
 
       {chair.map((m) => (
         <div key={m.user_id} className="tx-card tx-card--outline flex items-center gap-s3 mb-s6">
-          <Avatar name={m.name} />
+          <Avatar name={m.name} photo={m.photo_url} />
           <div><div className="font-semibold">{m.name}</div><div className="text-body-sm text-ink-2">Chairman</div></div>
         </div>
       ))}
@@ -67,7 +67,7 @@ export default function TeamPage() {
             <section key={d.id} className="grid gap-s4" aria-labelledby={`dv-${d.id}`}>
               <div className="flex items-center gap-s3 flex-wrap">
                 <SectionHeading as="h3" className="flex-1"><span id={`dv-${d.id}`}>{d.name}</span></SectionHeading>
-                {curator && <span className="flex items-center gap-s2 text-body-sm"><Avatar name={curator.name} small />{curator.name} · Curator</span>}
+                {curator && <span className="flex items-center gap-s2 text-body-sm"><Avatar name={curator.name} photo={curator.photo_url} small />{curator.name} · Curator</span>}
               </div>
               <div className="grid gap-s4 md:grid-cols-2">
                 {dTeams.map((t) => {

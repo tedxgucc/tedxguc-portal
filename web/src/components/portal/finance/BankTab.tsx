@@ -3,7 +3,7 @@
 // bank movement with a running balance, and record Bank in and Bank out.
 // Partnerships Executives see and record deposits (net of 14% VAT when it
 // applies) and approve sponsor deals.
-import { ArrowDownLeft, ArrowUpRight, Check, Plus, Stamp, X } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, Check, Pencil, Plus, Stamp, Trash2, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { usePortal } from '@/components/portal/PortalContext';
 import { SectionHeading } from '@/components/Brand';
@@ -11,7 +11,7 @@ import { useToast } from '@/components/Toast';
 import { Button, Check2, Chip, EmptyState, Modal, Segmented, Select, Skeleton, TextArea, TextInput } from '@/components/ui';
 import { financeApi } from '@/lib/api/phase2';
 import { fmtShortDate } from '@/lib/format';
-import { isFinanceAdmin } from '@/lib/roles';
+import { isFinanceAdmin, isPartnershipsExec } from '@/lib/roles';
 import type { PayMethod, Sponsorship, Transaction } from '@/lib/types';
 import { kindLabel, methodLabel, Money } from '../FinanceBits';
 
@@ -24,6 +24,8 @@ export function BankTab() {
   const [rows, setRows] = useState<Transaction[] | null>(null);
   const [sponsors, setSponsors] = useState<Sponsorship[]>([]);
   const [adding, setAdding] = useState(false);
+  const [editing, setEditing] = useState<Transaction | null>(null);
+  const [deleting, setDeleting] = useState<Transaction | null>(null);
   const [paying, setPaying] = useState(false);
   const [addingSponsor, setAddingSponsor] = useState(false);
   const [year, setYear] = useState('');
@@ -80,7 +82,7 @@ export function BankTab() {
         </div>
         {rows === null ? <Skeleton h={200} /> : shown.length === 0 ? <EmptyState title="No bank movements.">Bank in and Bank out entries appear here.</EmptyState> : (
           <div className="overflow-x-auto"><table className="tx-table">
-            <thead><tr><th>Date</th><th>Entry</th><th className="tx-amt">In</th><th className="tx-amt">Out</th>{admin && <th className="tx-amt hidden sm:table-cell">Balance</th>}</tr></thead>
+            <thead><tr><th>Date</th><th>Entry</th><th className="tx-amt">In</th><th className="tx-amt">Out</th>{admin && <th className="tx-amt hidden sm:table-cell">Balance</th>}<th>Actions</th></tr></thead>
             <tbody>
               {shown.slice(0, 400).map(({ t, bal }) => (
                 <tr key={t.id} style={t.status === 'void' ? { opacity: 0.55 } : undefined}>
@@ -92,6 +94,10 @@ export function BankTab() {
                   <td className="tx-amt pos">{t.direction === 'in' ? amt(t.amount_net) : ''}</td>
                   <td className="tx-amt neg">{t.direction === 'out' ? amt(t.amount_net) : ''}</td>
                   {admin && <td className="tx-amt hidden sm:table-cell">{amt(bal)}</td>}
+                  <td>{t.status !== 'void' && (admin || (t.created_by === me.id && isPartnershipsExec(me) && ['bank_deposit', 'sponsorship'].includes(t.kind))) && <div className="flex gap-s2">
+                    {t.account === 'bank' && ['bank_deposit', 'sponsorship', 'bank_out'].includes(t.kind) && <Button small variant="secondary" onClick={() => setEditing(t)}><Pencil size={16} aria-hidden="true" />Edit</Button>}
+                    <Button small variant="secondary" onClick={() => setDeleting(t)}><Trash2 size={16} aria-hidden="true" />Delete</Button>
+                  </div>}</td>
                 </tr>
               ))}
             </tbody>
@@ -129,6 +135,8 @@ export function BankTab() {
         )}
       </section>
 
+      {editing && <BankEntryModal key={editing.id} entry={editing} admin={admin} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); load(); }} />}
+      {deleting && <BankEntryModal key={deleting.id} entry={deleting} admin={admin} deleting onClose={() => setDeleting(null)} onSaved={() => { setDeleting(null); load(); }} />}
       <DepositModal open={adding} sponsors={sponsors} onClose={() => setAdding(false)} onSaved={() => { setAdding(false); load(); }} />
       {admin && <BankOutModal open={paying} onClose={() => setPaying(false)} onSaved={() => { setPaying(false); load(); }} />}
       <SponsorModal open={addingSponsor} onClose={() => setAddingSponsor(false)} onSaved={() => { setAddingSponsor(false); load(); }} />
@@ -256,4 +264,40 @@ function SponsorModal({ open, onClose, onSaved }: { open: boolean; onClose: () =
       </div>
     </Modal>
   );
+}
+
+function BankEntryModal({ entry, admin, deleting = false, onClose, onSaved }: { entry: Transaction; admin: boolean; deleting?: boolean; onClose: () => void; onSaved: () => void }) {
+  const [direction, setDirection] = useState<'in' | 'out'>(entry.direction);
+  const [amount, setAmount] = useState(String(entry.amount_gross));
+  const [date, setDate] = useState(entry.occurred_on);
+  const [description, setDescription] = useState(entry.item ?? entry.description ?? '');
+  const [vat, setVat] = useState(entry.vat_amount > 0);
+  const [reason, setReason] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const save = async () => {
+    if (!reason.trim()) { setError('Add a reason for this change.'); return; }
+    if (!deleting && (!(Number(amount) > 0) || !date)) { setError('Add a positive amount and a date.'); return; }
+    setBusy(true); setError(null);
+    try {
+      if (deleting) await financeApi.voidTransaction(entry.id, reason.trim());
+      else await financeApi.editBankTransaction(entry.id, { direction, amount: Number(amount), date, description, vat, reason: reason.trim() });
+      onSaved();
+    } catch (e) { setError((e as Error).message); } finally { setBusy(false); }
+  };
+  return <Modal open title={deleting ? 'Delete bank entry?' : 'Edit bank entry'} onClose={() => { if (!busy) onClose(); }}
+    actions={<><Button variant="secondary" disabled={busy} onClick={onClose}>Cancel</Button><Button loading={busy} onClick={save}>{deleting ? 'Delete entry' : 'Save changes'}</Button></>}>
+    <div className="grid gap-s4">
+      <p className="text-body-sm text-ink-2">{deleting ? 'This entry will stop affecting balances. Its audit record is retained.' : 'Saving replaces this entry and keeps the original in the audit history.'}</p>
+      {!deleting && <>
+        <Select label="Money direction" value={direction} disabled={!admin} onChange={(e) => setDirection(e.target.value as 'in' | 'out')}><option value="in">Money in</option><option value="out">Money out</option></Select>
+        <TextInput label="Amount (EGP)" type="number" min="0.01" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} />
+        <TextInput label="Date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+        <TextArea label="Description" value={description} onChange={(e) => setDescription(e.target.value)} />
+        {direction === 'in' && <Check2 label="VAT applies" checked={vat} onChange={(e) => setVat(e.target.checked)} />}
+      </>}
+      <TextArea label="Reason" value={reason} onChange={(e) => setReason(e.target.value)} />
+      {error && <p className="tx-help" role="alert">{error}</p>}
+    </div>
+  </Modal>;
 }

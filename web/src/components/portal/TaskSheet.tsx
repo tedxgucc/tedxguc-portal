@@ -108,7 +108,7 @@ export function TaskSheet({ task, canManage, onClose, onChanged }: { task: Task;
           <dd>
             {!editingAssignees ? (
               <div className="flex flex-wrap gap-s2 items-center">
-                {task.assignees.map((a) => <span key={a} className="flex items-center gap-s1"><Avatar name={memberName(a)} small />{memberName(a)}</span>)}
+                {task.assignees.map((a) => <span key={a} className="flex items-center gap-s1"><Avatar photo={members.find((m) => m.user_id === a)?.photo_url} name={memberName(a)} small />{memberName(a)}</span>)}
                 {task.assignees.length === 0 && <span className="text-ink-3">Nobody yet</span>}
                 {canManage && <button className="tx-link bg-transparent border-0 cursor-pointer" onClick={() => setEditingAssignees(true)}>Change</button>}
               </div>
@@ -152,7 +152,7 @@ export function TaskSheet({ task, canManage, onClose, onChanged }: { task: Task;
           <ul className="grid gap-s3">
             {comments.map((c) => (
               <li key={c.id} className="grid grid-cols-[28px_minmax(0,1fr)] gap-s2">
-                <Avatar name={memberName(c.user_id)} small />
+                <Avatar photo={members.find((m) => m.user_id === c.user_id)?.photo_url} name={memberName(c.user_id)} small />
                 <div>
                   <div className="text-body-sm"><span className="font-semibold">{memberName(c.user_id)}</span> <span className="text-ink-3">{fmtRelative(c.created_at)}</span></div>
                   <p className="text-body-sm text-ink-2 whitespace-pre-line">{c.body}</p>

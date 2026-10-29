@@ -11,7 +11,7 @@ import { friendly } from './errors';
 import { demoCurrentMe, demoMembers, demoSave } from './demo-api';
 import type { FilesApi, PackagesApi, RecruitmentApi } from './phase2b';
 import { ApiError } from './types';
-import { canManageSignUps } from '../roles';
+import { canLeadPickups, canManageSignUps } from '../roles';
 
 const KEY = 'tx-demo-p2b-v2';
 const DAY = 86400_000;
@@ -28,7 +28,7 @@ type Store = {
   availability?: Record<string, InterviewAvailability>;
   referrals?: ApplicationReferral[];
   cycles: Cycle[]; positions: Position[]; apps: App[]; slots: InterviewSlot[]; scores: InterviewScore[]; plans: BoardPlan[];
-  files: LibFile[]; packages: Omit<Package, 'stock_left'>[]; orders: Ord[]; approvers: string[]; pickupScanners?: string[]; counter: number;
+  files: LibFile[]; packages: Omit<Package, 'stock_left'>[]; orders: Ord[]; approvers: string[]; pickupScanners?: string[]; signupScanners?: { package_id: string; user_id: string; expires_at: string }[]; counter: number;
 };
 
 function fresh(): Store {
@@ -428,7 +428,8 @@ const HELD: OrderStatus[] = ['pending_proof', 'pending_approval', 'awaiting_cash
 const reserved = (pid: string) => s().orders.filter((o) => o.package_id === pid && HELD.includes(o.status)).reduce((a, o) => a + o.quantity, 0);
 const leadsOps = (u: Me) => u.role === 'chairman' || (u.role === 'curator' && u.division_kind === 'operations');
 const canApprove = (u: Me) => canManageSignUps(u) || (u.division_kind === 'operations' && s().approvers.includes(u.id));
-const canPickup = (u: Me) => canApprove(u) || u.division_kind === 'operations' || (s().pickupScanners ?? []).includes(u.id);
+const canPickupSignup = (u: Me, packageId: string) => canLeadPickups(u) || !!s().packages.find((p) => p.id === packageId && p.is_active && (!p.closes_at || Date.parse(p.closes_at) > Date.now()) && (s().signupScanners ?? []).some((a) => a.package_id === packageId && a.user_id === u.id && Date.parse(a.expires_at) > Date.now()));
+const canPickup = (u: Me) => canLeadPickups(u) || s().packages.some((p) => canPickupSignup(u, p.id));
 const onSale = (p: Omit<Package, 'stock_left'>) => p.is_active && (!p.opens_at || Date.now() >= new Date(p.opens_at).getTime()) && (!p.closes_at || Date.now() < new Date(p.closes_at).getTime());
 function expire() {
   let changed = false;
@@ -549,6 +550,7 @@ export const demoPackagesApi: PackagesApi = {
     if (!canPickup(u)) fail('not_allowed');
     const o = s().orders.find((x) => x.pickup_code === code.trim() || x.order_no.toLowerCase() === code.trim().toLowerCase());
     if (!o) return { result: 'not_found' };
+    if (!canPickupSignup(u, o.package_id)) fail('not_allowed');
     const p = s().packages.find((x) => x.id === o.package_id)!;
     if (o.status === 'delivered') return { result: 'already_delivered', order_no: o.order_no, delivered_at: o.delivered_at ?? undefined };
     if (o.status !== 'approved') return { result: 'not_paid', order_no: o.order_no, status: o.status };
@@ -578,12 +580,13 @@ export const demoPackagesApi: PackagesApi = {
     return [...out.values()];
   },
   async proofUrl() { return null; },
-  async listPickupScanners() { return [...(s().pickupScanners ?? [])]; },
-  async setPickupScanner(userId, on) {
-    if (!canManageSignUps(me())) fail('not_allowed');
+  async listPickupScanners(packageId) { return (s().signupScanners ?? []).filter((a) => a.package_id === packageId && Date.parse(a.expires_at) > Date.now()).map((a) => a.user_id); },
+  async setPickupScanner(packageId, userId, on, expiresAt) {
+    if (!canLeadPickups(me())) fail('not_allowed');
+    if (on && (!expiresAt || Date.parse(expiresAt) <= Date.now())) fail('expiry_required');
     const st = s();
-    const cur = st.pickupScanners ?? [];
-    st.pickupScanners = on ? [...new Set([...cur, userId])] : cur.filter((x) => x !== userId);
+    st.signupScanners = (st.signupScanners ?? []).filter((a) => a.package_id !== packageId || a.user_id !== userId);
+    if (on) st.signupScanners.push({ package_id: packageId, user_id: userId, expires_at: expiresAt! });
     save();
   },
   async canScanPickups() { return canPickup(me()); },

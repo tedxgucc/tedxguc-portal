@@ -145,6 +145,8 @@ export type CalendarItem = {
 
 export type AudienceType = 'all' | 'division' | 'team' | 'role';
 export type Announcement = {
+  publish_at?: string;
+  expires_at?: string | null;
   id: string;
   author_id: string;
   audience_type: AudienceType;

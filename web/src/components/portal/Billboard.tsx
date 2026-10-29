@@ -6,13 +6,16 @@
 import { ChevronLeft, ChevronRight, Megaphone } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { announcementLive } from '@/lib/announcements';
 import { fmtRelative } from '@/lib/format';
 import type { Announcement } from '@/lib/types';
 
 const SLIDE_MS = 6000;
 
 export function Billboard({ items }: { items: Announcement[] }) {
-  const slides = [...items]
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 15000); return () => clearInterval(timer); }, []);
+  const slides = items.filter((a) => announcementLive(a, now))
     .sort((a, b) => Number(!!b.image_url) - Number(!!a.image_url) || Number(b.pinned) - Number(a.pinned) || b.created_at.localeCompare(a.created_at))
     .slice(0, 6);
   const track = useRef<HTMLDivElement>(null);

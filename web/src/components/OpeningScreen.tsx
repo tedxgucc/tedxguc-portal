@@ -1,54 +1,55 @@
 'use client';
-// TEDxGUC opening, "Loose Ends" (design system: opening/). Two red threads pull
-// taut into the TEDx "x", the x grows into the watermark and the logo appears.
-// It plays on every page load or refresh of the public site (it lives in the
-// public layout, so moving between pages inside the site doesn't replay it).
-// It is part of the page itself, so it shows from the very first frame.
-// Skip: the link, a click or tap anywhere, Enter or Esc.
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { BASE_PATH } from '@/lib/env';
+import { LiquidMark } from './LiquidMark';
 
-const LENGTH_MS = 4200;
-
+// Play once per visit on the homepage, landing on the real hero watermark.
 export function OpeningScreen() {
-  const [state, setState] = useState<'on' | 'leaving' | 'gone'>('on');
-  const done = useRef(false);
-
-  const leave = useCallback(() => {
-    if (done.current) return;
-    done.current = true;
-    setState('leaving');
-    window.setTimeout(() => setState('gone'), 500);
+  const [playing, setPlaying] = useState(true);
+  const mark = useRef<HTMLDivElement>(null);
+  const finish = useCallback(() => {
+    setPlaying(false);
+    document.documentElement.classList.remove('intro-playing');
+    document.documentElement.classList.add('intro-done');
+    document.body.classList.remove('in-lock');
+    try { sessionStorage.setItem('tx-intro-seen', '1'); } catch { /* Private browsing. */ }
   }, []);
-
   useEffect(() => {
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const timer = window.setTimeout(leave, reduce ? 1200 : LENGTH_MS);
-    const key = (e: KeyboardEvent) => { if (e.key === 'Enter' || e.key === 'Escape') leave(); };
-    document.addEventListener('keydown', key);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => { window.clearTimeout(timer); document.removeEventListener('keydown', key); document.body.style.overflow = prev; };
-  }, [leave]);
-  useEffect(() => { if (state !== 'on') document.body.style.overflow = ''; }, [state]);
-
-  if (state === 'gone') return null;
-  return (
-    <div className={`op${state === 'leaving' ? ' is-leaving' : ''}`} role="presentation" onClick={leave} aria-hidden={state === 'leaving'}>
-      <svg className="op__svg" viewBox="0 0 400 400" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-        <path className="op__t op__t--a" d="M 18 -76 C 73 8, 128 91, 183 175 C 239 258, 294 342, 382 476" />
-        <path className="op__t op__t--b" d="M 382 -76 C 327 8, 272 91, 217 175 C 161 258, 106 342, 18 476" />
-        <g className="op__x"><g className="op__k"><path className="op__glyph" transform="translate(130.37 136.36) scale(0.7487)" d="M7 0 L64 83 L5 170 L68 170 L93 128 L118 170 L181 170 L122 83 L179 0 L116 0 L93 39 L70 0 Z" /></g></g>
-        <circle className="op__ring" cx="200" cy="200" r="16" />
-      </svg>
-      <div className="op__dots" aria-hidden="true" />
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <div className="op__center"><img className="op__logo" src={`${BASE_PATH}/brand/tedxguc-lockup-white.png`} alt="TEDxGUC" /></div>
-      <div className="op__content op__top">
-        <span />
-        <button type="button" className="op__skip bg-transparent border-0 cursor-pointer p-s2" onClick={(e) => { e.stopPropagation(); leave(); }}>Skip</button>
-      </div>
-      <div className="op__bar" aria-hidden="true" />
-    </div>
-  );
+    let seen = false;
+    try { seen = sessionStorage.getItem('tx-intro-seen') === '1'; } catch { /* Private browsing. */ }
+    if (seen || window.matchMedia('(prefers-reduced-motion: reduce)').matches) { finish(); return; }
+    document.documentElement.classList.remove('intro-done');
+    document.documentElement.classList.add('intro-playing');
+    document.body.classList.add('in-lock');
+    setPlaying(true);
+    const timer = window.setTimeout(finish, 4600);
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape' || e.key === 'Enter') finish(); };
+    document.addEventListener('keydown', onKey);
+    return () => {
+      clearTimeout(timer); document.removeEventListener('keydown', onKey);
+      document.body.classList.remove('in-lock'); document.documentElement.classList.remove('intro-playing');
+    };
+  }, [finish]);
+  useEffect(() => {
+    if (!playing) return;
+    const place = () => {
+      const target = document.getElementById('home-watermark');
+      const x = mark.current;
+      if (!target || !x) return;
+      const r = target.getBoundingClientRect();
+      x.style.setProperty('--fx', (r.left + r.width / 2 - innerWidth / 2) + 'px');
+      x.style.setProperty('--fy', (r.top + r.height / 2 - innerHeight / 2) + 'px');
+      x.style.setProperty('--fs', String(r.height / (x.offsetHeight || 1)));
+    };
+    place(); window.addEventListener('resize', place);
+    const observer = new ResizeObserver(place);
+    const target = document.getElementById('home-watermark');
+    if (target) observer.observe(target);
+    return () => { window.removeEventListener('resize', place); observer.disconnect(); };
+  }, [playing]);
+  if (!playing) return null;
+  return <div className="in" aria-label="TEDxGUC introduction">
+    <div className="in__bg" aria-hidden="true" />
+    <div className="in__x" ref={mark} aria-hidden="true"><LiquidMark /></div>
+    <button className="hm__intro-skip" onClick={finish} type="button">Skip intro</button>
+  </div>;
 }

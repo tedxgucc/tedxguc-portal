@@ -31,11 +31,15 @@ export const viewport: Viewport = {
 // (design system: "10 · Tokens as code → Theme switching").
 const themeScript = `(function(){try{var s=localStorage.getItem('tx-theme');var t=s||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');document.documentElement.dataset.theme=t;if(localStorage.getItem('tx-nav')==='closed')document.documentElement.dataset.nav='closed';}catch(e){document.documentElement.dataset.theme='dark';}})();`;
 
+// Decide the homepage intro before paint; returning visits and reduced motion skip it.
+const introScript = "(function(){try{var base="+JSON.stringify(BASE_PATH)+";var home=location.pathname.replace(/\\/+$/, '')===base.replace(/\\/+$/, '');if(home&&!sessionStorage.getItem('tx-intro-seen')&&!matchMedia('(prefers-reduced-motion: reduce)').matches){document.documentElement.classList.add('intro-playing');}else{document.documentElement.classList.add('intro-done');}}catch(e){}})();" ;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" data-theme="dark" className={`${anton.variable} ${inter.variable} ${mono.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <script dangerouslySetInnerHTML={{ __html: introScript }} />
       </head>
       <body>
         <ToastProvider>{children}</ToastProvider>

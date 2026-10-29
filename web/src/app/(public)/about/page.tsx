@@ -55,7 +55,7 @@ export default function AboutPage() {
             <ul className="grid gap-s2 sm:grid-cols-2 lg:grid-cols-3">
               {leads.map((b) => (
                 <li key={b.name} className="tx-card flex items-center gap-s3">
-                  <Avatar name={b.name} />
+                  <Avatar photo={b.photo_url} name={b.name} />
                   <div>
                     <div className="font-semibold">{b.name}</div>
                     <div className="text-body-sm text-ink-2">{roleLabel[b.role]}{b.division ? ` · ${b.division}` : ''}</div>
@@ -67,7 +67,7 @@ export default function AboutPage() {
               <ul className="grid gap-s2 sm:grid-cols-2 lg:grid-cols-4">
                 {execs.map((b) => (
                   <li key={b.name} className="flex items-center gap-s3 py-s2 border-b border-line">
-                    <Avatar name={b.name} small />
+                    <Avatar photo={b.photo_url} name={b.name} small />
                     <div>
                       <div className="text-body-sm font-semibold">{b.name}</div>
                       <div className="text-caption text-ink-3">{b.team}</div>

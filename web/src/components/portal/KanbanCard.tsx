@@ -11,7 +11,7 @@ import { usePortal } from './PortalContext';
 export const isLate = (t: Task) => !!t.deadline && new Date(t.deadline) < new Date() && !['done', 'declined'].includes(t.status);
 
 export function KanbanCard({ task, onOpen }: { task: Task; onOpen: (t: Task) => void }) {
-  const { team, divisionOfTeam, memberName } = usePortal();
+  const { team, divisionOfTeam, memberName, members } = usePortal();
   const d = divisionOfTeam(task.team_id);
   const c = divClass(d?.kind);
   const late = isLate(task);
@@ -28,7 +28,7 @@ export function KanbanCard({ task, onOpen }: { task: Task; onOpen: (t: Task) => 
       <div className="tx-kcard__title" style={done ? { color: 'var(--ink-3)', textDecoration: 'line-through' } : undefined}>{task.title}</div>
       <div className="tx-kcard__foot">
         <span className="flex -space-x-2">
-          {task.assignees.slice(0, 3).map((a) => <Avatar key={a} name={memberName(a)} small />)}
+          {task.assignees.slice(0, 3).map((a) => <Avatar photo={members.find((m) => m.user_id === a)?.photo_url} key={a} name={memberName(a)} small />)}
           {task.assignees.length === 0 && <span className="text-ink-3">Unassigned</span>}
         </span>
         {task.deadline && (

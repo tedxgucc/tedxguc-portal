@@ -90,6 +90,9 @@ export const seesPartnerInquiries = (me: Me | null) => canLeadOperations(me) || 
 export const seesContactInquiries = (me: Me | null) => me?.role === 'chairman' || me?.role === 'curator';
 export const canOpenInbox = (me: Me | null) => seesPartnerInquiries(me) || seesContactInquiries(me);
 
+// Pickup leadership can scan and assign additional active members.
+export const canLeadPickups = (me: Me | null) => !!me && (me.role === 'chairman' || me.role === 'curator' || isLpExec(me));
+
 // Sign-ups (packages, trips, anything with registration): who manages them.
 export const canManageSignUps = (me: Me | null) => !!me && (me.role === 'chairman'
   || (me.role === 'curator' && (me.division_kind === 'operations' || me.division_kind === 'org_development'))

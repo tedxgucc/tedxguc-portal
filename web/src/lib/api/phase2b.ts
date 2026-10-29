@@ -90,8 +90,8 @@ export interface PackagesApi {
   listApprovers(): Promise<string[]>;
   setApprover(userId: string, on: boolean): Promise<void>;
   /** Members (beyond Operations) who may scan pickup QRs. */
-  listPickupScanners(): Promise<string[]>;
-  setPickupScanner(userId: string, on: boolean): Promise<void>;
+  listPickupScanners(packageId: string): Promise<string[]>;
+  setPickupScanner(packageId: string, userId: string, on: boolean, expiresAt?: string): Promise<void>;
   canScanPickups(): Promise<boolean>;
 }
 
@@ -315,11 +315,11 @@ const livePackages: PackagesApi = {
   async setApprover(userId, on) {
     await run(on ? db().from('package_approvers').insert({ user_id: userId }) : db().from('package_approvers').delete().eq('user_id', userId));
   },
-  async listPickupScanners() {
-    return (await run<{ user_id: string }[]>(db().from('pickup_scanners').select('user_id'))).map((r) => r.user_id);
+  async listPickupScanners(packageId) {
+    return (await run<{ user_id: string }[]>(db().from('signup_pickup_scanners').select('user_id').eq('package_id', packageId).gt('expires_at', new Date().toISOString()))).map((r) => r.user_id);
   },
-  async setPickupScanner(userId, on) {
-    await run(on ? db().from('pickup_scanners').insert({ user_id: userId }) : db().from('pickup_scanners').delete().eq('user_id', userId));
+  async setPickupScanner(packageId, userId, on, expiresAt) {
+    await run(on ? db().from('signup_pickup_scanners').upsert({ package_id: packageId, user_id: userId, expires_at: expiresAt }, { onConflict: 'package_id,user_id' }) : db().from('signup_pickup_scanners').delete().eq('package_id', packageId).eq('user_id', userId));
   },
   async canScanPickups() {
     return !!(await run<boolean>(db().rpc('can_scan_pickups')));

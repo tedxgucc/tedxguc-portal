@@ -16,6 +16,7 @@ before(async () => {
   await db.q(`insert into settings (season_id, key, value) select id, 'instapay_link', '"https://ipn.eg/S/tedxguc"' from seasons where is_active on conflict do nothing`);
   pkg = await db.as(opsCurator, ({ one }) => one(
     `insert into packages (name, price_egp, stock, max_per_order, is_active, pickup_info) values ('Mid-year box', 450, 5, 3, true, 'Booth, Building C') returning *`));
+  await db.as(chairman, ({ q }) => q("insert into signup_pickup_scanners (package_id, user_id, expires_at) values ($1, $2, now() + interval '1 day')", [pkg.id, lpAssoc]));
 });
 
 const order = (email, qty, method = 'instapay') =>
@@ -43,7 +44,7 @@ test('InstaPay order: amount, order number, payment link; stock held (FR-16.2, F
   await rejects(db.as('anon', ({ q }) => q(`select place_order($1, 'x', 'x@y.co', '0101234567', 1, 'cash')`, [pkg.id])), /permission denied/);
 });
 
-test('proof → approval → confirmed with pickup QR and a cashbook entry (FR-16.5, FR-16.7, FR-16.8)', async () => {
+test('proof → approval → confirmed with pickup QR without a bank entry (FR-16.5, FR-16.7, FR-16.8)', async () => {
   const o = await order('pay@x.co', 1);
   await rejects(db.as('service', ({ q }) => q(`select submit_payment_proof($1, 'evil/path.png')`, [o.status_token])), /invalid_proof/);
   await db.as('service', ({ q }) => q(`select submit_payment_proof($1, $2, 'REF123')`,
@@ -60,7 +61,10 @@ test('proof → approval → confirmed with pickup QR and a cashbook entry (FR-1
   assert.equal(status.pickup_code, done.pickup_code);
 
   const txn = await db.as(opsCurator, ({ one }) => one(`select kind, account, amount_net from transactions where order_id = $1`, [o.order_id]));
-  assert.deepEqual({ ...txn, amount_net: Number(txn.amount_net) }, { kind: 'package_sale', account: 'bank', amount_net: 450 });
+  assert.equal(txn, undefined);
+  const links = await db.one(`select transaction_id, refund_transaction_id from orders where id = $1`, [o.order_id]);
+  assert.equal(links.transaction_id, null);
+  assert.equal(links.refund_transaction_id, null);
 });
 
 test('assigned Operations members can approve; members outside Operations cannot be assigned', async () => {
@@ -74,13 +78,13 @@ test('assigned Operations members can approve; members outside Operations cannot
   assert.equal((await db.as(mediaExec, ({ q }) => q(`select 1 from orders`))).length, 0);
 });
 
-test('cash: reserved, paid at the booth, posted as cash on hand (FR-16.6, FR-16.8)', async () => {
+test('cash: reserved and paid at the booth without a bank entry (FR-16.6, FR-16.8)', async () => {
   const o = await order('cash@x.co', 1, 'cash');
   assert.equal(o.status, 'awaiting_cash');
   await rejects(db.as(opsCurator, ({ q }) => q(`select decide_order($1, true)`, [o.order_id])), /order_not_pending/);
   await db.as(opsCurator, ({ q }) => q(`select mark_cash_paid($1)`, [o.order_id]));
   const t = await db.as(chairman, ({ one }) => one(`select account from transactions where order_id = $1`, [o.order_id]));
-  assert.equal(t.account, 'cash');
+  assert.equal(t, undefined);
 });
 
 test('unpaid holds expire and release stock; sold out is refused', async () => {
@@ -104,14 +108,18 @@ test('pickup scan: once only, never for unpaid orders (FR-16.9)', async () => {
   await rejects(db.as(mediaExec, ({ q }) => q(`select pickup_order('x')`)), /not_allowed/);
 });
 
-test('refunds post a reversing entry; sales report by method (FR-16.10, FR-16.11)', async () => {
+test('refunds update signups without a bank entry; sales report by method (FR-16.10, FR-16.11)', async () => {
   await db.as(opsCurator, ({ q }) => q(`update packages set stock = stock + 10 where id = $1`, [pkg.id]));
   const o = await order('refund@x.co', 1, 'cash');
   await db.as(opsCurator, ({ q }) => q(`select mark_cash_paid($1)`, [o.order_id]));
   await rejects(db.as(pAssoc, ({ q }) => q(`select refund_order($1, 'Changed mind')`, [o.order_id])), /not_allowed/);
   await db.as(opsCurator, ({ q }) => q(`select refund_order($1, 'Damaged box')`, [o.order_id]));
   const t = await db.as(opsCurator, ({ q }) => q(`select kind, direction from transactions where order_id = $1 order by created_at`, [o.order_id]));
-  assert.deepEqual(t.map((r) => [r.kind, r.direction]), [['package_sale', 'in'], ['refund', 'out']]);
+  assert.deepEqual(t, []);
+  const refunded = await db.one('select status, transaction_id, refund_transaction_id from orders where id = $1', [o.order_id]);
+  assert.equal(refunded.status, 'refunded');
+  assert.equal(refunded.transaction_id, null);
+  assert.equal(refunded.refund_transaction_id, null);
 
   const sales = await db.as(opsCurator, ({ q }) => q(`select method, units from package_sales($1)`, [pkg.id]));
   assert.ok(sales.some((s) => s.method === 'cash'));
@@ -155,4 +163,46 @@ test('a member reopens only their own sign-up link', async () => {
   const view = await db.as('anon', ({ one }) => one(`select get_order_by_token($1) as r`, [token])).then((x) => x.r);
   assert.equal(view.status, 'awaiting_cash');
   await rejects(db.as(lpAssoc, ({ q }) => q(`select member_order_link($1)`, [mine.id])), /not_found/);
+});
+
+
+test('pickup access requires leadership or an active member assignment', async () => {
+  const unassigned = await db.member('associate', 'logistics_planning');
+  const lpExec = await db.member('executive', 'logistics_planning');
+  const aeExec = await db.member('executive', 'associates_experience');
+  const otherCurator = await db.member('curator', 'marketing');
+  const canScan = (who) => db.as(who, ({ one }) => one('select can_scan_pickups() as allowed')).then((r) => r.allowed);
+  for (const who of [chairman, opsCurator, otherCurator, lpExec]) assert.equal(await canScan(who), true);
+  for (const who of [unassigned, aeExec, mediaExec]) {
+    assert.equal(await canScan(who), false);
+    await rejects(db.as(who, ({ q }) => q("select pickup_order('unknown')")), /not_allowed/);
+  }
+  await rejects(db.as(aeExec, ({ q }) => q("insert into signup_pickup_scanners (package_id, user_id, expires_at) values ($2, $1, now() + interval '1 day')", [unassigned, pkg.id])), /row-level security/);
+  await db.as(lpExec, ({ q }) => q("insert into signup_pickup_scanners (package_id, user_id, expires_at) values ($2, $1, now() + interval '1 day')", [unassigned, pkg.id]));
+  assert.equal(await canScan(unassigned), true);
+  await db.as(otherCurator, ({ q }) => q('delete from signup_pickup_scanners where user_id = $1', [unassigned]));
+  assert.equal(await canScan(unassigned), false);
+  await db.as(chairman, ({ q }) => q("insert into signup_pickup_scanners (package_id, user_id, expires_at) values ($2, $1, now() + interval '1 day')", [unassigned, pkg.id]));
+  await db.q("update memberships set status = 'removed' where user_id = $1", [unassigned]);
+  assert.equal(await canScan(unassigned), false);
+});
+
+
+test('scanner scope and expiry apply to pickup codes and typed order numbers', async () => {
+  const member = await db.member('associate', 'media_design');
+  const second = await db.as(opsCurator, ({ one }) => one("insert into packages (name, price_egp, stock, is_active) values ('Other signup', 10, 10, true) returning id"));
+  await db.as(chairman, ({ q }) => q("insert into signup_pickup_scanners (package_id, user_id, expires_at) values ($1, $2, now() + interval '1 day')", [second.id, member]));
+  const foreign = await db.as('service', ({ one }) => one("select place_order($1, 'Buyer', 'scoped@x.co', '01012345678', 1, 'cash') as r", [second.id])).then((r) => r.r);
+  const paid = await db.as(opsCurator, ({ one }) => one('select mark_cash_paid($1) as r', [foreign.order_id])).then((r) => r.r);
+  const main = await order('scope-main@x.co', 1, 'cash');
+  const mainPaid = await db.as(opsCurator, ({ one }) => one('select mark_cash_paid($1) as r', [main.order_id])).then((r) => r.r);
+  await rejects(db.as(member, ({ q }) => q('select pickup_order($1)', [mainPaid.pickup_code])), /not_allowed/);
+  const scanned = await db.as(member, ({ one }) => one('select pickup_order($1) as r', [foreign.order_no])).then((r) => r.r);
+  assert.equal(scanned.result, 'ok');
+  assert.equal((await db.as(member, ({ one }) => one('select pickup_order($1) as r', [paid.pickup_code]))).r.result, 'already_delivered');
+  await db.q("update signup_pickup_scanners set expires_at = now() - interval '1 minute' where user_id = $1", [member]);
+  await rejects(db.as(member, ({ q }) => q('select pickup_order($1)', [paid.pickup_code])), /not_allowed/);
+  await db.q("update signup_pickup_scanners set expires_at = now() + interval '1 day' where user_id = $1", [member]);
+  await db.q("update packages set closes_at = now() - interval '1 minute' where id = $1", [second.id]);
+  assert.equal((await db.as(member, ({ one }) => one('select can_scan_pickups() as ok'))).ok, false);
 });

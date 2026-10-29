@@ -58,6 +58,8 @@ export type NewCalendarEntry = {
 };
 
 export type NewAnnouncement = {
+  publish_at?: string;
+  expires_at?: string | null;
   audience_type: AudienceType;
   division_id?: string | null;
   team_id?: string | null;
@@ -128,6 +130,9 @@ export interface Api {
   deleteCalendarEntry(id: string): Promise<void>;
   listAnnouncements(): Promise<Announcement[]>;
   postAnnouncement(input: NewAnnouncement): Promise<void>;
+  updateAnnouncement(id: string, patch: Pick<NewAnnouncement, 'title' | 'body' | 'pinned' | 'needs_confirmation' | 'image_url' | 'publish_at' | 'expires_at'>): Promise<void>;
+  deleteAnnouncement(id: string): Promise<void>;
+  announcementConfirmations(id: string): Promise<{ user_id: string; name: string; read_at: string | null }[]>;
   confirmRead(id: string): Promise<void>;
   listNotifications(): Promise<Notification[]>;
   markNotificationsRead(): Promise<void>;

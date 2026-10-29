@@ -1,89 +1,138 @@
-/* TEDxGUC opening screen, "Loose Ends" (design system: opening/, 2026-10-26).
-   Plays on every page load or refresh of the public site, then fades out.
-   Skip with the button, a click or tap anywhere, Enter or Esc. */
 
-/* TEDxGUC opening screen — "Loose Ends".
-   Two loose red threads drift in, pull taut along the diagonals of the TEDx "x",
-   and tie into the real x from the logo; the x then grows into the faded hero watermark.
-   Base styles are the FINAL frame; every animation runs from its start state with fill "both",
-   so reduced motion (animations off) simply shows the finished screen. */
+/* ============ TEDxGUC intro — the liquid x ============
+   Lives ON the home page, above the real content. No skip, no separate page.
+   0.0  the empty TEDx x draws in white        0.45 a red drop falls in and splashes
+   1.0  red liquid rises: waves, bubbles        2.75 full: light sweeps across, red glow
+   3.3  the x glides into the hero watermark, deepening to watermark red; the black lifts
+   4.25 the page fades in over it               4.6  intro gone
+   Base styles = finished state. html.intro-done hides it; --io offsets the page entrance. */
+:root { --io: 4.25s; --ease: cubic-bezier(.22, 1, .36, 1); --ease-io: cubic-bezier(.65, 0, .35, 1); }
+html.intro-done { --io: 0s; }
+html.intro-done .in { display: none; }
+body.in-lock { overflow: hidden; }
 
-.op { position: relative; overflow: hidden; background: #000; color: #fff; font-family: var(--font-sans); }
-.op__svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.in { position: fixed; inset: 0; z-index: 1000; overflow: hidden; pointer-events: none; visibility: hidden; background: rgba(0,0,0,0);
+  animation: in-black .95s 3.5s var(--ease-io) both, in-gone .01s 4.6s both; }
+@keyframes in-black { from { background: rgba(0,0,0,1); } to { background: rgba(0,0,0,0); } }
+@keyframes in-gone { from { visibility: visible; } to { visibility: hidden; } }
+.in__bg { position: absolute; inset: 0; opacity: 0;
+  background: radial-gradient(60% 45% at 50% 52%, rgba(230,43,30,.22), rgba(163,0,27,.06) 55%, transparent 75%);
+  animation: in-bgglow 3.3s .8s ease-out both; }
+@keyframes in-bgglow { 0% { opacity: 0; } 55% { opacity: 1; } 100% { opacity: 0; } }
 
-/* the two threads — they pull taut along the diagonals of the TEDx "x", then hand over to the glyph */
-.op__t { fill: none; stroke: #e62b1e; stroke-width: var(--tw-end, 39); stroke-linecap: butt; stroke-dasharray: 1400; stroke-dashoffset: 0; opacity: 0; }
-.op__t--a { animation: op-draw .9s cubic-bezier(.2,.8,.2,1) both, op-pull-a .6s .9s cubic-bezier(.7,0,.2,1) both, op-thick .3s 1.5s cubic-bezier(.65,0,.35,1) both, op-tout .25s 1.7s linear both; }
-.op__t--b { animation: op-draw .9s .12s cubic-bezier(.2,.8,.2,1) both, op-pull-b .6s .9s cubic-bezier(.7,0,.2,1) both, op-thick .3s 1.5s cubic-bezier(.65,0,.35,1) both, op-tout .25s 1.7s linear both; }
-@keyframes op-draw { from { stroke-dashoffset: 1400; } to { stroke-dashoffset: 0; } }
-@keyframes op-pull-a {
-  from { d: path("M -60 40 C 60 140, 40 260, 130 130 C 220 0, 280 330, 460 360"); }
-  to   { d: path("M 18 -76 C 73 8, 128 91, 183 175 C 239 258, 294 342, 382 476"); }
+.in__x { position: absolute; left: 50%; top: 50%; height: min(46vh, 62vw); aspect-ratio: 176 / 170; translate: -50% -50%; opacity: 0;
+  transform: translate(var(--fx, 0px), var(--fy, 0px)) scale(var(--fs, 1));
+  animation: in-glide 1s 3.3s var(--ease-io) both, in-xout .25s 4.3s linear both; }
+@keyframes in-glide { from { transform: none; } to { transform: translate(var(--fx, 0px), var(--fy, 0px)) scale(var(--fs, 1)); } }
+@keyframes in-xout { from { opacity: 1; } to { opacity: 0; } }
+.lq__svg { width: 100%; height: 100%; overflow: visible; display: block; }
+.in__wm { fill: #22050a; opacity: 1; animation: in-deepen .95s 3.35s var(--ease-io) both; }
+@keyframes in-deepen { from { opacity: 0; } to { opacity: 1; } }
+
+.lq__glow { fill: #e62b1e; opacity: 0; filter: blur(14px); animation: lq-glow 1.2s 2.4s ease-out both; }
+@keyframes lq-glow { 0% { opacity: 0; } 40% { opacity: .55; } 100% { opacity: 0; } }
+
+.lq__outline { fill: none; stroke: #fff; stroke-width: 1.2; vector-effect: non-scaling-stroke; stroke-dasharray: 100; stroke-dashoffset: 0; opacity: 0;
+  animation: lq-draw .8s cubic-bezier(.65,0,.35,1) both, lq-outfade .4s 2.55s linear both; }
+@keyframes lq-draw { from { stroke-dashoffset: 100; } to { stroke-dashoffset: 0; } }
+@keyframes lq-outfade { from { opacity: 1; } to { opacity: 0; } }
+
+.lq__drop { fill: #e62b1e; opacity: 0; transform-box: fill-box; transform-origin: 50% 100%;
+  animation: lq-drop .55s .45s cubic-bezier(.55,0,1,.45) both; }
+@keyframes lq-drop {
+  0%   { opacity: 0; transform: translateY(-260px) scaleY(1.25); }
+  6%   { opacity: 1; }
+  85%  { opacity: 1; transform: translateY(74px) scaleY(1.35); }
+  100% { opacity: 0; transform: translateY(84px) scale(1.7, .3); }
 }
-@keyframes op-pull-b {
-  from { d: path("M 460 40 C 340 160, 380 250, 270 140 C 160 30, 120 330, -60 360"); }
-  to   { d: path("M 382 -76 C 327 8, 272 91, 217 175 C 161 258, 106 342, 18 476"); }
+.lq__sp { fill: #e62b1e; opacity: 0; animation: lq-sp .6s .98s cubic-bezier(.2,.8,.4,1) both; }
+.lq__sp--1 { --sx: -22px; --sy: -26px; }
+.lq__sp--2 { --sx: 18px; --sy: -30px; animation-delay: 1.0s; }
+.lq__sp--3 { --sx: 4px; --sy: -40px; animation-delay: 1.02s; }
+@keyframes lq-sp { 0% { opacity: 0; transform: translate(0, 0); } 4% { opacity: 1; } 50% { opacity: 1; transform: translate(calc(var(--sx) * .6), var(--sy)); } 100% { opacity: 0; transform: translate(var(--sx), 6px); } }
+.lq__ring { fill: none; stroke: #ff5d52; stroke-width: 1.4; vector-effect: non-scaling-stroke; opacity: 0; transform-box: fill-box; transform-origin: center;
+  animation: lq-ring .7s .98s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes lq-ring { 0% { opacity: 0; transform: scale(.2); } 4% { opacity: 1; } 100% { opacity: 0; transform: scale(2.6); } }
+
+/* liquid level: from below the x to over the top (waves leave the clip, the x reads solid) */
+.lq__level { transform: translateY(-24px); animation: lq-rise 1.75s 1s cubic-bezier(.45,.05,.3,1) both; }
+@keyframes lq-rise {
+  0%   { transform: translateY(178px); }
+  70%  { transform: translateY(18px); }
+  85%  { transform: translateY(2px); }
+  100% { transform: translateY(-24px); }
 }
-@keyframes op-thick { from { stroke-width: var(--tw-start, 3); } to { stroke-width: var(--tw-end, 39); } }
-@keyframes op-tout { from { opacity: 1; } to { opacity: 0; } }
+.lq__wv { animation: lq-slide 1.6s linear infinite; }
+.lq__wv--back { animation-duration: 2.3s; animation-direction: reverse; }
+@keyframes lq-slide { from { transform: translateX(0); } to { transform: translateX(-88px); } }
 
-/* the TEDx "x" itself (traced from the official logo file, never redrawn) */
-.op__x { transform-box: view-box; transform-origin: 200px 200px; transform: scale(var(--grow, 3)); animation: op-grow .9s 2.05s cubic-bezier(.65,0,.35,1) both; }
-.op__k { transform-box: view-box; transform-origin: 200px 200px; animation: op-knot .45s 1.62s cubic-bezier(.34,1.56,.64,1) both; }
-.op__glyph { fill: #22050a; animation: op-fill .7s 2.05s cubic-bezier(.65,0,.35,1) both; }
-@keyframes op-knot { 0% { opacity: 0; transform: scale(1.35); } 30% { opacity: 1; } 60% { transform: scale(.92); } 100% { opacity: 1; transform: scale(1); } }
-@keyframes op-grow { from { transform: scale(1); } to { transform: scale(var(--grow, 3)); } }
-@keyframes op-fill { 0%, 25% { fill: #e62b1e; } 100% { fill: #22050a; } }
+.lq__b { fill: rgba(255,255,255,.45); opacity: 0; animation-name: lq-bub; animation-timing-function: cubic-bezier(.3,0,.7,1); animation-fill-mode: both; }
+@keyframes lq-bub { 0% { opacity: 0; transform: translateY(0); } 15% { opacity: 1; } 100% { opacity: 0; transform: translateY(-150px); } }
 
-/* knot flash at the crossing */
-.op__ring { fill: none; stroke: #fff; stroke-width: 1.5; opacity: 0; transform-box: fill-box; transform-origin: center; animation: op-ring .7s 1.62s cubic-bezier(.2,.8,.2,1) both; }
-@keyframes op-ring { 0% { opacity: 0; transform: scale(.2); } 20% { opacity: 1; } 100% { opacity: 0; transform: scale(5); } }
+.lq__shine { transform: skewX(-20deg) translateX(260px); animation: lq-shine .65s 2.75s cubic-bezier(.4,0,.2,1) both; }
+@keyframes lq-shine { from { transform: skewX(-20deg) translateX(-40px); } to { transform: skewX(-20deg) translateX(260px); } }
 
-/* halftone dot field — a nod to the X Access artwork */
-.op__dots { position: absolute; width: 70%; aspect-ratio: 1; border-radius: 50%; opacity: .55;
-  background-image: radial-gradient(circle, rgba(255,255,255,.32) 1.4px, transparent 1.6px); background-size: 9px 9px;
-  -webkit-mask-image: radial-gradient(circle, #000 30%, transparent 70%); mask-image: radial-gradient(circle, #000 30%, transparent 70%);
-  animation: op-dots 1.2s 2.1s cubic-bezier(.2,.8,.2,1) both; }
-@keyframes op-dots { from { opacity: 0; transform: scale(.7); } to { opacity: .55; transform: none; } }
 
-/* content */
-.op__content { position: absolute; z-index: 2; display: flex; flex-direction: column; }
-.op__lock { display: block; animation: op-up .6s 2.25s cubic-bezier(.2,.8,.2,1) both; }
-.op__label { font: 700 12px/16px var(--font-sans); letter-spacing: .12em; text-transform: uppercase; color: #b8b8b8; animation: op-up .6s 2.4s cubic-bezier(.2,.8,.2,1) both; }
-.op__label b { color: #ff5d52; }
-.op__title { margin: 0; font-family: var(--font-display); font-weight: 400; line-height: .86; text-transform: uppercase; color: #e62b1e; animation: op-wipe .7s 2.5s cubic-bezier(.65,0,.35,1) both; }
-.op__title span { display: block; color: #fff; }
-.op__sub { margin: 0; font: 400 16px/24px var(--font-sans); color: #b8b8b8; animation: op-up .6s 2.85s cubic-bezier(.2,.8,.2,1) both; }
-.op__skip { color: #8f8f8f; font: 600 13px/18px var(--font-sans); text-decoration: none; animation: op-in .4s .3s both; }
-.op__skip:hover { color: #fff; }
-.op__since { font: 500 12px/16px var(--font-sans); color: #8f8f8f; letter-spacing: .08em; text-transform: uppercase; animation: op-up .6s 3.1s both; }
-.op__bar { position: absolute; left: 0; right: 0; bottom: 0; height: 12px; background: #a3001b; transform-origin: left; animation: op-bar .8s 2.3s cubic-bezier(.65,0,.35,1) both; z-index: 3; }
-
-@keyframes op-up { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
-@keyframes op-in { from { opacity: 0; } to { opacity: 1; } }
-@keyframes op-wipe { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
-@keyframes op-bar { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-
-.op__center { position: absolute; inset: 0; z-index: 2; display: grid; place-items: center; pointer-events: none; }
-.op__logo { display: block; width: min(74vw, 520px); height: auto; animation: op-logo .9s 2.3s cubic-bezier(.2,.8,.2,1) both; }
-@keyframes op-logo { from { opacity: 0; transform: scale(.94); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
+/* the page comes in softly around the x */
+.reveal { animation: rv-in 1s calc(var(--io) + var(--rd, 0s)) var(--ease) both; }
+@keyframes rv-in { from { opacity: 0; transform: translateY(14px); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
+.reveal-wipe { animation: rv-wipe 1.1s calc(var(--io) + var(--rd, 0s)) var(--ease-io) both; }
+@keyframes rv-wipe { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
 
 @media (prefers-reduced-motion: reduce) {
-  .op *, .op *::before { animation: none !important; }
+  :root { --io: 0s; }
+  .in { display: none; }
+  .reveal, .reveal-wipe { animation: none; }
 }
 
-/* As an overlay on top of the site. */
-.op { position: fixed; inset: 0; z-index: 1000; width: 100vw; height: 100vh; height: 100dvh; cursor: pointer;
-  --tw-start: 3; --tw-end: 39; --grow: 3.2; transition: opacity .5s cubic-bezier(.65,0,.35,1);
-  /* Safety net: even if scripts never run, it fades away on its own. */
-  animation: op-auto-out .5s 4.6s cubic-bezier(.65,0,.35,1) both; }
-.op.is-leaving { opacity: 0; pointer-events: none; }
-.op__top { left: 0; right: 0; top: 0; padding: 22px 20px 0; padding-top: max(22px, env(safe-area-inset-top)); flex-direction: row !important; justify-content: space-between; align-items: center; }
-.op__dots { right: -32%; top: 6%; }
+
+
+/* Home hero (uses tokens.css + components.css) */
+.hm { min-height: 100vh; min-height: 100dvh; background: var(--bg); color: var(--ink); display: flex; flex-direction: column; overflow: hidden; }
+.hm__nav { position: relative; z-index: 1; display: flex; align-items: center; gap: 24px; height: 64px; padding: 0 max(16px, env(safe-area-inset-left)); border-bottom: 1px solid var(--line); }
+.hm__nav img { height: 22px; display: block; }
+.hm__links { display: none; gap: 28px; margin-left: 16px; flex: 1; }
+.hm__links a { color: var(--ink-2); font: 600 14px/20px var(--font-sans); text-decoration: none; }
+.hm__links a:hover { color: var(--ink); }
+.hm__navcta { display: none; }
+.hm__menu { margin-left: auto; }
+.hm__hero { position: relative; isolation: isolate; flex: 1; display: flex; flex-direction: column; justify-content: flex-end; gap: 18px; padding: 56px 16px 40px; }
+.hm__wm { position: absolute; z-index: -1; right: -34%; top: 50%; height: 78%; aspect-ratio: 176 / 170; transform: translateY(-50%);
+  background: var(--watermark); clip-path: polygon(1.14% 0%, 33.52% 48.82%, 0% 100%, 35.80% 100%, 50% 75.29%, 64.20% 100%, 100% 100%, 66.48% 48.82%, 98.86% 0%, 63.07% 0%, 50% 22.94%, 36.93% 0%); }
+.hm__title { margin: 0; font-family: var(--font-display); font-weight: 400; text-transform: uppercase; line-height: .86; font-size: clamp(80px, 20vw, 180px); color: var(--accent); }
+.hm__title span { display: block; color: var(--ink); }
+.hm__sub { margin: 0; max-width: 560px; color: var(--ink-2); font: 400 18px/28px var(--font-sans); }
+.hm__ctas { display: flex; flex-direction: column; gap: 8px; }
+.hm__count { max-width: 460px; }
 @media (min-width: 900px) {
-  .op { --tw-start: 2; --grow: 2.3; }
-  .op__top { padding: 32px 64px 0; }
-  .op__dots { width: 46%; right: -8%; top: -14%; }
+  .hm__nav { height: 76px; padding: 0 64px; }
+  .hm__nav img { height: 24px; }
+  .hm__links, .hm__navcta { display: flex; }
+  .hm__menu { display: none; }
+  .hm__hero { padding: 72px 64px 64px; display: grid; grid-template-columns: 7fr 5fr; align-items: end; gap: 48px; }
+  .hm__wm { right: 6%; height: 92%; }
+  .hm__ctas { flex-direction: row; }
 }
-@keyframes op-auto-out { to { opacity: 0; visibility: hidden; pointer-events: none; } }
-@media (prefers-reduced-motion: reduce) { .op { animation: op-auto-out .3s 1.2s both; } }
+
+
+/* Integration with the live app. */
+.hm__hero { min-height: calc(100svh - 76px - 12px); }
+.hm__stack, .hm__actions { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.hm__title { overflow-wrap: anywhere; }
+.hm__title--long { font-size: clamp(64px, 11vw, 140px); }
+.hm__meta { color: var(--ink-3); font-size: 14px; line-height: 20px; }
+.hm__intro-skip { position: absolute; top: 20px; right: 24px; pointer-events: auto; color: #b8b8b8; background: transparent; border: 0; padding: 12px; cursor: pointer; font: 600 14px/20px var(--font-sans); }
+.hm__intro-skip:hover { color: white; }
+html:not(.intro-playing) { --io: 0s; }
+html.intro-playing { --io: 4.25s; }
+.hm-header { height: 64px; padding-inline: 16px; border-bottom: 1px solid var(--line); }
+.hm-header .hm-desktop-links { gap: 4px; }
+.hm__hero .tx-count { gap: 0; }
+.hm__hero .tx-count > div { padding-inline: 12px; }
+@media (min-width: 900px) { .hm__hero { min-height: calc(100svh - 88px); } }
+@media (min-width: 1280px) { .hm-header { height: 76px; padding-inline: 64px; } }
+@media (max-width: 899px) { .hm__hero { min-height: calc(100svh - 76px); } .hm__actions { margin-top: 16px; } }
+@media (prefers-reduced-motion: reduce) { html.intro-playing { --io: 0s; } }
+
+.hm { min-height: calc(100svh - 64px); }
+@media (min-width: 1280px) { .hm { min-height: calc(100svh - 76px); } }

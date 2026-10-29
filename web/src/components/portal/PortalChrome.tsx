@@ -67,7 +67,10 @@ export function useNav() {
   return groups.map((g) => ({ ...g, items: g.items.filter((i) => i.show !== false) })).filter((g) => g.items.length);
 }
 
-const isOn = (path: string, href: string) => (href === '/portal' ? path === '/portal' : path === href || path.startsWith(`${href}/`));
+const isOn = (path: string, href: string) => {
+  const current = path.replace(/\/+$/, '');
+  return href === '/portal' ? current === href : current === href || current.startsWith(href + '/');
+};
 
 // The button pins the desktop menu; an unpinned menu previews at the left edge.
 function MenuToggle() {

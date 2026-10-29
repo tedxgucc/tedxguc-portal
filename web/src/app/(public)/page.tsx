@@ -1,18 +1,20 @@
 'use client';
-import { Ticket } from 'lucide-react';
+import { ArrowRight, Ticket } from 'lucide-react';
 import Link from 'next/link';
 import { SectionHeading, TxLabel } from '@/components/Brand';
+import { OpeningScreen } from '@/components/OpeningScreen';
 import { Countdown } from '@/components/Countdown';
 import { EventCard, eventKind } from '@/components/EventCard';
 import { SpeakerCard } from '@/components/SpeakerCard';
 import { api } from '@/lib/api';
-import { PageLoading, useLoad } from '@/lib/useLoad';
+import { useLoad } from '@/lib/useLoad';
 import { fmtDate, fmtTime } from '@/lib/format';
 
 
 export default function HomePage() {
   return (
     <>
+      <OpeningScreen />
       <HomeContent />
     </>
   );
@@ -25,44 +27,38 @@ function HomeContent() {
     const speakers = next ? await api.listSpeakers(next.id) : [];
     return { upcoming, partners, next, speakers };
   });
-  if (!d) return <PageLoading />;
-  const { upcoming, partners, next, speakers } = d;
+  const { upcoming, partners, next, speakers } = d ?? { upcoming: [], partners: [], next: null, speakers: [] };
+  const title = (next?.title ?? 'Ideas worth spreading').trim().split(/\s+/);
+  const split = title.length > 2 ? Math.ceil(title.length / 2) : 1;
+  const firstLine = title.slice(0, split).join(' ');
+  const secondLine = title.slice(split).join(' ');
 
   return (
     <>
-      {/* Hero (FR-1.1): one watermark, the event title in display, countdown, one primary action. */}
-      <section className="tx-watermark is-hero">
-        <div className="mx-auto max-w-[1200px] px-s4 md:px-s6 pt-s8 md:pt-s9 pb-s7 grid gap-s6">
-          {next ? (
-            <>
-              <div className="grid gap-s3">
-                <TxLabel count={new Date(next.starts_at).getFullYear()}>{eventKind(next)}</TxLabel>
-                <h1 className="display uppercase tx-red tx-wipe">{next.title}</h1>
-                <p className="body-lg text-ink-2 max-w-[560px]">
-                  {fmtDate(next.starts_at)} · {fmtTime(next.starts_at)}{next.venue ? ` · ${next.venue}` : ''}
-                </p>
-              </div>
-              <div className="max-w-[440px]"><Countdown to={next.starts_at} title={next.title} /></div>
-              <div className="flex flex-wrap gap-s3">
-                <Link href={`/event?s=${next.slug}`} className="tx-btn tx-btn--primary"><Ticket aria-hidden="true" />Get your ticket</Link>
-                <Link href="/events" className="tx-btn tx-btn--secondary">All events</Link>
-                <Link href="/login" className="tx-btn tx-btn--ghost">TEDx portal</Link>
-              </div>
-              <p className="text-caption text-ink-3">Tickets are free. Seats are limited.</p>
-            </>
-          ) : (
-            <div className="grid gap-s3">
-              <TxLabel>TEDxGUC</TxLabel>
-              <h1 className="display uppercase tx-red tx-wipe">Ideas worth spreading</h1>
-              <p className="body-lg text-ink-2 max-w-[560px]">Our next event is on its way. Follow us on Instagram to hear first.</p>
+      <div className="hm mb-s8">
+        <section className="hm__hero" aria-labelledby="home-title">
+          <div className="hm__wm" id="home-watermark" aria-hidden="true" />
+          <div className="hm__stack">
+            <div className="reveal"><TxLabel count={next ? new Date(next.starts_at).getFullYear() : undefined}>{next ? eventKind(next) : 'TEDxGUC'}</TxLabel></div>
+            <h1 id="home-title" className={'hm__title reveal-wipe ' + (firstLine.length > 8 || secondLine.length > 10 ? 'hm__title--long' : '')}>{firstLine}{secondLine && <span>{secondLine}</span>}</h1>
+            <p className="hm__sub reveal">{next?.description ?? 'Ideas that start somewhere and take you somewhere new. TEDx at the German University in Cairo, since 2013.'}</p>
+            {next && <p className="hm__meta reveal">{fmtDate(next.starts_at)} / {fmtTime(next.starts_at)}{next.venue ? ' / ' + next.venue : ''}</p>}
+          </div>
+          <div className="hm__actions">
+            {next && <div className="hm__count reveal"><Countdown to={next.starts_at} title={next.title} /></div>}
+            <div className="hm__ctas reveal">
+              <Link href={next ? '/event?s=' + next.slug : '/events'} className="tx-btn tx-btn--primary"><Ticket aria-hidden="true" />{next ? 'Claim free ticket' : 'Explore events'}</Link>
+              <Link href="/speakers" className="tx-btn tx-btn--secondary">See speakers<ArrowRight aria-hidden="true" /></Link>
             </div>
-          )}
-        </div>
-      </section>
+            <p className="text-caption text-ink-3 reveal">{next ? 'Tickets are free. Seats are limited.' : 'Our next event is on its way.'}</p>
+          </div>
+        </section>
+        <div className="tx-bottombar" />
+      </div>
 
       <div className="mx-auto max-w-[1200px] px-s4 md:px-s6 grid gap-s7 md:gap-s9">
         {upcoming.length > 0 && (
-          <section className="grid gap-s5" aria-labelledby="upcoming">
+          <section className="tx-reveal grid gap-s5" aria-labelledby="upcoming">
             <SectionHeading><span id="upcoming">Coming up</span></SectionHeading>
             <div className="grid gap-s2 md:grid-cols-2 md:gap-s4">
               {upcoming.map((e) => <EventCard key={e.id} event={e} />)}
@@ -71,7 +67,7 @@ function HomeContent() {
         )}
 
         {speakers.length > 0 && (
-          <section className="grid gap-s5" aria-labelledby="speakers">
+          <section className="tx-reveal grid gap-s5" aria-labelledby="speakers">
             <SectionHeading><span id="speakers">On stage</span></SectionHeading>
             <div className="grid gap-s4 sm:grid-cols-2 lg:grid-cols-4">
               {speakers.slice(0, 4).map((s) => <SpeakerCard key={s.id} speaker={s} />)}
@@ -80,7 +76,7 @@ function HomeContent() {
           </section>
         )}
 
-        <section className="grid gap-s5 md:grid-cols-2 md:items-start" aria-labelledby="about">
+        <section className="tx-reveal grid gap-s5 md:grid-cols-2 md:items-start" aria-labelledby="about">
           <div className="grid gap-s4">
             <TxLabel>About</TxLabel>
             <SectionHeading><span id="about">Since 2013</span></SectionHeading>
@@ -95,7 +91,7 @@ function HomeContent() {
         </section>
 
         {partners.length > 0 && (
-          <section className="grid gap-s5" aria-labelledby="partners">
+          <section className="tx-reveal grid gap-s5" aria-labelledby="partners">
             <SectionHeading><span id="partners">Our partners</span></SectionHeading>
             <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-s2">
               {partners.map((p) => (
