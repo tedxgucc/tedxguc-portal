@@ -74,3 +74,8 @@ export function fromLocalInput(value: string): string {
   const offset = cairoWall.getTime() - utcWall.getTime();
   return new Date(asUtc.getTime() - offset).toISOString();
 }
+
+/** Archive events saved without a real time sit at 00:00 Cairo; show only their date. */
+export function hasKnownTime(iso: string): boolean {
+  return new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'Africa/Cairo' }).format(new Date(iso)) !== '00:00';
+}

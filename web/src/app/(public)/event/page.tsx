@@ -12,7 +12,8 @@ import { PageLoading } from '@/lib/useLoad';
 import { usePublicData } from '@/lib/usePublicData';
 import { DataNotice } from '@/components/public/DataNotice';
 import { EventActions } from '@/components/public/EventActions';
-import { fmtDate, fmtTime } from '@/lib/format';
+import { fmtDate, fmtTime, hasKnownTime } from '@/lib/format';
+import { Linkify } from '@/components/Linkify';
 import { RegisterPanel } from './RegisterPanel';
 
 // One event, by its web address: /event?s=loose-ends
@@ -45,7 +46,7 @@ function EventInner() {
           <h1 className="display uppercase tx-red tx-wipe">{event.title}</h1>
           <ul className="grid gap-s2 text-body text-ink-2 sm:flex sm:flex-wrap sm:gap-s5">
             <li className="flex items-center gap-s2"><CalendarDays size={18} aria-hidden="true" />{fmtDate(event.starts_at, { year: true })}</li>
-            <li className="flex items-center gap-s2"><Clock size={18} aria-hidden="true" />{fmtTime(event.starts_at)}{event.ends_at ? ` – ${fmtTime(event.ends_at)}` : ''}</li>
+            {hasKnownTime(event.starts_at) && <li className="flex items-center gap-s2"><Clock size={18} aria-hidden="true" />{fmtTime(event.starts_at)}{event.ends_at ? ` – ${fmtTime(event.ends_at)}` : ''}</li>}
             {event.venue && <li className="flex items-center gap-s2"><MapPin size={18} aria-hidden="true" />{event.venue}</li>}
           </ul>
           <EventActions event={event} />
@@ -55,7 +56,7 @@ function EventInner() {
       <div className="mx-auto max-w-[1200px] px-s4 md:px-s6 grid gap-s7 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-start">
         <div className="grid gap-s7">
           {event.cover_url && <img src={event.cover_url} alt="" className="w-full aspect-[16/9] object-cover" width={1200} height={675} decoding="async" />} {/* eslint-disable-line @next/next/no-img-element */}
-          {event.description && <p className="body-lg text-ink-2 max-w-[68ch]">{event.description}</p>}
+          {event.description && <p className="body-lg text-ink-2 max-w-[68ch]"><Linkify text={event.description} /></p>}
         </div>
 
         <aside className="lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:sticky lg:top-[88px]" aria-label="Registration">
