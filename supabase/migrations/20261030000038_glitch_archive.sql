@@ -1,4 +1,4 @@
-﻿-- Glitch: title supplied by the team; date/venue from TED event 59932.
+-- Glitch: title supplied by the team; date/venue from TED event 59932.
 -- TED displays 28 September 2024 in Africa/Cairo (27 September 21:00 UTC).
 -- Its identical start/end metadata does not establish an end time.
 insert into public.seasons (year, theme, is_active)
