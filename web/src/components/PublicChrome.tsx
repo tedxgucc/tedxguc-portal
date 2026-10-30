@@ -53,7 +53,7 @@ export function PublicHeader() {
     <header className={'public-header' + (scrolled ? ' is-scrolled' : '')}>
       <Link href="/" aria-label="TEDxGUC home" className="public-header__logo"><Lockup height={24} /></Link>
       <nav className="public-desktop-nav" aria-label="Main">
-        {links.filter((l) => !['/', '/join'].includes(l.href)).map((l) => <Link key={l.href} href={l.href} className="public-nav-link" aria-current={isOn(l.href) ? 'page' : undefined}>{l.label}</Link>)}
+        {links.filter((l) => l.href !== '/join').map((l) => <Link key={l.href} href={l.href} className="public-nav-link" aria-current={isOn(l.href) ? 'page' : undefined}>{l.label}</Link>)}
       </nav>
       <div className="public-header__actions">
         <ThemeToggle />

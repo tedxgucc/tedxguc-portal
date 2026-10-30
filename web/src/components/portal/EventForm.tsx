@@ -11,6 +11,7 @@ import { useToast } from '@/components/Toast';
 import { Button, Check2, Segmented, Select, TextArea, TextInput } from '@/components/ui';
 import { api } from '@/lib/api';
 import { adminApi } from '@/lib/api/admin';
+import { safeExternalUrl } from '@/lib/public-discovery';
 import { fmtDate, fromLocalInput, toLocalInput } from '@/lib/format';
 import type { AgendaItem, EventStatus, EventType, LicenseStatus, Speaker, TxEvent } from '@/lib/types';
 
@@ -68,6 +69,7 @@ export function EventForm({ open, onClose, onSaved, event }: { open: boolean; on
       return;
     }
     if (speakers.some((s) => !s.name.trim())) { setError('Every speaker needs a name.'); return; }
+    if (speakers.some((s) => s.talk_url?.trim() && !safeExternalUrl(s.talk_url.trim()))) { setError('Enter a valid HTTP or HTTPS talk link for each speaker, or leave it empty.'); return; }
     setBusy(true);
     setError(null);
     try {
@@ -85,7 +87,7 @@ export function EventForm({ open, onClose, onSaved, event }: { open: boolean; on
       for (const id of removed) await adminApi.deleteSpeaker(id);
       for (const s of speakers) {
         const { key: _k, ...row } = s;
-        await adminApi.saveSpeaker({ ...row, name: row.name.trim(), event_id: saved.id });
+        await adminApi.saveSpeaker({ ...row, name: row.name.trim(), talk_url: row.talk_url?.trim() || null, event_id: saved.id });
       }
       // Internal events are announced to the club; the calendar shows them already.
       if (!f.is_public && announce && f.status === 'published') {
@@ -205,6 +207,7 @@ export function EventForm({ open, onClose, onSaved, event }: { open: boolean; on
                       <TextInput label="Name" value={s.name} onChange={(e) => upd({ name: e.target.value })} />
                       <TextInput label="Talk title" value={s.talk_title ?? ''} onChange={(e) => upd({ talk_title: e.target.value || null })} />
                     </div>
+                    <TextInput label="Talk link (optional)" type="url" placeholder="https://www.youtube.com/watch?v=..." help="The speaker photo arrow opens this talk. Leave empty until the video is available; clear it to remove the link." value={s.talk_url ?? ''} onChange={(e) => upd({ talk_url: e.target.value || null })} />
                     <TextArea label="Short bio" rows={2} value={s.bio ?? ''} onChange={(e) => upd({ bio: e.target.value || null })} />
                     <div className="flex justify-end">
                       <Button type="button" small variant="ghost" onClick={() => { if (s.id) setRemoved([...removed, s.id]); setSpeakers(speakers.filter((_, j) => j !== i)); }}><Trash2 size={16} aria-hidden="true" />Remove speaker</Button>
