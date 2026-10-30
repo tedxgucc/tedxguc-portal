@@ -116,3 +116,26 @@
 @media(max-width:600px){.home-archive-slide{flex-basis:88%}.home-archive-slide:last-child{margin-right:12%}.home-archive-toolbar b{display:block;margin:6px 0 0}.home-archive-speakers-heading{align-items:flex-start}.home-speaker-preview{padding:32px 12px 56px}.home-speaker-preview strong{font-size:13px}.home-speaker-preview>span:last-child{display:none}}
 @media(hover:none){.home-speaker-preview{opacity:1;transform:none}.home-speaker-preview>span:last-child{display:none}}
 @media(prefers-reduced-motion:reduce){.home-speaker-preview{transition:none;transform:none}.home-archive-rail{scroll-behavior:auto}}
+
+/* ---------- Own-voice details (public site) ----------
+   Enhancements over common template patterns; nothing removed. */
+
+/* Small labels read like ticket print (mono) instead of tracked all-caps sans. */
+.public-site .tx-label { font-family: var(--font-mono); font-weight: 500; letter-spacing: .04em; }
+.public-site .tx-label b { font-weight: 600; }
+.public-label-num { display: inline-block; min-width: 2.2em; padding: 1px 5px; margin-right: 6px; color: #fff !important; background: var(--accent); letter-spacing: 0; text-align: center; }
+
+/* Card arrows: quiet until hover, then turn toward the action; the text link carries the words. */
+.public-event-card__arrow, .public-speaker__cue { border-color: transparent; color: var(--ink-3); transition: background .25s, color .25s, border-color .25s, transform .35s cubic-bezier(.2,.8,.2,1); }
+.public-event-card__arrow { background: transparent; }
+.public-speaker__cue { background: color-mix(in srgb, var(--bg) 72%, transparent); backdrop-filter: blur(4px); }
+.public-event-card__arrow svg, .public-speaker__cue svg { transition: transform .35s cubic-bezier(.2,.8,.2,1); }
+.public-event-card:hover .public-event-card__arrow svg, .public-speaker__open:hover .public-speaker__cue svg { transform: rotate(45deg); }
+.public-event-card__cta svg, .public-speaker__more svg { transition: transform .2s; }
+.public-event-card:hover .public-event-card__cta svg, .public-speaker__open:hover .public-speaker__more svg { transform: translate(3px, -3px); }
+
+/* Numbered paths: big outlined numerals that fill TEDx red on hover. */
+.public-path__number { font: 400 64px/.85 var(--font-display); color: transparent; -webkit-text-stroke: 1px var(--line-strong); transition: color .3s, -webkit-text-stroke-color .3s; }
+.public-path:hover .public-path__number { color: var(--accent); -webkit-text-stroke-color: var(--accent); }
+.about-division-tabs__number { font-family: var(--font-display); font-size: 22px; color: transparent; -webkit-text-stroke: 1px currentColor; }
+@media (prefers-reduced-motion: reduce) { .public-event-card__arrow, .public-speaker__cue, .public-path__number { transition: none; } }
