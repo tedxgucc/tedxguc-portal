@@ -215,5 +215,271 @@
     "name": "Roberto Joseph",
     "talk_title": "Signed Out to Sign In",
     "bio": "A digital multi-talented creator who has worked as a software engineer in Dubai, founded SwiftJobs, and served as the Cross-Platform Lead at Ernest in Miami. He channels his expertise into creating disruptive, authentic tech content on TikTok as @techwruby"
+  },
+  {
+    "slug": "back-and-forth",
+    "source": "https://www.ted.com/tedx/events/16609",
+    "name": "Ahmed Al-Kady",
+    "bio": "Debater and co-founder of The Intelligent Question debate club, with experience in Model United Nations and international delegations.",
+    "talk_title": null
+  },
+  {
+    "slug": "back-and-forth",
+    "source": "https://www.ted.com/tedx/events/16609",
+    "name": "Ali Aboulnasr",
+    "bio": "Sports management graduate and football coach developing community opportunities to help young people pursue their sporting ambitions.",
+    "talk_title": null
+  },
+  {
+    "slug": "back-and-forth",
+    "source": "https://www.ted.com/tedx/events/16609",
+    "name": "Mohamed El Zayat",
+    "bio": "Environmental engineer working on environmental impact assessments, clean development and energy efficiency across Middle Eastern projects.",
+    "talk_title": null
+  },
+  {
+    "slug": "back-and-forth",
+    "source": "https://www.ted.com/tedx/events/16609",
+    "name": "Mohamed Rizkallah",
+    "bio": "Educator with a physics background and experience in education policy, STEM education and consulting for educational initiatives.",
+    "talk_title": null
+  },
+  {
+    "slug": "back-and-forth",
+    "source": "https://www.ted.com/tedx/events/16609",
+    "name": "Shaymaa Qadry",
+    "bio": "Founder of GISR Institution for Survey Research, instructor in research methods and project management, and youth-development advocate.",
+    "talk_title": null
+  },
+  {
+    "slug": "back-and-forth",
+    "source": "https://www.ted.com/tedx/events/16609",
+    "name": "Sue Ellen Hassouna",
+    "bio": "Legal professional specializing in business law and dispute settlement, with experience advising international and regional organizations.",
+    "talk_title": null
+  },
+  {
+    "slug": "back-and-forth",
+    "source": "https://www.ted.com/tedx/events/16609",
+    "name": "Wael Habib",
+    "bio": "Physician specializing in musculoskeletal, spine, sports and chiropractic medicine, with experience treating elite athletes.",
+    "talk_title": null
+  },
+  {
+    "slug": "back-and-forth",
+    "source": "https://www.ted.com/tedx/events/16609",
+    "name": "Waheed Morsy",
+    "bio": "Telescope maker sharing astronomy through workshops and training, helping beginners build instruments and develop practical observation skills.",
+    "talk_title": null
+  },
+  {
+    "slug": "cascade",
+    "source": "https://www.ted.com/tedx/events/20479",
+    "name": "Ahmad Saqfalhait",
+    "bio": "Jordanian graphic designer and educator exploring new approaches to Arabic design, with postgraduate design study in Japan.",
+    "talk_title": null
+  },
+  {
+    "slug": "cascade",
+    "source": "https://www.ted.com/tedx/events/20479",
+    "name": "Lobna Mourad",
+    "bio": "Molecular microbiology researcher studying antibiotic resistance and early detection of hepatitis C-related liver cancer.",
+    "talk_title": null
+  },
+  {
+    "slug": "cascade",
+    "source": "https://www.ted.com/tedx/events/20479",
+    "name": "Mahmoud Mansi",
+    "bio": "Author, entrepreneur and founder of HR Revolution Magazine, sharing perspectives on human resources and business journalism.",
+    "talk_title": null
+  },
+  {
+    "slug": "cascade",
+    "source": "https://www.ted.com/tedx/events/20479",
+    "name": "Mohamed Mounir",
+    "bio": "Egyptian engineer and inventor exploring structures designed to reduce damage from water-related disasters.",
+    "talk_title": null
+  },
+  {
+    "slug": "cascade",
+    "source": "https://www.ted.com/tedx/events/20479",
+    "name": "Mona Marie",
+    "bio": "Graphic design instructor at the German University in Cairo.",
+    "talk_title": null
+  },
+  {
+    "slug": "cascade",
+    "source": "https://www.ted.com/tedx/events/20479",
+    "name": "Radwa Rostom",
+    "bio": "Civil engineer and Hand Over founder using sustainable construction to support community development and affordable housing.",
+    "talk_title": null
+  },
+  {
+    "slug": "cascade",
+    "source": "https://www.ted.com/tedx/events/20479",
+    "name": "Sara Aziz",
+    "bio": "Safe Foundation founder raising awareness of child sexual abuse and supporting survivors through counseling.",
+    "talk_title": null
+  },
+  {
+    "slug": "cascade",
+    "source": "https://www.ted.com/tedx/events/20479",
+    "name": "Yasmin Youssef",
+    "bio": "Education technology specialist and teacher trainer helping educators integrate digital media and interactive tools into learning.",
+    "talk_title": null
+  },
+  {
+    "slug": "cascade",
+    "source": "https://www.ted.com/tedx/events/20479",
+    "name": "Yousra Mounir",
+    "bio": "Amaken founder creating travel experiences that connect people, cultures and nature through responsible tourism and self-exploration.",
+    "talk_title": null
+  },
+  {
+    "slug": "identity",
+    "source": "https://www.ted.com/tedx/events/12057",
+    "name": "Ahmed Nabil",
+    "bio": null,
+    "talk_title": null
+  },
+  {
+    "slug": "identity",
+    "source": "https://www.ted.com/tedx/events/12057",
+    "name": "Ammar Abu Bakr",
+    "bio": "Graffiti artist known for works across Egypt, including murals on Mohamed Mahmoud Street during the revolution.",
+    "talk_title": null
+  },
+  {
+    "slug": "identity",
+    "source": "https://www.ted.com/tedx/events/12057",
+    "name": "El Hassan Makled",
+    "bio": null,
+    "talk_title": null
+  },
+  {
+    "slug": "identity",
+    "source": "https://www.ted.com/tedx/events/12057",
+    "name": "Marwan Kattan",
+    "bio": null,
+    "talk_title": null
+  },
+  {
+    "slug": "identity",
+    "source": "https://www.ted.com/tedx/events/12057",
+    "name": "Omar Hisham",
+    "bio": "A young game developer who began by questioning how games work, then learned through experimentation and persistence to create his own.",
+    "talk_title": null
+  },
+  {
+    "slug": "identity",
+    "source": "https://www.ted.com/tedx/events/12057",
+    "name": "Rania Reda",
+    "bio": null,
+    "talk_title": null
+  },
+  {
+    "slug": "echo-2024",
+    "source": "Organizer-provided lineup",
+    "name": "Menna Metwally",
+    "bio": "Known for her creative, fun content and multiple stage talks with SheCan, Menna holds a bachelor's degree in Electrical, Electronics & Communications Engineering. With a one-of-a-kind personality, she brings an inspiring ride to the stage.",
+    "talk_title": null
+  },
+  {
+    "slug": "echo-2024",
+    "source": "Organizer-provided lineup",
+    "name": "Mamdouh Saud",
+    "bio": "With a degree in Applied Arts & Textile Engineering, Mamdouh infuses creativity with a result-driven business approach. As the leader of Toroun - a strategy, branding, and digital marketing agency - his mission is to develop iconic brands and help them make an impact.",
+    "talk_title": null
+  },
+  {
+    "slug": "echo-2024",
+    "source": "Organizer-provided lineup",
+    "name": "Hanaa Medhat",
+    "bio": "With expertise in branding and digital marketing, Hanaa has helped over 50 startups and entrepreneurs build their digital image. She holds a Train of Trainers Certification from Warnborough College and conducts workshops all over Egypt.",
+    "talk_title": null
+  },
+  {
+    "slug": "echo-2024",
+    "source": "Organizer-provided lineup",
+    "name": "Raghda Moataz",
+    "bio": "A young published author of her first book, Absolute Egypt, Raghda also teaches workshops and has been featured in platforms like Slanted magazine, Cairo Scene, and Women of Egypt.",
+    "talk_title": null
+  },
+  {
+    "slug": "alloy",
+    "source": "https://www.ted.com/tedx/events/24683",
+    "name": "Caroline Mitry",
+    "bio": "Educator and assessment specialist exploring representations of mental illness in Egyptian cinema.",
+    "talk_title": null
+  },
+  {
+    "slug": "alloy",
+    "source": "https://www.ted.com/tedx/events/24683",
+    "name": "Nada El Shanawany",
+    "bio": "Environmental management specialist with a background in marine biodiversity and conservation.",
+    "talk_title": null
+  },
+  {
+    "slug": "alloy",
+    "source": "https://www.ted.com/tedx/events/24683",
+    "name": "Omar Sabaa",
+    "bio": "Antakh and ScubaDive Egypt founder supporting sustainable development in Red Sea communities.",
+    "talk_title": null
+  },
+  {
+    "slug": "alloy",
+    "source": "https://www.ted.com/tedx/events/24683",
+    "name": "Rasha Hanafi",
+    "bio": "GUC pharmaceutical analysis professor, researcher and consultant in analytical chemistry.",
+    "talk_title": null
+  },
+  {
+    "slug": "alloy",
+    "source": "https://www.ted.com/tedx/events/24683",
+    "name": "Rasha Maaty",
+    "bio": "Fard Foundation director supporting refugees through education, livelihoods and community services.",
+    "talk_title": null
+  },
+  {
+    "slug": "alloy",
+    "source": "https://www.ted.com/tedx/events/24683",
+    "name": "Reem Hashem",
+    "bio": "Drama therapist using storytelling, role play and theatrical techniques in therapeutic practice.",
+    "talk_title": null
+  },
+  {
+    "slug": "alloy",
+    "source": "https://www.ted.com/tedx/events/24683",
+    "name": "Salsabil Amin",
+    "bio": "Product designer combining architecture and other design disciplines to serve everyday life.",
+    "talk_title": null
+  },
+  {
+    "slug": "alloy",
+    "source": "https://www.ted.com/tedx/events/24683",
+    "name": "Sara Abdel-Aziz",
+    "bio": "Obstetrics and gynecology lecturer researching cord blood stem cells and banking.",
+    "talk_title": null
+  },
+  {
+    "slug": "alloy",
+    "source": "https://www.ted.com/tedx/events/24683",
+    "name": "Yaser Ayoub",
+    "bio": "Sports journalist and media professional advocating for athletes across different sports.",
+    "talk_title": null
+  },
+  {
+    "slug": "alloy",
+    "source": "https://www.ted.com/tedx/events/24683",
+    "name": "Yehia Abugabal",
+    "bio": "Clinical oncologist and International Cancer Research Center founder supporting research and awareness.",
+    "talk_title": null
+  },
+  {
+    "slug": "alloy",
+    "source": "https://www.ted.com/tedx/events/24683",
+    "name": "Youssef Farag",
+    "bio": "Qubix co-founder managing sales, operations and finance, with an interest in urban development.",
+    "talk_title": null
   }
 ]

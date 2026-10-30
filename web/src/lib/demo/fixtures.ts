@@ -83,6 +83,48 @@ export const emailOf = (userId: string) =>
 
 export const events: TxEvent[] = [
   {
+    id: 'e-alloy', type: 'main_event', title: 'Alloy', slug: 'alloy',
+    description: "TEDxGUC Alloy explored how different perspectives combine to shape communities and personal identity. Official event listing: https://www.ted.com/tedx/events/24683",
+    agenda: [], starts_at: '2017-09-22T22:00:00Z', ends_at: null,
+    venue: 'AUC Bassily Hall, Cairo, Egypt', capacity: null,
+    registration_opens_at: null, registration_closes_at: null, license_status: 'licensed', is_public: true, status: 'completed', ticket_prefix: 'TX17',
+  },
+  {
+    id: 'e-synergizers', type: 'main_event', title: 'Synergizers', slug: 'synergizers',
+    description: "TEDxGUC's first event, Synergizers, explored synergy and the collective power of ideas. Live speakers and screened talks brought different perspectives on collaboration and shared possibilities. Official event listing: https://www.ted.com/tedx/events/6034",
+    agenda: [], starts_at: '2013-04-26T08:00:00Z', ends_at: '2013-04-26T17:00:00Z',
+    venue: 'University Auditorium, German University in Cairo, New Cairo, Egypt', capacity: null,
+    registration_opens_at: null, registration_closes_at: null, license_status: 'licensed', is_public: true, status: 'completed', ticket_prefix: 'TX13',
+  },
+  {
+    id: 'e-identity', type: 'main_event', title: 'Identity?', slug: 'identity',
+    description: "TEDxGUC Identity? explored how communities shape who we are and how people navigate expectations and limitations. Official event listing: https://www.ted.com/tedx/events/12057",
+    agenda: [], starts_at: '2014-06-27T08:00:00Z', ends_at: '2014-06-27T17:00:00Z',
+    venue: 'German University in Cairo, New Cairo, Egypt', capacity: null,
+    registration_opens_at: null, registration_closes_at: null, license_status: 'licensed', is_public: true, status: 'completed', ticket_prefix: 'TX14',
+  },
+  {
+    id: 'e-cascade', type: 'main_event', title: 'Cascade', slug: 'cascade',
+    description: "TEDxGUC Cascade explored continuity, change and how ideas pass between people. Official event listing: https://www.ted.com/tedx/events/20479",
+    agenda: [], starts_at: '2016-08-06T10:30:00Z', ends_at: '2016-08-06T19:00:00Z',
+    venue: 'AUC Bassily Hall, Cairo, Egypt', capacity: null,
+    registration_opens_at: null, registration_closes_at: null, license_status: 'licensed', is_public: true, status: 'completed', ticket_prefix: 'TX16',
+  },
+  {
+    id: 'e-back-and-forth', type: 'main_event', title: 'Back & Forth', slug: 'back-and-forth',
+    description: "TEDxGUC Back & Forth explored change, recurring patterns and the forces that shape our lives. Official event listing: https://www.ted.com/tedx/events/16609",
+    agenda: [], starts_at: '2015-08-28T06:00:00Z', ends_at: '2015-08-28T17:00:00Z',
+    venue: 'Police Academy, Main Conference Hall, Cairo, Egypt', capacity: null,
+    registration_opens_at: null, registration_closes_at: null, license_status: 'licensed', is_public: true, status: 'completed', ticket_prefix: 'TX15',
+  },
+  {
+    id: 'e-charoma', type: 'salon', title: 'Charoma', slug: 'charoma',
+    description: 'TEDxGUC Salon: Charoma. An independently organized TEDx Salon at the German University in Cairo. Official event listing: https://www.ted.com/tedx/events/15952',
+    agenda: [], starts_at: '2015-05-01T07:00:00Z', ends_at: '2015-05-01T14:00:00Z',
+    venue: 'German University in Cairo, New Cairo, Egypt', capacity: null,
+    registration_opens_at: null, registration_closes_at: null, license_status: 'licensed', is_public: true, status: 'completed', ticket_prefix: 'SAL15',
+  },
+  {
     id: 'e-whitespace', type: 'main_event', title: 'Whitespace', slug: 'whitespace',
     description: 'TEDxGUC Whitespace. An independently organized TEDx event at the German University in Cairo. Official event listing: https://www.ted.com/tedx/events/56129',
     agenda: [], starts_at: '2023-10-08T21:00:00Z', ends_at: null,
@@ -144,10 +186,11 @@ export const events: TxEvent[] = [
     registration_opens_at: null, registration_closes_at: null, license_status: 'licensed', is_public: true, status: 'completed', ticket_prefix: 'TX26',
   },
   {
-    id: 'e-salon26', type: 'salon', title: 'Echo', slug: 'echo',
-    description: 'A 2026 salon about the ideas that keep coming back.', agenda: [],
-    starts_at: at(-300, 18), ends_at: at(-300, 21), venue: 'GUC Building C', capacity: 150,
-    registration_opens_at: null, registration_closes_at: null, license_status: 'licensed', is_public: true, status: 'completed', ticket_prefix: 'SAL26',
+    id: 'e-echo-2024', type: 'salon', title: 'Echo', slug: 'echo-2024',
+    description: "TEDxGUC Salon: Echo. An independently organized TEDx Salon in Cairo. Official event listing: https://www.ted.com/tedx/events/58700",
+    agenda: [], starts_at: '2024-05-10T21:00:00Z', ends_at: null,
+    venue: 'Cairo, Egypt', capacity: null,
+    registration_opens_at: null, registration_closes_at: null, license_status: 'licensed', is_public: true, status: 'completed', ticket_prefix: 'SAL24',
   },
 ];
 
