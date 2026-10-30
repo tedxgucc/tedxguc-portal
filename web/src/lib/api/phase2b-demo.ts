@@ -152,10 +152,15 @@ export const demoRecruitmentApi: RecruitmentApi = {
     if (me().role !== 'chairman') fail('not_allowed');
     const st = s();
     if (!st.cycles.some(c => c.id === id)) fail('not_found');
-    if (st.apps.some(a => a.cycle_id === id) || st.plans.some(p => p.cycle_id === id)) fail('round_has_records');
+    const applicantIds = new Set(st.apps.filter(a => a.cycle_id === id).map(a => a.id));
+    st.scores = st.scores.filter(score => !applicantIds.has(score.application_id));
+    st.referrals = st.referrals?.filter(referral => !applicantIds.has(referral.application_id));
+    st.apps = st.apps.filter(a => a.cycle_id !== id);
+    st.plans = st.plans.filter(p => p.cycle_id !== id);
     st.cycles = st.cycles.filter(c => c.id !== id);
     st.positions = st.positions.filter(p => p.cycle_id !== id);
-    st.slots = st.slots.filter(slot => slot.cycle_id !== id);
+    st.slots = st.slots.filter(slot => slot.cycle_id !== id).map(slot => slot.application_id && applicantIds.has(slot.application_id) ? { ...slot, application_id: null } : slot);
+    if (st.availability) st.availability = Object.fromEntries(Object.entries(st.availability).filter(([key]) => key.split(':')[1] !== id));
     save();
   },
   async saveCycle(input) {
