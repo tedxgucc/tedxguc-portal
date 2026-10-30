@@ -82,6 +82,34 @@ export const emailOf = (userId: string) =>
 
 export const events: TxEvent[] = [
   {
+    id: 'e-whitespace', type: 'main_event', title: 'Whitespace', slug: 'whitespace',
+    description: 'TEDxGUC Whitespace. An independently organized TEDx event at the German University in Cairo. Official event listing: https://www.ted.com/tedx/events/56129',
+    agenda: [], starts_at: '2023-10-08T21:00:00Z', ends_at: null,
+    venue: 'German University in Cairo, New Cairo, Egypt', capacity: null,
+    registration_opens_at: null, registration_closes_at: null, license_status: 'licensed', is_public: true, status: 'completed', ticket_prefix: 'TX23',
+  },
+  {
+    id: 'e-pillars-of-everything', type: 'salon', title: 'Pillars Of Everything', slug: 'pillars-of-everything',
+    description: 'TEDxGUC Salon: Pillars Of Everything. An independently organized TEDx Salon at the German University in Cairo. Official event listing: https://www.ted.com/tedx/events/63917',
+    agenda: [], starts_at: '2025-05-09T21:00:00Z', ends_at: null,
+    venue: 'German University in Cairo, New Cairo, Egypt', capacity: null,
+    registration_opens_at: null, registration_closes_at: null, license_status: 'licensed', is_public: true, status: 'completed', ticket_prefix: 'SAL25',
+  },
+  {
+    id: 'e-glitch', type: 'main_event', title: 'Glitch', slug: 'glitch',
+    description: 'TEDxGUC Glitch. An independently organized TEDx event at the German University in Cairo. Official event listing: https://www.ted.com/tedx/events/59932',
+    agenda: [], starts_at: '2024-09-27T21:00:00Z', ends_at: null,
+    venue: 'German University in Cairo, New Cairo, Egypt', capacity: null,
+    registration_opens_at: null, registration_closes_at: null, license_status: 'licensed', is_public: true, status: 'completed', ticket_prefix: 'TX24',
+  },
+  {
+    id: 'e-under-construction', type: 'main_event', title: 'Under Construction', slug: 'under-construction',
+    description: 'TEDxGUC Under Construction. A day of independently organized talks at the German University in Cairo. Official event listing: https://www.ted.com/tedx/events/65988',
+    agenda: [], starts_at: '2025-09-27T13:00:00Z', ends_at: '2025-09-27T18:00:00Z',
+    venue: 'German University in Cairo, New Cairo, Egypt', capacity: null,
+    registration_opens_at: null, registration_closes_at: null, license_status: 'licensed', is_public: true, status: 'completed', ticket_prefix: 'TX25',
+  },
+  {
     id: 'e-main27', type: 'main_event', title: 'Loose Ends', slug: 'loose-ends',
     description: 'Our 2027 Main Event: a day of talks about the threads we leave untied, and the ones worth pulling. Eight speakers, one stage, and a lot of conversations in between.',
     agenda: [
