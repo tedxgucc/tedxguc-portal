@@ -1,7 +1,7 @@
 ﻿'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { LockupWhite, PortalMark } from './Brand';
+import { LockupWhite, TedxMark } from './Brand';
 
 // Spotlight entrance adapted from the supplied home-page design.
 export function OpeningScreen({ portal = false }: { portal?: boolean }) {
@@ -59,7 +59,7 @@ export function OpeningScreen({ portal = false }: { portal?: boolean }) {
   }, [playing, portal]);
   if (!playing) return null;
   return <div className={'spotlight-intro' + (portal ? ' is-portal' : '')} ref={overlay} aria-label={portal ? 'TEDxGUC portal introduction' : 'TEDxGUC introduction'}>
-    {portal && <div className="spotlight-portal"><div className="spotlight-portal-mark"><PortalMark size={150} /></div><LockupWhite height={28} /><span>TEAM PORTAL</span></div>}
+    {portal && <div className="spotlight-portal"><div className="spotlight-portal-mark"><TedxMark size={150} /></div><LockupWhite height={28} /><span>TEAM PORTAL</span></div>}
     <div className="spotlight-dark" aria-hidden="true" />
   </div>;
 }

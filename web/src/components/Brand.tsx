@@ -22,6 +22,13 @@ export function PortalMark({ size = 28, white = false }: { size?: number; white?
   return <img src={`${BASE_PATH}/brand/portal-mark-${white ? 'white' : 'red'}.svg`} alt="" width={size} height={size} aria-hidden="true" />;
 }
 
+// Display the actual TEDx x from the official lockup, without redrawing it.
+export function TedxMark({ size = 28 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="385 0 92 90" aria-hidden="true" focusable="false" style={{ flexShrink: 0 }}>
+    <image href={BASE_PATH + '/brand/tedxguc-lockup-black.png'} x="0" y="0" width="892" height="143" />
+  </svg>;
+}
+
 // Page label: "OPERATIONS (04)" with the count in accent-ink.
 export function TxLabel({ children, count, className = '' }: { children: React.ReactNode; count?: number | string; className?: string }) {
   return (

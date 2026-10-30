@@ -26,17 +26,14 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
-    { media: '(prefers-color-scheme: dark)', color: '#000000' },
-  ],
+  themeColor: '#000000',
   width: 'device-width',
   initialScale: 1,
 };
 
 // Runs before paint so the page never flashes the wrong theme
 // (design system: "10 · Tokens as code → Theme switching").
-const themeScript = `(function(){try{var s=localStorage.getItem('tx-theme');var t=s||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');document.documentElement.dataset.theme=t;if(localStorage.getItem('tx-nav')==='closed')document.documentElement.dataset.nav='closed';}catch(e){document.documentElement.dataset.theme='dark';}})();`;
+const themeScript = `(function(){try{var s=localStorage.getItem('tx-theme');var t=s==='auto'?(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'):s==='light'?'light':'dark';document.documentElement.dataset.theme=t;document.querySelector('meta[name="theme-color"]')?.setAttribute('content',t==='light'?'#ffffff':'#000000');if(localStorage.getItem('tx-nav')==='closed')document.documentElement.dataset.nav='closed';}catch(e){document.documentElement.dataset.theme='dark';}})();`;
 
 // Decide the homepage intro before paint; returning visits and reduced motion skip it.
 const introScript = `(function(){try{var base=${JSON.stringify(BASE_PATH)};var path=location.pathname.slice(base.length).replace(/\\/+$/, '')||'/';var portal=path==='/login'||path==='/portal'||path.indexOf('/portal/')===0;var mode=portal?'portal':path==='/'?'site':'';var key=portal?'tx-portal-intro-seen':'tx-intro-seen';if(mode&&!sessionStorage.getItem(key)&&!matchMedia('(prefers-reduced-motion: reduce)').matches){document.documentElement.dataset.introMode=mode;document.documentElement.dataset.introStarted=String(performance.now());document.documentElement.classList.add('intro-playing');}else{document.documentElement.classList.add('intro-done');}}catch(e){}})();`;

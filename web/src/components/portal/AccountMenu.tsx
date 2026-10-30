@@ -16,20 +16,20 @@ function applyTheme(mode: Mode) {
   const t = mode === 'auto' ? (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : mode;
   document.documentElement.dataset.theme = t;
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', t === 'light' ? '#ffffff' : '#000000');
-  try { if (mode === 'auto') localStorage.removeItem('tx-theme'); else localStorage.setItem('tx-theme', mode); } catch { /* private mode */ }
+  try { localStorage.setItem('tx-theme', mode); } catch { /* private mode */ }
 }
 
 export function AccountMenu() {
   const { me } = usePortal();
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [mode, setMode] = useState<Mode>('auto');
+  const [mode, setMode] = useState<Mode>('dark');
   const box = useRef<HTMLDivElement>(null);
   const role = me.role ? roleLabel[me.role] : 'Alumni';
   const scope = me.team_name ?? me.division_name;
 
   useEffect(() => {
-    try { setMode((localStorage.getItem('tx-theme') as Mode | null) ?? 'auto'); } catch { /* ignore */ }
+    try { setMode((localStorage.getItem('tx-theme') as Mode | null) ?? 'dark'); } catch { /* ignore */ }
   }, []);
   useEffect(() => {
     if (!open) return;

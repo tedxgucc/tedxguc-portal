@@ -3,7 +3,7 @@ import { ArrowLeft, ArrowRight, CalendarDays, Check, Eye, EyeOff, Layers3, LockK
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useRef, useState } from 'react';
-import { Lockup, PortalMark } from '@/components/Brand';
+import { Lockup, TedxMark } from '@/components/Brand';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useToast } from '@/components/Toast';
 import { Avatar, Button } from '@/components/ui';
@@ -86,7 +86,7 @@ function LoginInner() {
         </section>
         <section className="login-access" aria-labelledby="login-title">
           <div className="login-card">
-            <div className="login-card-top"><PortalMark size={34} /><span><LockKeyhole size={12} />{DEMO ? 'DEMO ACCESS' : 'MEMBER ACCESS'}</span></div>
+            <div className="login-card-top"><TedxMark size={34} /><span><LockKeyhole size={12} />{DEMO ? 'DEMO ACCESS' : 'MEMBER ACCESS'}</span></div>
             <h2 id="login-title">{DEMO ? 'Meet your portal.' : mode === 'setup' ? 'Your journey starts here.' : mode === 'reset' ? 'Let\'s get you back in.' : 'Welcome back.'}</h2>
             <p className="login-card-intro">{DEMO ? 'Explore the team workspace. Choose a demo role to see it in action.' : mode === 'setup' ? 'Use the email your Chairman or Curator invited to set up your account.' : mode === 'reset' ? 'Enter your account email and we will send you a reset link.' : 'Sign in to your TEDxGUC team workspace.'}</p>
             {error && <div className="login-message is-error" role="alert">{error}</div>}
