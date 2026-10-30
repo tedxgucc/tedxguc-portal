@@ -260,7 +260,7 @@ export const demoApi: Api = {
       registration_id: g.id, status: g.status, guest_name: g.guest_name, guest_type: g.guest_type, ticket_no: g.ticket_no || null,
       ticket_code: g.status === 'registered' ? g.ticket_code : null, checked_in_at: g.checked_in_at,
       waitlist_position: g.status === 'waitlisted' ? waiting.findIndex((x) => x.id === g.id) + 1 : null,
-      event: { id: e.id, title: e.title, starts_at: e.starts_at, ends_at: e.ends_at, venue: e.venue },
+      event: { id: e.id, title: e.title, starts_at: e.starts_at, ends_at: e.ends_at, venue: e.venue, ticket_partners: e.ticket_partners ?? [] },
     };
   },
   async cancelTicket(token) {

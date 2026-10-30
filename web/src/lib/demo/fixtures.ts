@@ -1,6 +1,7 @@
 // Sample data for demo mode. Divisions and teams are the real 2027 setup
 // (FR-3.2); people, events and tasks are invented. Dates are relative to
 // today so the demo always looks current.
+import archiveSpeakers from '../data/archive-speakers.json';
 import type {
   Announcement, CalendarItem, Division, EventField, Invite, Member, Notification, Partner, Section, Speaker,
   Task, TaskComment, Team, TxEvent,
@@ -156,6 +157,7 @@ export const eventFields: EventField[] = [
 ];
 
 export const speakers: Speaker[] = [
+  ...archiveSpeakers.map((s, i) => ({ id: 'archive-speaker-' + i, event_id: 'e-' + s.slug, name: s.name, bio: s.bio, photo_url: null, talk_title: s.talk_title, talk_url: null })),
   { id: 's1', event_id: 'e-main27', name: 'Dr. Rania Aziz', bio: 'Neuroscientist studying how unfinished tasks stay on our minds.', photo_url: null, talk_title: 'The itch of the unfinished', talk_url: null },
   { id: 's2', event_id: 'e-main27', name: 'Mazen Fathy', bio: 'Architect who restores abandoned buildings in Downtown Cairo.', photo_url: null, talk_title: 'Buildings that wait', talk_url: null },
   { id: 's3', event_id: 'e-main27', name: 'Heba Lotfy', bio: 'Founder of a repair café network across Egypt.', photo_url: null, talk_title: 'Fix it, don’t replace it', talk_url: null },

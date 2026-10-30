@@ -40,6 +40,7 @@ export function EventForm({ open, onClose, onSaved, event }: { open: boolean; on
   }));
   const [agenda, setAgenda] = useState<(AgendaItem & { key: string })[]>(() => (event?.agenda ?? []).map((a) => ({ ...a, key: key() })));
   const [speakers, setSpeakers] = useState<SpeakerDraft[]>([]);
+  const [ticketPartners, setTicketPartners] = useState(() => (event?.ticket_partners ?? []).map(p => ({ ...p, key: key() })));
   const [removed, setRemoved] = useState<string[]>([]);
   const [announce, setAnnounce] = useState(!event);
   const [busy, setBusy] = useState(false);
@@ -70,6 +71,7 @@ export function EventForm({ open, onClose, onSaved, event }: { open: boolean; on
     }
     if (speakers.some((s) => !s.name.trim())) { setError('Every speaker needs a name.'); return; }
     if (speakers.some((s) => s.talk_url?.trim() && !safeExternalUrl(s.talk_url.trim()))) { setError('Enter a valid HTTP or HTTPS talk link for each speaker, or leave it empty.'); return; }
+    if (ticketPartners.some(p => !p.name.trim() || !p.logo_url)) { setError('Add a name and logo for each ticket partner, or remove the empty partner.'); return; }
     setBusy(true);
     setError(null);
     try {
@@ -83,6 +85,7 @@ export function EventForm({ open, onClose, onSaved, event }: { open: boolean; on
         registration_closes_at: f.is_public && f.registration_closes_at ? fromLocalInput(f.registration_closes_at) : null,
         license_status: f.license_status, is_public: f.is_public, status: f.status, ticket_prefix: f.ticket_prefix.trim().toUpperCase() || 'TX',
         cover_url: f.cover_url,
+        ticket_partners: ticketPartners.map(p => ({ name: p.name.trim(), logo_url: p.logo_url })),
       });
       for (const id of removed) await adminApi.deleteSpeaker(id);
       for (const s of speakers) {
@@ -193,6 +196,15 @@ export function EventForm({ open, onClose, onSaved, event }: { open: boolean; on
             <div><Button type="button" variant="secondary" small onClick={() => setAgenda([...agenda, { key: key(), time: agenda.at(-1)?.time ?? '18:00', title: '' }])}><Plus size={16} aria-hidden="true" />Add to agenda</Button></div>
           </div>
         ), 'In order. Guests see it on the event page.')}
+
+        {section('Ticket partners', <div className="grid gap-s3">
+          {ticketPartners.map(p => <div key={p.key} className="tx-card grid gap-s3 sm:grid-cols-2">
+            <TextInput label="Partner name" value={p.name} onChange={e => setTicketPartners(rows => rows.map(row => row.key === p.key ? { ...row, name: e.target.value } : row))} />
+            <PhotoPicker label="Partner logo" folder="partners" url={p.logo_url || null} onChange={url => setTicketPartners(rows => rows.map(row => row.key === p.key ? { ...row, logo_url: url ?? '' } : row))} />
+            <Button type="button" small variant="ghost" onClick={() => setTicketPartners(rows => rows.filter(row => row.key !== p.key))}><Trash2 size={16} aria-hidden="true" />Remove partner</Button>
+          </div>)}
+          <div><Button type="button" small variant="secondary" onClick={() => setTicketPartners(rows => [...rows, { key: key(), name: '', logo_url: '' }])}><Plus size={16} aria-hidden="true" />Add ticket partner</Button></div>
+        </div>, 'Logos appear below Powered by on this event?s tickets, including saved PNGs. Add multiple partners, or remove all to hide the section.')}
 
         {section('Speakers', (
           <div className="grid gap-s3">

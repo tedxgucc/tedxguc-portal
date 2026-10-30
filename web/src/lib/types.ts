@@ -44,6 +44,8 @@ export type LicenseStatus = 'pending' | 'licensed' | 'not_required';
 
 export type AgendaItem = { time: string; title: string; speaker?: string };
 
+export type TicketPartner = { name: string; logo_url: string };
+
 export type TxEvent = {
   id: string;
   type: EventType;
@@ -63,6 +65,7 @@ export type TxEvent = {
   ticket_prefix: string;
   /** Cover photo shown on the site and in the portal. */
   cover_url?: string | null;
+  ticket_partners?: TicketPartner[];
 };
 
 export type EventField = {
@@ -105,7 +108,7 @@ export type TicketView = {
   ticket_code: string | null;
   checked_in_at: string | null;
   waitlist_position: number | null;
-  event: { id: string; title: string; starts_at: string; ends_at: string | null; venue: string | null };
+  event: { id: string; title: string; starts_at: string; ends_at: string | null; venue: string | null; ticket_partners?: TicketPartner[] };
 };
 
 export type TaskStatus = 'requested' | 'todo' | 'in_progress' | 'in_review' | 'done' | 'declined';

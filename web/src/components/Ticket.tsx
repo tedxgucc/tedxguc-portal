@@ -6,6 +6,8 @@ import QRCode from 'qrcode';
 import { useEffect, useState } from 'react';
 import { fmtDate, fmtTime } from '@/lib/format';
 import { LockupWhite } from './Brand';
+import type { TicketPartner } from '@/lib/types';
+import { assetUrl } from '@/lib/env';
 import { ticketTier } from '@/lib/event-registration';
 
 export function QR({ value, label, className = 'tx-ticket__qr' }: { value: string; label: string; className?: string }) {
@@ -18,8 +20,8 @@ export function QR({ value, label, className = 'tx-ticket__qr' }: { value: strin
   return <div className={className} role="img" aria-label={label} dangerouslySetInnerHTML={{ __html: svg }} />;
 }
 
-export function Ticket({ eventTitle, eventKind, guestName, guestType, startsAt, venue, ticketNo, code }: {
-  eventTitle: string; eventKind: string; guestName: string; guestType?: string; startsAt: string; venue: string | null; ticketNo: string; code: string;
+export function Ticket({ eventTitle, eventKind, guestName, guestType, startsAt, venue, ticketNo, code, partners = [] }: {
+  eventTitle: string; eventKind: string; guestName: string; guestType?: string; startsAt: string; venue: string | null; ticketNo: string; code: string; partners?: TicketPartner[];
 }) {
   return (
     <div className="tx-ticket" id="ticket">
@@ -40,6 +42,12 @@ export function Ticket({ eventTitle, eventKind, guestName, guestType, startsAt, 
         </div>
         <QR value={code} label={`Ticket QR code ${ticketNo}`} />
         <div className="tx-ticket__code">{ticketNo}</div>
+        {!!partners.length && <section aria-label="Event partners" style={{ marginTop: 24, paddingTop: 20, borderTop: '1px solid #dedbd7', textAlign: 'center' }}>
+          <div className="tx-ticket__k" style={{ marginBottom: 14 }}>Powered by</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: 20 }}>
+            {partners.map((p, i) => <img key={i} src={assetUrl(p.logo_url)} alt={p.name} crossOrigin="anonymous" style={{ width: 112, height: 56, objectFit: 'contain' }} /> /* eslint-disable-line @next/next/no-img-element */)}
+          </div>
+        </section>}
       </div>
       <div className="tx-ticket__bar" />
     </div>

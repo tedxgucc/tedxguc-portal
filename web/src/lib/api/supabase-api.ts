@@ -11,7 +11,7 @@ import { toApiError } from './errors';
 import { rosterUnavailable } from './team-roster';
 import { ApiError, type Api } from './types';
 
-const EVENT_COLS = 'id, type, title, slug, description, agenda, starts_at, ends_at, venue, capacity, registration_opens_at, registration_closes_at, license_status, is_public, status, ticket_prefix, cover_url';
+const EVENT_COLS = 'id, type, title, slug, description, agenda, starts_at, ends_at, venue, capacity, registration_opens_at, registration_closes_at, license_status, is_public, status, ticket_prefix, cover_url, ticket_partners';
 
 // Lists come back as [] rather than null; single rows may be null.
 async function run<T>(p: PromiseLike<{ data: T | null; error: unknown }>): Promise<T> {
