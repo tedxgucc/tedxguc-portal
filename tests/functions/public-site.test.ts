@@ -46,12 +46,14 @@ test('external content links allow only HTTP and HTTPS', () => {
  assert.equal(safeExternalUrl(null), null);
  assert.equal(safeExternalUrl('https://example.com/talk'), 'https://example.com/talk');
 });
-test('launch checks reject service-role browser keys and Turnstile test keys', () => {
+test('launch checks allow optional Turnstile and reject unsafe configured keys', () => {
  const cwd = fileURLToPath(new URL('../../web/', import.meta.url));
  const key = (role: string) => 'test.' + Buffer.from(JSON.stringify({ role })).toString('base64url') + '.signature';
  const base = { ...process.env, NEXT_PUBLIC_SUPABASE_URL: 'https://example.supabase.co', NEXT_PUBLIC_SITE_URL: 'https://example.com/site', NEXT_PUBLIC_TURNSTILE_SITE_KEY: '0x4AAAAAAAEXAMPLEPRODUCTIONKEY', NEXT_PUBLIC_SUPABASE_ANON_KEY: key('anon') };
  const run = (patch = {}) => spawnSync(process.execPath, ['scripts/check-launch.mjs'], { cwd, env: { ...base, ...patch }, encoding: 'utf8' });
  assert.equal(run().status, 0);
+ assert.equal(run({ NEXT_PUBLIC_TURNSTILE_SITE_KEY: '' }).status, 0);
+ assert.equal(run({ NEXT_PUBLIC_TURNSTILE_SITE_KEY: 'invalid' }).status, 1);
  const secret = key('service_role'); const rejected = run({ NEXT_PUBLIC_SUPABASE_ANON_KEY: secret });
  assert.equal(rejected.status, 1); assert.ok(!rejected.stdout.includes(secret));
  assert.equal(run({ NEXT_PUBLIC_TURNSTILE_SITE_KEY: '1x00000000000000000000AA' }).status, 1);

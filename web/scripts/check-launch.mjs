@@ -11,7 +11,11 @@ let publicKey = key.startsWith('sb_publishable_') && key.length > 30;
 try { publicKey ||= JSON.parse(Buffer.from(key.split('.')[1] ?? '', 'base64url').toString()).role === 'anon'; } catch { /* Invalid key. */ }
 check('Browser-safe Supabase key', publicKey, 'Set the anon/publishable key, never a service-role or secret key.');
 const turnstile = env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
-check('Public-form spam protection', turnstile.length >= 20 && !/^[123]x0{5}/.test(turnstile), 'Set a production NEXT_PUBLIC_TURNSTILE_SITE_KEY and its matching server secret.');
+if (turnstile) {
+  check('Optional Turnstile configuration', turnstile.length >= 20 && !/^[123]x0{5}/.test(turnstile), 'Use a production NEXT_PUBLIC_TURNSTILE_SITE_KEY and its matching server secret, or leave both unset.');
+} else {
+  console.log('SKIP Optional Turnstile: not configured.');
+}
 check('Canonical public site URL', httpsUrl(env.NEXT_PUBLIC_SITE_URL), 'Set NEXT_PUBLIC_SITE_URL to the full public HTTPS URL, including any repository prefix.');
 if (process.argv.includes('--online') && !failed) {
   const base = env.NEXT_PUBLIC_SUPABASE_URL.replace(/\/$/, '');
