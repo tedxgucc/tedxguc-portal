@@ -1,4 +1,4 @@
-﻿-- Deleting a round also deletes all of its applicants and recruitment records.
+-- Deleting a round also deletes all of its applicants and recruitment records.
 -- One transaction: a failure rolls back the complete deletion.
 -- Accepted members' accounts, memberships and invites are kept.
 create or replace function public.delete_recruitment_cycle(p_cycle_id uuid) returns void
