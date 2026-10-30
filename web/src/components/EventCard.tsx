@@ -9,11 +9,12 @@ export function EventCard({ event, past = false }: { event: TxEvent; past?: bool
   const d = new Date(event.starts_at);
   const day = new Intl.DateTimeFormat('en-GB', { day: '2-digit', timeZone: 'Africa/Cairo' }).format(d);
   const month = new Intl.DateTimeFormat('en-GB', { month: 'short', timeZone: 'Africa/Cairo' }).format(d);
+  const year = new Intl.DateTimeFormat('en-GB', { year: 'numeric', timeZone: 'Africa/Cairo' }).format(d);
   const href = event.slug ? '/event?s=' + encodeURIComponent(event.slug) : '/events';
   return <Link href={href} className={'public-event-card' + (past ? ' is-past' : '')}>
     <div className="public-event-card__visual">
       {event.cover_url ? <img src={event.cover_url} alt="" width={960} height={540} loading="lazy" decoding="async" /> : <div className="public-event-card__graphic" aria-hidden="true"><span>{eventKind(event)}</span><b>{event.title}</b></div>}
-      <div className="public-event-card__date" aria-hidden="true"><b>{day}</b><span>{month}</span></div>
+      <div className="public-event-card__date" aria-hidden="true"><b>{day}</b><span>{month}</span><span>{year}</span></div>
       <span className="public-event-card__tag">{event.status === 'cancelled' ? 'Cancelled' : past ? 'Past event' : eventKind(event)}</span>
     </div>
     <div className="public-event-card__body"><div className="public-event-card__title"><h3>{event.title}</h3><span className="public-event-card__arrow"><ArrowUpRight size={22} aria-hidden="true" /></span></div>
