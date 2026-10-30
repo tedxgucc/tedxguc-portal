@@ -1,4 +1,4 @@
-﻿-- Event deletion uses the same Chairman/Curator permission as event editing.
+-- Event deletion uses the same Chairman/Curator permission as event editing.
 -- Keep registration and finance records protected by their foreign keys.
 create or replace function public.delete_event(p_event_id uuid) returns void
 language plpgsql security definer set search_path = '' as $$

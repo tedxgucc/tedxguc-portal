@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import { ArrowUpRight, MapPin } from 'lucide-react';
 import Link from 'next/link';
-import { fmtDate, fmtTime } from '@/lib/format';
+import { fmtDate, fmtTime, hasKnownTime } from '@/lib/format';
 import type { TxEvent } from '@/lib/types';
 
 export const eventKind = (e: Pick<TxEvent, 'type'>) => e.type === 'main_event' ? 'Main Event' : e.type === 'salon' ? 'Salon' : e.type === 'workshop' ? 'Workshop' : 'Event';
@@ -18,9 +18,9 @@ export function EventCard({ event, past = false }: { event: TxEvent; past?: bool
       <span className="public-event-card__tag">{event.status === 'cancelled' ? 'Cancelled' : past ? 'Past event' : eventKind(event)}</span>
     </div>
     <div className="public-event-card__body"><div className="public-event-card__title"><h3>{event.title}</h3><span className="public-event-card__arrow"><ArrowUpRight size={22} aria-hidden="true" /></span></div>
-      <p className="text-caption text-ink-3">{fmtDate(event.starts_at, { year: true })} / {fmtTime(event.starts_at)} Cairo</p>
+      <p className="text-caption text-ink-3">{fmtDate(event.starts_at, { year: true })}{hasKnownTime(event.starts_at) ? ` / ${fmtTime(event.starts_at)} Cairo` : ''}</p>
       {event.venue && <p className="public-event-card__venue"><MapPin size={14} aria-hidden="true" />{event.venue}</p>}
-      {event.description && <p className="public-event-card__description">{event.description}</p>}
+      {event.description && <p className="public-event-card__description">{event.description.replace(/\s*Official event listing:\s*https?:\/\/\S+/i, '')}</p>}
       <span className="public-event-card__cta">{past || event.status === 'cancelled' ? 'Explore this event' : 'Discover the experience'}<ArrowUpRight size={15} aria-hidden="true" /></span>
     </div>
   </Link>;
