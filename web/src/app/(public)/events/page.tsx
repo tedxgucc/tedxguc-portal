@@ -9,10 +9,10 @@ import { api } from '@/lib/api';
 import { filterEvents } from '@/lib/public-discovery';
 import { usePublicData } from '@/lib/usePublicData';
 
-const kinds = [{ value: '', label: 'All experiences' }, { value: 'main_event', label: 'Main events' }, { value: 'salon', label: 'Salons' }, { value: 'workshop', label: 'Workshops' }, { value: 'other', label: 'Other events' }];
+const kinds = [{ value: '', label: 'All experiences' }, { value: 'main_event', label: 'Main events' }, { value: 'salon', label: 'Salons' }, { value: 'other', label: 'Other events' }];
 export default function EventsPage() {
   const { data, error, loading, reload } = usePublicData(async () => {
-    const [upcoming, past] = await Promise.all([api.listEvents('upcoming'), api.listEvents('past')]); return { upcoming, past };
+    const [upcoming, past] = await Promise.all([api.listEvents('upcoming'), api.listEvents('past')]); return { upcoming: upcoming.filter((e) => e.type !== 'workshop'), past: past.filter((e) => e.type !== 'workshop') };
   });
   const [query, setQuery] = useState('');
   const [kind, setKind] = useState('');
@@ -20,7 +20,7 @@ export default function EventsPage() {
   const rows = filterEvents(data?.[period] ?? [], query, kind);
   const reset = () => { setQuery(''); setKind(''); };
   return <div className="public-container public-discovery">
-    <div className="public-page-intro"><PageTitle label="Come curious" title="Find your next idea." /><p>One room. Different perspectives. Explore the talks, salons and workshops that bring us together.</p></div>
+    <div className="public-page-intro"><PageTitle label="Come curious" title="Find your next idea." /><p>One room. Different perspectives. Explore the talks and salons that bring us together.</p></div>
     <div className="public-discovery__tools">
       <div className="public-tabs" role="group" aria-label="Event period"><button type="button" aria-pressed={period === 'upcoming'} onClick={() => setPeriod('upcoming')}>Coming up{data && <span>{data.upcoming.length}</span>}</button><button type="button" aria-pressed={period === 'past'} onClick={() => setPeriod('past')}>Past events{data && <span>{data.past.length}</span>}</button></div>
       <label className="public-search"><span className="sr-only">Search events by name, description or venue</span><Search size={18} aria-hidden="true" /><input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search events or venues" /></label>
