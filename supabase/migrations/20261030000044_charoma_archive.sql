@@ -1,4 +1,4 @@
-﻿-- Charoma: title supplied by the team; date, time, venue and format from
+-- Charoma: title supplied by the team; date, time, venue and format from
 -- https://www.ted.com/tedx/events/15952 (TEDxGUCSalon).
 -- The TED listing contains no speakers. Preserve existing season/event edits.
 insert into public.seasons (year, theme, is_active)
