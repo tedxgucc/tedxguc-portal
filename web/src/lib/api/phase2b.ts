@@ -33,6 +33,7 @@ export interface RecruitmentApi {
   listPositions(cycleId?: string): Promise<Position[]>;
   /** First-choice applicants per team, and whether it's full (seats = the limit). */
   positionFill(cycleId: string): Promise<PositionFill[]>;
+  deleteCycle(id: string): Promise<void>;
   saveCycle(input: Omit<Cycle, 'id' | 'rejections_released_at'> & { id?: string }): Promise<void>;
   savePosition(input: PositionInput): Promise<void>;
   uploadCv(cycleId: string, file: File, turnstileToken?: string): Promise<string>;
@@ -140,6 +141,9 @@ const liveRecruitment: RecruitmentApi = {
     let q = db().from('positions').select('id, cycle_id, team_id, seats, description, questions, is_open');
     if (cycleId) q = q.eq('cycle_id', cycleId);
     return run(q);
+  },
+  async deleteCycle(id) {
+    await run(db().rpc('delete_recruitment_cycle', { p_cycle_id: id }));
   },
   async saveCycle(input) {
     const { id, ...f } = input;

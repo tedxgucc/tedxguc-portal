@@ -148,6 +148,16 @@ export const demoRecruitmentApi: RecruitmentApi = {
       return { team_id: p.team_id, seats: p.seats, applicants, is_full: p.seats !== null && applicants >= p.seats };
     });
   },
+  async deleteCycle(id) {
+    if (me().role !== 'chairman') fail('not_allowed');
+    const st = s();
+    if (!st.cycles.some(c => c.id === id)) fail('not_found');
+    if (st.apps.some(a => a.cycle_id === id) || st.plans.some(p => p.cycle_id === id)) fail('round_has_records');
+    st.cycles = st.cycles.filter(c => c.id !== id);
+    st.positions = st.positions.filter(p => p.cycle_id !== id);
+    st.slots = st.slots.filter(slot => slot.cycle_id !== id);
+    save();
+  },
   async saveCycle(input) {
     if (me().role !== 'chairman') fail('not_allowed');
     if (input.id) Object.assign(s().cycles.find((c) => c.id === input.id)!, input);

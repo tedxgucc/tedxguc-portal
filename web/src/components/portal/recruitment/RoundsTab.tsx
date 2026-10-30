@@ -1,6 +1,6 @@
 'use client';
 // Recruitment rounds (FR-4.1): the Chairman opens and closes them.
-import { Pencil, Plus } from 'lucide-react';
+import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { useToast } from '@/components/Toast';
 import { Button, Chip, EmptyState, Modal, Segmented, Skeleton, TextInput } from '@/components/ui';
@@ -16,10 +16,24 @@ const state = (c: Cycle) => {
 };
 
 export function RoundsTab() {
+  const toast = useToast();
+  const [deleting, setDeleting] = useState<Cycle | null>(null);
+  const [removing, setRemoving] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [cycles, setCycles] = useState<Cycle[] | null>(null);
   const [editing, setEditing] = useState<Cycle | 'new' | null>(null);
   const load = useCallback(() => recruitmentApi.listCycles().then(setCycles).catch(() => setCycles([])), []);
   useEffect(() => { load(); }, [load]);
+  const remove = async () => {
+    if (!deleting || removing) return;
+    setRemoving(true); setDeleteError(null);
+    try {
+      await recruitmentApi.deleteCycle(deleting.id);
+      setCycles(rows => rows?.filter(c => c.id !== deleting.id) ?? null);
+      setDeleting(null); toast('ok', 'Round deleted.');
+    } catch (e) { setDeleteError(e instanceof Error ? e.message : 'Could not delete this round. Please try again.'); }
+    finally { setRemoving(false); }
+  };
   return (
     <div className="grid gap-s4">
       <Button className="justify-self-start" onClick={() => setEditing('new')}><Plus aria-hidden="true" />New round</Button>
@@ -31,11 +45,15 @@ export function RoundsTab() {
                 <span className="font-semibold truncate">{c.name}</span>
                 <span className="text-caption text-ink-3">{c.kind === 'board' ? 'Board' : 'Associates'} · {fmtDate(c.opens_at)} – {fmtDate(c.closes_at)}{c.rejections_released_at ? ' · rejections sent' : ''}</span>
               </span>
-              <span className="flex items-center gap-s2">{state(c)}<button className="tx-iconbtn" aria-label={`Edit ${c.name}`} onClick={() => setEditing(c)}><Pencil size={18} /></button></span>
+              <span className="flex items-center gap-s2">{state(c)}<button className="tx-iconbtn" aria-label={`Edit ${c.name}`} onClick={() => setEditing(c)}><Pencil size={18} /></button><Button small variant="danger" aria-label={'Delete ' + c.name} onClick={() => { setDeleteError(null); setDeleting(c); }}><Trash2 size={16} aria-hidden="true" />Delete</Button></span>
             </li>
           ))}
         </ul>
       )}
+      {deleting && <Modal open title={'Delete ' + deleting.name + '?'} onClose={() => { if (!removing) setDeleting(null); }} actions={<><Button variant="secondary" disabled={removing} onClick={() => setDeleting(null)}>Keep round</Button><Button variant="danger" loading={removing} onClick={remove}>Delete round</Button></>}>
+        <p>This permanently removes the round, its roles and interview availability. Rounds with applications or board plans cannot be deleted; close them by editing the closing date instead.</p>
+        {deleteError && <p className="text-bad mt-s3" role="alert">{deleteError}</p>}
+      </Modal>}
       {editing && <RoundModal cycle={editing === 'new' ? null : editing} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); load(); }} />}
     </div>
   );
