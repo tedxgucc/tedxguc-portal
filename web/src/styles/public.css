@@ -38,7 +38,8 @@
 .public-home-hero .hm__sub { max-width: 510px; line-height: 1.7; font-size: 16px; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
 .public-home-hero .hm__wm { right: 0; height: 95%; opacity: .85; }
 .public-hero-eyebrow { display: flex; gap: 10px; align-items: center; }
-.public-eyebrow-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex: none; box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 12%, transparent); }
+/* The TEDx red "x" (as in the logo) marks the eyebrow line, instead of a generic dot. */
+.public-eyebrow-x { flex: none; color: var(--accent); font-weight: 900; font-size: 1.05em; line-height: 1; letter-spacing: 0; text-transform: lowercase; transform: translateY(-.32em); }
 .public-scroll-cue { display: inline-flex; align-items: center; gap: 12px; width: fit-content; text-decoration: none; text-transform: uppercase; letter-spacing: .12em; font-size: 10px; font-weight: 700; color: var(--ink-3); padding-top: 12px; }
 .public-scroll-cue svg { transition: transform .2s; }
 .public-scroll-cue:hover { color: var(--ink); }.public-scroll-cue:hover svg { transform: translateY(4px); }
