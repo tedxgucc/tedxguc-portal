@@ -1,6 +1,8 @@
 'use client';
 import { ArrowDown, ArrowRight, ArrowUpRight, CalendarDays, MapPin, Plus, Ticket } from 'lucide-react';
 import Link from 'next/link';
+import { useEffect } from 'react';
+import { HomeArchive } from '@/components/public/HomeArchive';
 import { SectionHeading, TxLabel } from '@/components/Brand';
 import { OpeningScreen } from '@/components/OpeningScreen';
 import { Countdown } from '@/components/Countdown';
@@ -18,12 +20,29 @@ export default function HomePage() {
 }
 function HomeContent() {
   const { data, error, loading, reload } = usePublicData(async () => {
-    const upcoming = (await api.listEvents('upcoming')).filter((e) => e.type !== 'workshop');
+    const [future, history, allSpeakers] = await Promise.all([api.listEvents('upcoming'), api.listEvents('past'), api.listSpeakers()]);
+    const upcoming = future.filter(e => e.type !== 'workshop');
+    const past = history.filter(e => e.type !== 'workshop' && e.status === 'completed' && e.slug);
     const next = upcoming[0] ?? null;
-    const [partners, speakers] = await Promise.all([api.listPartners().catch(() => []), next ? api.listSpeakers(next.id).catch(() => []) : Promise.resolve([])]);
-    return { upcoming, partners, next, speakers };
+    const partners = await api.listPartners().catch(() => []);
+    const speakers = next ? allSpeakers.filter(s => s.event_id === next.id) : [];
+    return { upcoming, past, partners, next, speakers, allSpeakers };
   });
-  const { upcoming, partners, next, speakers } = data ?? { upcoming: [], partners: [], next: null, speakers: [] };
+  const { upcoming, past, partners, next, speakers, allSpeakers } = data ?? { upcoming: [], past: [], partners: [], next: null, speakers: [], allSpeakers: [] };
+  useEffect(() => {
+    const preference = matchMedia('(prefers-reduced-motion: reduce)');
+    if (!('IntersectionObserver' in window)) return;
+    const animations: Animation[] = [];
+    const observer = new IntersectionObserver(entries => entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      observer.unobserve(entry.target);
+      if (!preference.matches) animations.push(entry.target.animate([{ opacity: .6, transform: 'translateY(22px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 550, easing: 'cubic-bezier(.2,.7,.2,1)' }));
+    }), { threshold: .08 });
+    document.querySelectorAll('#discover .tx-reveal, #discover .public-paths, #discover .public-faq-section').forEach(el => observer.observe(el));
+    const reduce = () => { if (preference.matches) animations.forEach(a => a.cancel()); };
+    preference.addEventListener('change', reduce);
+    return () => { observer.disconnect(); animations.forEach(a => a.cancel()); preference.removeEventListener('change', reduce); };
+  }, [data]);
   const title = (next?.title ?? 'Ideas worth spreading').trim().split(/\s+/);
   const split = title.length > 2 ? Math.ceil(title.length / 2) : 1;
   const firstLine = title.slice(0, split).join(' '), secondLine = title.slice(split).join(' ');
@@ -54,8 +73,9 @@ function HomeContent() {
     </div>
     <div id="discover" className="public-container public-home-sections">
       {!!upcoming.length && <section aria-labelledby="upcoming" className="public-section tx-reveal"><div className="public-section-heading"><div><TxLabel>Save the date</TxLabel><SectionHeading><span id="upcoming">Be in the room.</span></SectionHeading></div><Link href="/events" className="public-text-link">All experiences<ArrowUpRight size={18} aria-hidden="true" /></Link></div><div className="public-event-grid">{upcoming.slice(0, 2).map((e) => <EventCard key={e.id} event={e} />)}</div></section>}
+      <HomeArchive events={past} speakers={allSpeakers} />
       <section className="public-about-section tx-reveal" aria-labelledby="about-title"><div><TxLabel>Beyond the stage</TxLabel><h2 id="about-title">An idea starts<br />with a <em>connection.</em></h2></div><div className="grid gap-s4 content-center"><p className="body-lg text-ink-2">Since 2013, TEDxGUC has brought people together around ideas worth spreading. Independently organized by students, made for the curious.</p><p className="text-ink-3">Step into a different perspective. Meet someone unexpected. Leave with a question you did not arrive with.</p><Link href="/about" className="public-text-link">Get to know us<ArrowUpRight size={18} aria-hidden="true" /></Link></div></section>
-      {!!speakers.length && <section className="public-section tx-reveal" aria-labelledby="speakers"><div className="public-section-heading"><div><TxLabel>Different voices. Shared curiosity.</TxLabel><SectionHeading><span id="speakers">Meet the minds.</span></SectionHeading></div><Link href="/speakers" className="public-text-link">All speakers<ArrowUpRight size={18} aria-hidden="true" /></Link></div><div className="public-speaker-grid">{speakers.slice(0, 4).map((s) => <SpeakerCard key={s.id} speaker={s} />)}</div></section>}
+      {!!speakers.length && <section className="public-section tx-reveal" aria-labelledby="speakers"><div className="public-section-heading"><div><TxLabel>Different voices. Shared curiosity.</TxLabel><SectionHeading><span id="speakers">Meet the minds.</span></SectionHeading></div><Link href="/speakers" className="public-text-link">All speakers<ArrowUpRight size={18} aria-hidden="true" /></Link></div><div className="public-speaker-grid">{speakers.slice(0, 4).map((s) => <SpeakerCard key={s.id} speaker={s} preview />)}</div></section>}
       <section className="public-paths" aria-label="Explore TEDxGUC">{[{ n: '01', title: 'The experience', text: 'Discover the next talk or salon.', href: '/events', action: 'Find an event' }, { n: '02', title: 'The people', text: 'Meet the board bringing the season to life.', href: '/board', action: 'Meet the board' }, { n: '03', title: 'Your chapter', text: 'Put your ideas into action with the team.', href: '/join', action: 'Explore open roles' }].map((p) => <Link href={p.href} key={p.n} className="public-path"><span className="public-path__number">{p.n}</span><ArrowUpRight className="public-path__arrow" size={26} aria-hidden="true" /><h3>{p.title}</h3><p>{p.text}</p><span className="public-text-link">{p.action}<ArrowRight size={16} aria-hidden="true" /></span></Link>)}</section>
       {!!partners.length && <section className="public-partners" aria-label="Our partners"><TxLabel>Made possible together</TxLabel><ul>{partners.map((p) => { const url = safeExternalUrl(p.website); const logo = p.logo_url ? <img src={assetUrl(p.logo_url)} alt={p.company} width={160} height={72} loading="lazy" decoding="async" /> : <span>{p.company}</span>; return <li key={p.id}>{url ? <a href={url} target="_blank" rel="noopener noreferrer" aria-label={p.company + ' (opens in a new tab)'}>{logo}</a> : logo}</li>; })}</ul></section>}
       <section className="public-faq-section" aria-labelledby="quick-questions"><div><TxLabel>A little clarity</TxLabel><h2 id="quick-questions">Before you<br />come along.</h2><Link href="/contact" className="public-text-link">More questions?<ArrowUpRight size={18} aria-hidden="true" /></Link></div><div className="public-faq"><details><summary>Are tickets free?<Plus size={20} aria-hidden="true" /></summary><p>Yes. TEDxGUC event tickets are free. Seats are limited, so register through the event page when registration opens.</p></details><details><summary>How do I get my ticket?<Plus size={20} aria-hidden="true" /></summary><p>Register on the event page. Your ticket or waitlist confirmation is sent to the email address you provide. Keep your private ticket link for event day.</p></details><details><summary>Can I join the organizing team?<Plus size={20} aria-hidden="true" /></summary><p>We recruit across eight teams at the start of each season. <Link href="/join" className="tx-link">See open roles and apply.</Link></p></details></div></section>
