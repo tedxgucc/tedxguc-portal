@@ -3,10 +3,11 @@
 // registration questions, door staff and run of show (FR-5).
 import { Download, ExternalLink, Pencil, ScanLine, Search } from 'lucide-react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useState } from 'react';
 import { PageTitle } from '@/components/Brand';
 import { eventKind } from '@/components/EventCard';
+import { DeleteEventButton } from '@/components/portal/DeleteEventButton';
 import { EventForm } from '@/components/portal/EventForm';
 import { RegistrationDetails } from '@/components/portal/RegistrationDetails';
 import { QuestionsSection, RunOfShowSection, StaffSection } from '@/components/portal/EventSetup';
@@ -19,6 +20,7 @@ import { canManageEvents, canScanTickets } from '@/lib/roles';
 import type { EventStats, RegistrationRow, TxEvent } from '@/lib/types';
 
 function EventAdminPageInner() {
+  const router = useRouter();
   const id = useSearchParams().get('id') ?? '';
   const { me } = usePortal();
   const [event, setEvent] = useState<TxEvent | null | undefined>(undefined);
@@ -67,7 +69,7 @@ function EventAdminPageInner() {
         <div className="flex flex-wrap gap-s2">
           {event.slug && event.is_public && <Link href={`/event?s=${event.slug}`} className="tx-btn tx-btn--ghost tx-btn--sm" target="_blank"><ExternalLink aria-hidden="true" />Public page</Link>}
           {door && <Link href={`/portal/door?event=${event.id}`} className="tx-btn tx-btn--secondary tx-btn--sm"><ScanLine aria-hidden="true" />Door</Link>}
-          {manage && <Button small onClick={() => setEditing(true)}><Pencil aria-hidden="true" />Edit</Button>}
+          {manage && <><Button small onClick={() => setEditing(true)}><Pencil aria-hidden="true" />Edit</Button><DeleteEventButton event={event} onDeleted={() => router.replace('/portal/events')} /></>}
         </div>
       </PageTitle>
       <p className="text-ink-2 -mt-s4 mb-s5">{fmtDate(event.starts_at, { year: true })} · {fmtTime(event.starts_at)}{event.venue ? ` · ${event.venue}` : ''}</p>

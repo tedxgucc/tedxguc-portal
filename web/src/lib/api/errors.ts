@@ -3,6 +3,7 @@ import { ApiError } from './types';
 // Database error codes → microcopy in the design system's voice
 // (short, no exclamation marks, says how to fix it).
 const messages: Record<string, string> = {
+  event_has_records: 'This event has registrations or financial records. Cancel or hide it using Edit instead.',
   event_not_open: 'Registration for this event is closed.',
   already_registered: 'This email already has a ticket. Use "Lost your ticket?" to get it again.',
   invalid_email: 'Enter a valid email address.',

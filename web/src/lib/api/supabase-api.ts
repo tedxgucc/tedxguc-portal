@@ -301,6 +301,10 @@ export const supabaseApi: Api = {
   async listAllEvents() {
     return (await run(db().from('events').select(EVENT_COLS).order('starts_at', { ascending: false }))) as TxEvent[];
   },
+  async deleteEvent(id) {
+    await run(db().rpc('delete_event', { p_event_id: id }));
+    clearCache();
+  },
   async saveEvent(input) {
     const { id, ...fields } = input;
     const q = id ? db().from('events').update(fields).eq('id', id) : db().from('events').insert(fields);

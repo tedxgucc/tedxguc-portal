@@ -139,6 +139,7 @@ export interface Api {
 
   // ----- Events admin & door -----
   listAllEvents(): Promise<TxEvent[]>;
+  deleteEvent(id: string): Promise<void>;
   saveEvent(input: EventInput): Promise<TxEvent>;
   listRegistrations(eventId: string): Promise<RegistrationRow[]>;
   eventStats(eventId: string): Promise<EventStats>;

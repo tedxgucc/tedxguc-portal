@@ -566,6 +566,17 @@ export const demoApi: Api = {
     const me = requireMe();
     return s().events.filter((e) => e.status !== 'draft' || canManageEvents(me)).sort((a, b) => b.starts_at.localeCompare(a.starts_at));
   },
+  async deleteEvent(eventId) {
+    if (!canManageEvents(requireMe())) fail('not_allowed');
+    const st = s();
+    if (!st.events.some(e => e.id === eventId)) fail('not_found');
+    if (st.guests.some(g => g.event_id === eventId)) throw new ApiError('event_has_records', 'This event has registrations or financial records. Cancel or hide it instead.');
+    st.events = st.events.filter(e => e.id !== eventId);
+    st.eventFields = st.eventFields.filter(f => f.event_id !== eventId);
+    st.staff = st.staff.filter(row => row.event_id !== eventId);
+    st.speakers = st.speakers.map(row => row.event_id === eventId ? { ...row, event_id: null } : row);
+    save(); clearCache();
+  },
   async saveEvent(input) {
     await wait(300);
     const me = requireMe();

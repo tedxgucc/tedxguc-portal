@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { PageTitle } from '@/components/Brand';
 import { eventKind } from '@/components/EventCard';
+import { DeleteEventButton } from '@/components/portal/DeleteEventButton';
 import { EventForm } from '@/components/portal/EventForm';
 import { usePortal } from '@/components/portal/PortalContext';
 import { Button, Chip, EmptyState, Skeleton } from '@/components/ui';
@@ -42,6 +43,7 @@ export default function PortalEvents() {
         </span>
         <ArrowRight size={20} className="text-ink-3" aria-hidden="true" />
       </Link>
+      {manage && <div className="flex justify-end mt-s2"><DeleteEventButton event={e} onDeleted={() => setEvents(rows => rows?.filter(row => row.id !== e.id) ?? null)} /></div>}
     </li>
   );
 
