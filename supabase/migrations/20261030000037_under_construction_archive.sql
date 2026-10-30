@@ -1,4 +1,4 @@
-﻿-- Archive entry requested by the team. Title supplied by the organizer;
+-- Archive entry requested by the team. Title supplied by the organizer;
 -- date, time and venue: https://www.ted.com/tedx/events/65988
 -- Keep the historical season inactive and never overwrite an existing event.
 insert into public.seasons (year, theme, is_active)

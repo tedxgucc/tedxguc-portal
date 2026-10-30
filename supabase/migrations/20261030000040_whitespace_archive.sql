@@ -1,4 +1,4 @@
-﻿-- Whitespace: title supplied by the team; TED event 56129.
+-- Whitespace: title supplied by the team; TED event 56129.
 -- TED displays 9 October 2023 in Africa/Cairo (8 October 21:00 UTC).
 -- Identical start/end metadata does not establish an end time.
 insert into public.seasons (year, theme, is_active)
