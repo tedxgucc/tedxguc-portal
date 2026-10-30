@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useEffect } from 'react';
 import { HomeArchive } from '@/components/public/HomeArchive';
 import { SectionHeading, TxLabel } from '@/components/Brand';
-import { OpeningScreen } from '@/components/OpeningScreen';
 import { Countdown } from '@/components/Countdown';
 import { DataNotice } from '@/components/public/DataNotice';
 import { EventCard, eventKind } from '@/components/EventCard';
@@ -16,7 +15,7 @@ import { assetUrl } from '@/lib/env';
 import { fmtDate, fmtTime } from '@/lib/format';
 
 export default function HomePage() {
-  return <><OpeningScreen /><HomeContent /></>;
+  return <><HomeContent /></>;
 }
 function HomeContent() {
   const { data, error, loading, reload } = usePublicData(async () => {

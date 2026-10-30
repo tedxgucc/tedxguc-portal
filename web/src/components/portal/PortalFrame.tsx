@@ -37,6 +37,8 @@ export default function PortalFrame({ children }: { children: React.ReactNode })
     }
   }, []);
   return (
+    <>
+
     <PortalProvider fallback={<Loading />}>
       <div className="tx-shell">
         <PortalSidebar />
@@ -48,5 +50,6 @@ export default function PortalFrame({ children }: { children: React.ReactNode })
         </div>
       </div>
     </PortalProvider>
+    </>
   );
 }

@@ -66,6 +66,7 @@ function LoginInner() {
   };
   return (
     <div className="portal-login">
+
       <header className="login-header">
         <Link href="/" aria-label="TEDxGUC home"><Lockup height={24} /></Link>
         <div className="login-header-actions"><Link href="/" className="login-back"><ArrowLeft size={15} />Back to the site</Link><ThemeToggle /></div>

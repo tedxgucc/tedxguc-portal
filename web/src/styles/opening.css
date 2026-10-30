@@ -136,3 +136,27 @@ html.intro-playing { --io: 4.25s; }
 
 .hm { min-height: calc(100svh - 64px); }
 @media (min-width: 1280px) { .hm { min-height: calc(100svh - 76px); } }
+/* Spotlight intro from the updated supplied HTML, shared with portal entry. */
+@property --sx { syntax: '<length-percentage>'; inherits: true; initial-value: 0px; }
+@property --sy { syntax: '<length-percentage>'; inherits: true; initial-value: 0px; }
+@property --sr { syntax: '<length>'; inherits: true; initial-value: 0px; }
+html.intro-playing{--io:.1s}
+.spotlight-intro{position:fixed;inset:0;z-index:1000;pointer-events:none;--wx:50vw;--wy:50vh;--wh:180px}
+.spotlight-dark{position:absolute;inset:0;background:#000;--sx:-20%;--sy:85%;--sr:22vmin;-webkit-mask-image:radial-gradient(circle var(--sr) at var(--sx) var(--sy),transparent 55%,#000 100%);mask-image:radial-gradient(circle var(--sr) at var(--sx) var(--sy),transparent 55%,#000 100%);animation:home-spotlight 2.6s .2s linear both}
+@keyframes home-spotlight{0%{--sx:-15%;--sy:92%;--sr:22vmin;animation-timing-function:cubic-bezier(.65,0,.35,1)}24%{--sx:24%;--sy:60%;--sr:22vmin;animation-timing-function:cubic-bezier(.65,0,.35,1)}52%,67%{--sx:var(--wx);--sy:var(--wy);--sr:max(calc(var(--wh)*.62),22vmin)}67%{animation-timing-function:cubic-bezier(.7,0,.84,0)}100%{--sx:var(--wx);--sy:var(--wy);--sr:260vmax}}
+.spotlight-intro::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(transparent,#ffffff0a 50%,transparent);animation:spotlight-haze 2s .2s both}
+@keyframes spotlight-haze{0%,100%{opacity:0}50%{opacity:1}}
+.spotlight-intro .hm__intro-skip{z-index:3;color:#fff;background:#111c;border:1px solid #ffffff40}
+.spotlight-intro.is-portal{background:#000;animation:portal-intro-fade .6s 2.7s both}
+.spotlight-portal{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;color:#fff}
+.spotlight-portal>span{font:500 10px var(--font-mono);letter-spacing:4px;color:#aaa}
+.spotlight-portal-mark{filter:drop-shadow(0 0 28px #e62b1e66)}
+@keyframes portal-intro-fade{to{opacity:0;visibility:hidden}}
+@media(prefers-reduced-motion:reduce){.spotlight-intro{display:none}.spotlight-dark{animation:none}}
+/* Rendered in the root HTML so the entrance starts before React hydrates. */
+.spotlight-intro{display:none;animation:spotlight-finish .01s 2.8s both}
+html[data-intro-mode="site"] .spotlight-intro:not(.is-portal),html[data-intro-mode="portal"] .spotlight-intro.is-portal{display:block}
+.spotlight-dark{animation-delay:0s}
+.spotlight-intro.is-portal{animation:portal-intro-fade .5s 2.3s both}
+@keyframes spotlight-finish{to{visibility:hidden}}
+@media(prefers-reduced-motion:reduce){html[data-intro-mode] .spotlight-intro{display:none}}
