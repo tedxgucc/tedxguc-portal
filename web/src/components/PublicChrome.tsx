@@ -1,8 +1,9 @@
 'use client';
-import { CalendarDays, Home, Handshake, Info, LogIn, Menu, Mic, Sparkles, UserPlus, X } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, CalendarDays, Home, Info, Instagram, LogIn, Menu, Mic, Sparkles, UserPlus, Users, X } from 'lucide-react';
 import Link from 'next/link';
+import { createPortal } from 'react-dom';
 import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { INSTAGRAM_URL, LICENSE_LINE } from '@/lib/env';
 import { Lockup } from './Brand';
 import { ThemeToggle } from './ThemeToggle';
@@ -12,90 +13,72 @@ const links = [
   { href: '/events', label: 'Events', icon: Sparkles },
   { href: '/speakers', label: 'Speakers', icon: Mic },
   { href: '/calendar', label: 'Calendar', icon: CalendarDays },
-  { href: '/partners', label: 'Partners', icon: Handshake },
   { href: '/about', label: 'About', icon: Info },
-  { href: '/portal/signups', label: 'Signups', icon: UserPlus },
-  { href: '/xaccess/card', label: 'X Access', icon: Sparkles },
+  { href: '/board', label: 'Board', icon: Users },
   { href: '/join', label: 'Join the team', icon: UserPlus },
 ];
 
 export function PublicHeader() {
   const path = usePathname();
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const menu = useRef<HTMLDivElement>(null);
+  const toggle = useRef<HTMLButtonElement>(null);
+  const current = path.replace(/\/+$/, '') || '/';
+  const isOn = (href: string) => current === href || (href !== '/' && current.startsWith(href + '/'));
   useEffect(() => setOpen(false), [path]);
-  const isOn = (href: string) => path === href || path.startsWith(`${href}/`);
-
-  return (
-    <header className={'tx-top ' + (path === '/' ? 'hm-header' : '')} style={path === '/' ? undefined : { height: 64 }}>
-      <Link href="/" aria-label="TEDxGUC home" className="py-s3"><Lockup height={22} /></Link>
-      <nav className="hm-desktop-links hidden 2xl:flex items-center gap-s1" aria-label="Main">
-        {links.filter((l) => !['/', '/join', '/about'].includes(l.href)).map((l) => (
-          <Link key={l.href} href={l.href} aria-current={isOn(l.href) ? 'page' : undefined}
-            className={`px-s3 py-s2 text-body-sm font-semibold no-underline whitespace-nowrap ${isOn(l.href) ? 'text-ink shadow-[inset_0_-2px_0_var(--accent)]' : 'text-ink-2 hover:text-ink'}`}>
-            {l.label}
-          </Link>
-        ))}
+  useEffect(() => {
+    const update = () => setScrolled(window.scrollY > 16);
+    const desktop = window.matchMedia('(min-width: 1200px)');
+    const resize = () => { if (desktop.matches) setOpen(false); };
+    update(); window.addEventListener('scroll', update, { passive: true }); desktop.addEventListener('change', resize);
+    return () => { window.removeEventListener('scroll', update); desktop.removeEventListener('change', resize); };
+  }, []);
+  useEffect(() => {
+    if (!open) return;
+    const previous = document.body.style.overflow; document.body.style.overflow = 'hidden';
+    menu.current?.querySelector<HTMLElement>('button, a')?.focus();
+    const key = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { e.preventDefault(); setOpen(false); }
+      if (e.key !== 'Tab') return;
+      const items = Array.from(menu.current?.querySelectorAll<HTMLElement>('a[href], button:not([disabled])') ?? []);
+      const first = items[0], last = items.at(-1);
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
+    };
+    document.addEventListener('keydown', key);
+    return () => { document.body.style.overflow = previous; document.removeEventListener('keydown', key); toggle.current?.focus({ preventScroll: true }); };
+  }, [open]);
+  return <>
+    <header className={'public-header' + (scrolled ? ' is-scrolled' : '')}>
+      <Link href="/" aria-label="TEDxGUC home" className="public-header__logo"><Lockup height={24} /></Link>
+      <nav className="public-desktop-nav" aria-label="Main">
+        {links.filter((l) => !['/', '/join'].includes(l.href)).map((l) => <Link key={l.href} href={l.href} className="public-nav-link" aria-current={isOn(l.href) ? 'page' : undefined}>{l.label}</Link>)}
       </nav>
-      <div className="flex items-center gap-s1">
+      <div className="public-header__actions">
         <ThemeToggle />
-        <Link href="/join" className="tx-btn tx-btn--ghost tx-btn--sm hidden 2xl:inline-flex">Join the team</Link>
-        {/* Team portal is always one tap away for members, on every screen size. */}
-        <Link href="/login" className="tx-btn tx-btn--secondary tx-btn--sm" style={{ padding: '0 12px' }}>
-          <LogIn aria-hidden="true" style={{ width: 18, height: 18 }} />Portal
-        </Link>
-        <Link href="/events" className="tx-btn tx-btn--primary tx-btn--sm hidden md:inline-flex">Get your ticket</Link>
-        <button className="tx-iconbtn 2xl:hidden" aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} onClick={() => setOpen(!open)}>
-          {open ? <X /> : <Menu />}
-        </button>
+        <Link href="/login" className="public-portal-link"><LogIn size={16} aria-hidden="true" /><span>Portal</span></Link>
+        <Link href="/events" className="tx-btn tx-btn--primary tx-btn--sm public-ticket-link">Get your ticket<ArrowUpRight size={16} aria-hidden="true" /></Link>
+        <button ref={toggle} className="tx-iconbtn public-menu-toggle" aria-label="Open menu" aria-expanded={open} aria-controls="public-menu" type="button" onClick={() => setOpen(true)}><Menu aria-hidden="true" /></button>
       </div>
-      {open && (
-        <nav className="2xl:hidden fixed inset-x-0 top-[64px] bottom-0 z-nav bg-bg tx-page overflow-y-auto" aria-label="Main">
-          <ul className="grid">
-            {links.map((l) => (
-              <li key={l.href}>
-                <Link href={l.href} className="flex items-center gap-s3 px-s4 py-s4 border-b border-line no-underline">
-                  <l.icon size={22} className={isOn(l.href) ? 'text-accent' : 'text-ink-3'} />
-                  <span className="h3 uppercase">{l.label}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-          <div className="p-s4 grid gap-s3">
-            <Link href="/events" className="tx-btn tx-btn--primary tx-btn--block">Get your ticket</Link>
-            <Link href="/login" className="tx-btn tx-btn--secondary tx-btn--block">Team portal</Link>
-          </div>
-        </nav>
-      )}
     </header>
-  );
+    {open && createPortal(<div id="public-menu" ref={menu} className="public-menu" role="dialog" aria-modal="true" aria-label="Site menu">
+      <div className="public-menu__top"><Lockup height={22} /><button className="tx-iconbtn" type="button" aria-label="Close menu" onClick={() => setOpen(false)}><X aria-hidden="true" /></button></div>
+      <nav aria-label="Main"><ul>{links.map((l, i) => <li key={l.href}><Link href={l.href} onClick={() => setOpen(false)} aria-current={isOn(l.href) ? 'page' : undefined}><span className="public-menu__number">{String(i + 1).padStart(2, '0')}</span><span>{l.label}</span><ArrowUpRight size={24} aria-hidden="true" /></Link></li>)}</ul></nav>
+      <div className="public-menu__bottom"><Link href="/events" className="tx-btn tx-btn--primary" onClick={() => setOpen(false)}>Find your next event<ArrowRight aria-hidden="true" /></Link><Link href="/contact" className="tx-link" onClick={() => setOpen(false)}>Have a question? Talk to us</Link></div>
+    </div>, document.body)}
+  </>;
 }
 
 export function PublicFooter() {
-  return (
-    <footer className="mt-s8 border-t border-line">
-      <div className="mx-auto max-w-[1200px] px-s4 md:px-s6 py-s7 grid gap-s6 md:grid-cols-[1.4fr_1fr_minmax(0,1fr)]">
-        <div className="grid gap-s3 content-start">
-          <Lockup height={24} />
-          <p className="text-ink-2 text-body-sm max-w-[340px]">Ideas worth spreading at the German University in Cairo, since 2013.</p>
-        </div>
-        <ul className="grid gap-s2 content-start text-body-sm" aria-label="Site">
-          <li><Link className="text-ink-2 hover:text-ink no-underline" href="/">Home</Link></li>
-          <li><Link className="text-ink-2 hover:text-ink no-underline" href="/events">Events</Link></li>
-          <li><Link className="text-ink-2 hover:text-ink no-underline" href="/speakers">Speakers</Link></li>
-          <li><Link className="text-ink-2 hover:text-ink no-underline" href="/calendar">Calendar</Link></li>
-          <li><Link className="text-ink-2 hover:text-ink no-underline" href="/contact">Contact &amp; FAQ</Link></li>
-        </ul>
-        <ul className="grid gap-s2 content-start text-body-sm" aria-label="More">
-          <li><a className="text-ink-2 hover:text-ink no-underline" href={INSTAGRAM_URL} rel="noopener noreferrer" target="_blank">Instagram @tedxguc__</a></li>
-          <li><Link className="text-ink-2 hover:text-ink no-underline" href="/partners#become-a-partner">Become a partner</Link></li>
-          <li><Link className="text-ink-2 hover:text-ink no-underline" href="/join">Join the team</Link></li>
-          <li><Link className="text-ink-2 hover:text-ink no-underline" href="/login">Team portal</Link></li>
-        </ul>
-      </div>
-      <div className="mx-auto max-w-[1200px] px-s4 md:px-s6 pb-s5">
-        <p className="tx-legal">{LICENSE_LINE}</p>
-      </div>
-      <div className="tx-bottombar" />
-    </footer>
-  );
+  return <footer className="public-footer">
+    <div className="public-footer__lead"><div><span className="tx-label">Keep the conversation going</span><h2>Good ideas<br /><span>travel further.</span></h2></div><Link href="/contact" className="public-arrow-link">Talk to us<ArrowUpRight size={32} aria-hidden="true" /></Link></div>
+    <div className="public-footer__grid">
+      <div className="grid gap-s4 content-start"><Lockup height={24} /><p className="text-ink-2 text-body-sm max-w-[300px]">Ideas worth spreading at the German University in Cairo, since 2013.</p><a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="public-social"><Instagram size={18} aria-hidden="true" />Follow the next chapter<ArrowUpRight size={16} aria-hidden="true" /></a></div>
+      <nav aria-label="Explore"><h3 className="tx-label mb-s4">Explore</h3><ul className="grid gap-s3">{links.filter((l) => l.href !== '/join').map((l) => <li key={l.href}><Link href={l.href}>{l.label}</Link></li>)}</ul></nav>
+      <nav aria-label="Get involved"><h3 className="tx-label mb-s4">Get involved</h3><ul className="grid gap-s3"><li><Link href="/join">Join the team</Link></li><li><Link href="/contact">Contact &amp; FAQ</Link></li><li><Link href="/login">Member portal</Link></li><li><Link href="/privacy">Privacy notice</Link></li></ul></nav>
+    </div>
+    <div className="public-footer__legal"><p className="tx-legal">{LICENSE_LINE}</p><span className="text-caption text-ink-3">TEDxGUC / Since 2013</span></div>
+    <div className="tx-bottombar" />
+  </footer>;
 }

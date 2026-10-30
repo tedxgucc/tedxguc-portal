@@ -23,11 +23,15 @@ export function RegisterPanel({ event, fields, open, past, notYet }: {
   const [phone, setPhone] = useState('+20 ');
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [consent, setConsent] = useState(false);
+  const [captchaAttempt, setCaptchaAttempt] = useState(0);
   const [token, setToken] = useState<string | undefined>();
   const [busy, setBusy] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [lost, setLost] = useState(false);
 
+  if (event.status === 'cancelled') {
+    return <div className="tx-card grid gap-s3"><h2 className="h3 uppercase">Event cancelled</h2><p className="text-ink-2">This event is no longer taking place.</p><Link href="/events" className="tx-link">Explore other events</Link></div>;
+  }
   if (past) {
     return <div className="tx-card grid gap-s2"><h2 className="h3 uppercase">This one’s over</h2><p className="text-ink-2">Thanks to everyone who came. Talks are shared online after each event.</p></div>;
   }
@@ -58,6 +62,7 @@ export function RegisterPanel({ event, fields, open, past, notYet }: {
       });
       router.push(`/tickets?t=${res.status_token}&new=1`);
     } catch (err) {
+      setToken(undefined); setCaptchaAttempt((n) => n + 1);
       const e = err as ApiError;
       toast('bad', "That didn't go through.", e.message);
       setBusy(false);
@@ -106,7 +111,7 @@ export function RegisterPanel({ event, fields, open, past, notYet }: {
           label={<>I agree that TEDxGUC stores my details to run this event. <Link href="/privacy" className="tx-link">Privacy notice</Link></>} />
         {errors.consent && <p className="tx-help mt-s1" role="alert">{errors.consent}</p>}
       </div>
-      <Turnstile onToken={setToken} />
+      <Turnstile resetKey={captchaAttempt} onToken={setToken} />
       {errors.answers && <p className="tx-help" role="alert">{errors.answers}</p>}
       <Button type="submit" block loading={busy}><Ticket aria-hidden="true" />Claim free ticket</Button>
       <button type="button" className="tx-link text-body-sm justify-self-center bg-transparent border-0 cursor-pointer" onClick={() => setLost(true)}>Lost your ticket?</button>

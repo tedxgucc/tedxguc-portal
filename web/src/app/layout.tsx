@@ -2,7 +2,8 @@ import type { Metadata, Viewport } from 'next';
 import { Anton, Inter, JetBrains_Mono } from 'next/font/google';
 import '@/styles/globals.css';
 import { ToastProvider } from '@/components/Toast';
-import { BASE_PATH } from '@/lib/env';
+import { SITE_DESCRIPTION, SITE_URL } from '@/lib/site';
+import { BASE_PATH, DEMO } from '@/lib/env';
 
 const anton = Anton({ weight: '400', subsets: ['latin'], variable: '--font-anton', display: 'swap' });
 const inter = Inter({ weight: ['400', '500', '600', '700', '800'], subsets: ['latin'], variable: '--font-inter', display: 'swap' });
@@ -10,7 +11,12 @@ const mono = JetBrains_Mono({ weight: '500', subsets: ['latin'], variable: '--fo
 
 export const metadata: Metadata = {
   title: { default: 'TEDxGUC', template: '%s · TEDxGUC' },
-  description: 'Ideas worth spreading at the German University in Cairo, since 2013.',
+  description: SITE_DESCRIPTION,
+  ...(SITE_URL ? { metadataBase: new URL(SITE_URL + '/') } : {}),
+  openGraph: { type: 'website', locale: 'en_GB', siteName: 'TEDxGUC', title: 'TEDxGUC / Ideas worth spreading', description: SITE_DESCRIPTION, ...(SITE_URL ? { images: [{ url: SITE_URL + '/brand/tedxguc-lockup-black.png', width: 892, height: 143, alt: 'TEDxGUC' }] } : {}) },
+  twitter: { card: 'summary', title: 'TEDxGUC', description: SITE_DESCRIPTION },
+  robots: { index: !DEMO, follow: !DEMO },
+  referrer: 'strict-origin-when-cross-origin',
   icons: {
     icon: [{ url: `${BASE_PATH}/icons/favicon.svg`, type: 'image/svg+xml' }, { url: `${BASE_PATH}/icons/favicon-32.png`, sizes: '32x32' }],
     apple: `${BASE_PATH}/icons/apple-touch-icon-180.png`,

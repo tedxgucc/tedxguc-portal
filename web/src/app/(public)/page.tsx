@@ -1,117 +1,64 @@
 'use client';
-import { ArrowRight, Ticket } from 'lucide-react';
+import { ArrowDown, ArrowRight, ArrowUpRight, CalendarDays, MapPin, Plus, Ticket } from 'lucide-react';
 import Link from 'next/link';
 import { SectionHeading, TxLabel } from '@/components/Brand';
 import { OpeningScreen } from '@/components/OpeningScreen';
 import { Countdown } from '@/components/Countdown';
+import { DataNotice } from '@/components/public/DataNotice';
 import { EventCard, eventKind } from '@/components/EventCard';
 import { SpeakerCard } from '@/components/SpeakerCard';
 import { api } from '@/lib/api';
-import { useLoad } from '@/lib/useLoad';
+import { usePublicData } from '@/lib/usePublicData';
+import { registrationState, safeExternalUrl } from '@/lib/public-discovery';
+import { assetUrl } from '@/lib/env';
 import { fmtDate, fmtTime } from '@/lib/format';
 
-
 export default function HomePage() {
-  return (
-    <>
-      <OpeningScreen />
-      <HomeContent />
-    </>
-  );
+  return <><OpeningScreen /><HomeContent /></>;
 }
-
 function HomeContent() {
-  const d = useLoad(async () => {
-    const [upcoming, partners] = await Promise.all([api.listEvents('upcoming'), api.listPartners()]);
+  const { data, error, loading, reload } = usePublicData(async () => {
+    const upcoming = await api.listEvents('upcoming');
     const next = upcoming[0] ?? null;
-    const speakers = next ? await api.listSpeakers(next.id) : [];
+    const [partners, speakers] = await Promise.all([api.listPartners().catch(() => []), next ? api.listSpeakers(next.id).catch(() => []) : Promise.resolve([])]);
     return { upcoming, partners, next, speakers };
   });
-  const { upcoming, partners, next, speakers } = d ?? { upcoming: [], partners: [], next: null, speakers: [] };
+  const { upcoming, partners, next, speakers } = data ?? { upcoming: [], partners: [], next: null, speakers: [] };
   const title = (next?.title ?? 'Ideas worth spreading').trim().split(/\s+/);
   const split = title.length > 2 ? Math.ceil(title.length / 2) : 1;
-  const firstLine = title.slice(0, split).join(' ');
-  const secondLine = title.slice(split).join(' ');
-
-  return (
-    <>
-      <div className="hm mb-s8">
-        <section className="hm__hero" aria-labelledby="home-title">
-          <div className="hm__wm" id="home-watermark" aria-hidden="true" />
-          <div className="hm__stack">
-            <div className="reveal"><TxLabel count={next ? new Date(next.starts_at).getFullYear() : undefined}>{next ? eventKind(next) : 'TEDxGUC'}</TxLabel></div>
-            <h1 id="home-title" className={'hm__title reveal-wipe ' + (firstLine.length > 8 || secondLine.length > 10 ? 'hm__title--long' : '')}>{firstLine}{secondLine && <span>{secondLine}</span>}</h1>
-            <p className="hm__sub reveal">{next?.description ?? 'Ideas that start somewhere and take you somewhere new. TEDx at the German University in Cairo, since 2013.'}</p>
-            {next && <p className="hm__meta reveal">{fmtDate(next.starts_at)} / {fmtTime(next.starts_at)}{next.venue ? ' / ' + next.venue : ''}</p>}
-          </div>
-          <div className="hm__actions">
-            {next && <div className="hm__count reveal"><Countdown to={next.starts_at} title={next.title} /></div>}
-            <div className="hm__ctas reveal">
-              <Link href={next ? '/event?s=' + next.slug : '/events'} className="tx-btn tx-btn--primary"><Ticket aria-hidden="true" />{next ? 'Claim free ticket' : 'Explore events'}</Link>
-              <Link href="/speakers" className="tx-btn tx-btn--secondary">See speakers<ArrowRight aria-hidden="true" /></Link>
-            </div>
-            <p className="text-caption text-ink-3 reveal">{next ? 'Tickets are free. Seats are limited.' : 'Our next event is on its way.'}</p>
-          </div>
-        </section>
-        <div className="tx-bottombar" />
-      </div>
-
-      <div className="mx-auto max-w-[1200px] px-s4 md:px-s6 grid gap-s7 md:gap-s9">
-        {upcoming.length > 0 && (
-          <section className="tx-reveal grid gap-s5" aria-labelledby="upcoming">
-            <SectionHeading><span id="upcoming">Coming up</span></SectionHeading>
-            <div className="grid gap-s2 md:grid-cols-2 md:gap-s4">
-              {upcoming.map((e) => <EventCard key={e.id} event={e} />)}
-            </div>
-          </section>
-        )}
-
-        {speakers.length > 0 && (
-          <section className="tx-reveal grid gap-s5" aria-labelledby="speakers">
-            <SectionHeading><span id="speakers">On stage</span></SectionHeading>
-            <div className="grid gap-s4 sm:grid-cols-2 lg:grid-cols-4">
-              {speakers.slice(0, 4).map((s) => <SpeakerCard key={s.id} speaker={s} />)}
-            </div>
-            <Link href="/speakers" className="tx-btn tx-btn--ghost justify-self-start">All speakers</Link>
-          </section>
-        )}
-
-        <section className="tx-reveal grid gap-s5 md:grid-cols-2 md:items-start" aria-labelledby="about">
-          <div className="grid gap-s4">
-            <TxLabel>About</TxLabel>
-            <SectionHeading><span id="about">Since 2013</span></SectionHeading>
-            <p className="body-lg text-ink-2">TEDxGUC is the TEDx chapter at the German University in Cairo, run by students. Every season a new board brings speakers, ideas and hundreds of guests together.</p>
-            <Link href="/about" className="tx-btn tx-btn--secondary justify-self-start">Our story</Link>
-          </div>
-          <ul className="tx-stars body md:pt-s7">
-            <li>Free tickets, always</li>
-            <li>Talks shared online after each event</li>
-            <li>Run by GUC students, with a new board every season</li>
-          </ul>
-        </section>
-
-        {partners.length > 0 && (
-          <section className="tx-reveal grid gap-s5" aria-labelledby="partners">
-            <SectionHeading><span id="partners">Our partners</span></SectionHeading>
-            <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-s2">
-              {partners.map((p) => (
-                <li key={p.id} className="tx-card grid place-items-center text-center min-h-[88px]">
-                  <span className="font-bold text-body-sm">{p.company}</span>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-
-        <section className="tx-card tx-card--red grid gap-s4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center" aria-labelledby="join">
-          <div className="grid gap-s2">
-            <div className="tx-label" style={{ color: '#fff' }}>Join the team</div>
-            <h2 id="join" className="h2 uppercase">Make the next one</h2>
-            <p className="text-body" style={{ color: '#fff' }}>We recruit associates at the start of every season across eight teams.</p>
-          </div>
-          <Link href="/join" className="tx-btn tx-btn--secondary" style={{ color: '#fff', borderColor: '#fff' }}>See open roles</Link>
-        </section>
-      </div>
-    </>
-  );
+  const firstLine = title.slice(0, split).join(' '), secondLine = title.slice(split).join(' ');
+  const state = next ? registrationState(next) : 'closed';
+  const eventHref = next?.slug ? '/event?s=' + encodeURIComponent(next.slug) : '/events';
+  return <>
+    <div className="hm public-home-hero">
+      <section className="hm__hero" aria-labelledby="home-title">
+        <div className="hm__wm" id="home-watermark" aria-hidden="true" />
+        <div className="hm__stack">
+          <div className="public-hero-eyebrow reveal"><span className="public-eyebrow-dot" aria-hidden="true" /><TxLabel count={next ? new Date(next.starts_at).getFullYear() : undefined}>{next ? eventKind(next) : 'Independently organized. Endlessly curious.'}</TxLabel></div>
+          <h1 id="home-title" className={'hm__title reveal-wipe ' + (firstLine.length > 8 || secondLine.length > 10 ? 'hm__title--long' : '')}>{firstLine}{secondLine && <span>{secondLine}</span>}</h1>
+          <p className="hm__sub reveal">{next?.description ?? 'A space for ideas that challenge, connect and stay with you. Welcome to TEDx at the German University in Cairo.'}</p>
+          <a className="public-scroll-cue reveal" href="#discover">Discover TEDxGUC<ArrowDown size={16} aria-hidden="true" /></a>
+        </div>
+        <div className="hm__actions reveal">
+          {next ? <div className="public-next">
+            <div className="public-next__top"><span className="tx-label">Your next experience</span><span className="public-registration-state">{state === 'open' ? 'Registration open' : state === 'soon' ? 'Opening soon' : 'Registration closed'}</span></div>
+            <div className="hm__count"><Countdown to={next.starts_at} title={next.title} /></div>
+            <div className="public-next__details"><p><CalendarDays size={16} aria-hidden="true" />{fmtDate(next.starts_at, { year: true })} / {fmtTime(next.starts_at)}</p>{next.venue && <p><MapPin size={16} aria-hidden="true" />{next.venue}</p>}</div>
+            <Link href={eventHref} className="tx-btn tx-btn--primary tx-btn--block"><Ticket aria-hidden="true" />{state === 'open' ? 'Claim your free ticket' : 'Explore the event'}<ArrowUpRight size={18} aria-hidden="true" /></Link>
+            <p className="public-next__note">{state === 'soon' && next.registration_opens_at ? 'Registration opens ' + fmtDate(next.registration_opens_at) + ' at ' + fmtTime(next.registration_opens_at) + '.' : 'Free tickets. A room full of possibilities.'}</p>
+          </div> : <div className="public-next public-next--quiet"><span className="tx-label">The next chapter</span><h2>Stay curious.<br />Stay close.</h2><p>Our next experience is taking shape. Explore the stories and people behind TEDxGUC.</p><Link href="/events" className="tx-btn tx-btn--primary">Explore events<ArrowUpRight size={18} aria-hidden="true" /></Link></div>}
+          {error && <DataNotice message={error} retry={reload} loading={loading} />}
+        </div>
+      </section>
+      <div className="public-hero-foot"><span>Ideas worth spreading</span><span>German University in Cairo</span><span>Since 2013</span></div>
+    </div>
+    <div id="discover" className="public-container public-home-sections">
+      {!!upcoming.length && <section aria-labelledby="upcoming" className="public-section tx-reveal"><div className="public-section-heading"><div><TxLabel>Save the date</TxLabel><SectionHeading><span id="upcoming">Be in the room.</span></SectionHeading></div><Link href="/events" className="public-text-link">All experiences<ArrowUpRight size={18} aria-hidden="true" /></Link></div><div className="public-event-grid">{upcoming.slice(0, 2).map((e) => <EventCard key={e.id} event={e} />)}</div></section>}
+      <section className="public-about-section tx-reveal" aria-labelledby="about-title"><div><TxLabel>Beyond the stage</TxLabel><h2 id="about-title">An idea starts<br />with a <em>connection.</em></h2></div><div className="grid gap-s4 content-center"><p className="body-lg text-ink-2">Since 2013, TEDxGUC has brought people together around ideas worth spreading. Independently organized by students, made for the curious.</p><p className="text-ink-3">Step into a different perspective. Meet someone unexpected. Leave with a question you did not arrive with.</p><Link href="/about" className="public-text-link">Get to know us<ArrowUpRight size={18} aria-hidden="true" /></Link></div></section>
+      {!!speakers.length && <section className="public-section tx-reveal" aria-labelledby="speakers"><div className="public-section-heading"><div><TxLabel>Different voices. Shared curiosity.</TxLabel><SectionHeading><span id="speakers">Meet the minds.</span></SectionHeading></div><Link href="/speakers" className="public-text-link">All speakers<ArrowUpRight size={18} aria-hidden="true" /></Link></div><div className="public-speaker-grid">{speakers.slice(0, 4).map((s) => <SpeakerCard key={s.id} speaker={s} />)}</div></section>}
+      <section className="public-paths" aria-label="Explore TEDxGUC">{[{ n: '01', title: 'The experience', text: 'Discover the next talk, salon or workshop.', href: '/events', action: 'Find an event' }, { n: '02', title: 'The people', text: 'Meet the board bringing the season to life.', href: '/board', action: 'Meet the board' }, { n: '03', title: 'Your chapter', text: 'Put your ideas into action with the team.', href: '/join', action: 'Explore open roles' }].map((p) => <Link href={p.href} key={p.n} className="public-path"><span className="public-path__number">{p.n}</span><ArrowUpRight className="public-path__arrow" size={26} aria-hidden="true" /><h3>{p.title}</h3><p>{p.text}</p><span className="public-text-link">{p.action}<ArrowRight size={16} aria-hidden="true" /></span></Link>)}</section>
+      {!!partners.length && <section className="public-partners" aria-label="Our partners"><TxLabel>Made possible together</TxLabel><ul>{partners.map((p) => { const url = safeExternalUrl(p.website); const logo = p.logo_url ? <img src={assetUrl(p.logo_url)} alt={p.company} width={160} height={72} loading="lazy" decoding="async" /> : <span>{p.company}</span>; return <li key={p.id}>{url ? <a href={url} target="_blank" rel="noopener noreferrer" aria-label={p.company + ' (opens in a new tab)'}>{logo}</a> : logo}</li>; })}</ul></section>}
+      <section className="public-faq-section" aria-labelledby="quick-questions"><div><TxLabel>A little clarity</TxLabel><h2 id="quick-questions">Before you<br />come along.</h2><Link href="/contact" className="public-text-link">More questions?<ArrowUpRight size={18} aria-hidden="true" /></Link></div><div className="public-faq"><details><summary>Are tickets free?<Plus size={20} aria-hidden="true" /></summary><p>Yes. TEDxGUC event tickets are free. Seats are limited, so register through the event page when registration opens.</p></details><details><summary>How do I get my ticket?<Plus size={20} aria-hidden="true" /></summary><p>Register on the event page. Your ticket or waitlist confirmation is sent to the email address you provide. Keep your private ticket link for event day.</p></details><details><summary>Can I join the organizing team?<Plus size={20} aria-hidden="true" /></summary><p>We recruit across eight teams at the start of each season. <Link href="/join" className="tx-link">See open roles and apply.</Link></p></details></div></section>
+    </div>
+  </>;
 }

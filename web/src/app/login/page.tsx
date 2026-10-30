@@ -1,152 +1,125 @@
-'use client';
-// Portal login (FR-2.1): Google with a GUC account, or email + password.
-// Demo mode shows a role picker instead. Ends with the red bottom bar.
-import { ArrowRight, LogIn } from 'lucide-react';
+﻿'use client';
+import { ArrowLeft, ArrowRight, CalendarDays, Check, Eye, EyeOff, Layers3, LockKeyhole, Mail, Users } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useState } from 'react';
-import { Lockup, PortalMark, TxLabel } from '@/components/Brand';
+import { Suspense, useRef, useState } from 'react';
+import { Lockup, PortalMark } from '@/components/Brand';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useToast } from '@/components/Toast';
-import { Avatar, Button, TextInput } from '@/components/ui';
+import { Avatar, Button } from '@/components/ui';
 import { api } from '@/lib/api';
 import { DEMO_COOKIE, demoPersonas, resetDemo } from '@/lib/api/demo-api';
 import { clearCache } from '@/lib/cache';
 import { DEMO, GOOGLE_LOGIN } from '@/lib/env';
+import './login.css';
 
-function safeNext(next: string | null) {
-  return next && next.startsWith('/portal') ? next : '/portal';
-}
-
+type Mode = 'signin' | 'setup' | 'reset';
 function LoginInner() {
   const router = useRouter();
   const params = useSearchParams();
   const toast = useToast();
-  const next = safeNext(params.get('next'));
-  const urlError = params.get('error');
+  const requested = params.get('next');
+  const next = requested && /^\/portal(?:\/|\?|#|$)/.test(requested) && !/[\\\r\n]/.test(requested) ? requested : '/portal';
+  const [mode, setMode] = useState<Mode>(params.get('first') === '1' ? 'setup' : 'signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [busy, setBusy] = useState<'google' | 'email' | 'reset' | null>(null);
-  // First time: invited people set their own password (no email needed).
-  const [firstTime, setFirstTime] = useState(params.get('first') === '1');
-  const [password2, setPassword2] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [capsLock, setCapsLock] = useState(false);
+  const [busy, setBusy] = useState<'google' | 'email' | null>(null);
+  const inFlight = useRef(false);
   const [notice, setNotice] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(urlError);
-
-  const google = async () => {
-    setBusy('google');
-    try { await api.signInWithGoogle(); } catch (e) { setError((e as Error).message); setBusy(null); }
+  const [error, setError] = useState<string | null>(params.get('error'));
+  const changeMode = (value: Mode) => {
+    if (inFlight.current) return;
+    setMode(value); setError(null); setNotice(null); setPassword(''); setConfirm(''); setShowPassword(false); setCapsLock(false);
   };
-  const withEmail = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setBusy('email');
-    setError(null);
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (inFlight.current) return;
+    inFlight.current = true; setBusy('email'); setError(null); setNotice(null);
     try {
-      if (firstTime) {
-        if (password.length < 8) throw new Error('Use at least 8 characters.');
-        if (password !== password2) throw new Error('The two passwords don’t match.');
-        const ready = await api.signUpWithEmail(email.trim(), password);
-        if (!ready) { setNotice('Almost there: open the confirmation email we sent, then log in.'); setBusy(null); return; }
-      } else {
-        await api.signInWithEmail(email.trim(), password);
+      if (mode === 'reset') {
+        await api.sendPasswordReset(email.trim());
+        setNotice('If this email has an account, a password-reset link is on its way. Check your inbox and spam folder.');
+        return;
       }
-      clearCache();
-      router.replace(next);
-    } catch (x) {
-      setError((x as Error).message);
-      setBusy(null);
-    }
+      if (mode === 'setup') {
+        if (password.length < 8) throw new Error('Use at least 8 characters.');
+        if (password !== confirm) throw new Error('The two passwords do not match.');
+        if (!await api.signUpWithEmail(email.trim(), password)) {
+          setNotice('Open the confirmation email we sent, then return here to sign in.'); return;
+        }
+      } else await api.signInWithEmail(email.trim(), password);
+      clearCache(); router.replace(next);
+    } catch (e) { setError(e instanceof Error ? e.message : 'Something went wrong. Please try again.'); }
+    finally { inFlight.current = false; setBusy(null); }
   };
-  const reset = async () => {
-    if (!email.trim()) { setError('Enter your email first, then tap “Forgot password?”.'); return; }
-    setBusy('reset');
-    await api.sendPasswordReset(email.trim()).catch(() => {});
-    toast('ok', 'Check your inbox.', 'If this email has an account, a reset link is on its way.');
-    setBusy(null);
+  const google = async () => {
+    if (inFlight.current) return;
+    inFlight.current = true; setBusy('google'); setError(null);
+    try { await api.signInWithGoogle(); }
+    catch (e) { setError(e instanceof Error ? e.message : 'Unable to connect. Please try again.'); inFlight.current = false; setBusy(null); }
   };
-  const pickDemo = (userId: string) => {
-    clearCache();
-    document.cookie = `${DEMO_COOKIE}=${userId}; path=/; max-age=${60 * 60 * 8}; samesite=lax`;
-    router.replace(next);
+  const pickDemo = (id: string) => {
+    clearCache(); document.cookie = `${DEMO_COOKIE}=${id}; path=/; max-age=${60 * 60 * 8}; samesite=lax`; router.replace(next);
   };
-
   return (
-    <div className="min-h-dvh grid grid-rows-[auto_1fr_auto]">
-      <header className="flex items-center justify-between px-s4 md:px-s6 h-[64px] border-b border-line">
-        <Link href="/" aria-label="TEDxGUC home"><Lockup height={22} /></Link>
-        <ThemeToggle />
+    <div className="portal-login">
+      <header className="login-header">
+        <Link href="/" aria-label="TEDxGUC home"><Lockup height={24} /></Link>
+        <div className="login-header-actions"><Link href="/" className="login-back"><ArrowLeft size={15} />Back to the site</Link><ThemeToggle /></div>
       </header>
-      <main className="tx-watermark is-hero grid place-items-center px-s4 py-s7">
-        <div className="w-full max-w-[420px] grid gap-s5 tx-page">
-          <div className="grid gap-s3">
-            <PortalMark size={40} />
-            <TxLabel>Team portal</TxLabel>
-            <h1 className="h1 uppercase">{firstTime ? 'Set your password' : 'Log in'}</h1>
-            {firstTime && <p className="text-ink-2">Use the email your Chairman or Curator invited.</p>}
+      <main className="login-main">
+        <section className="login-story" aria-labelledby="login-story-title">
+          <div className="login-story-art" aria-hidden="true"><span /><span /></div>
+          <div className="login-eyebrow"><span />THE TEAM BEHIND THE IDEAS</div>
+          <h1 id="login-story-title">Big ideas.<br /><span>Built together.</span></h1>
+          <p className="login-story-intro">The work starts here. Your people, your projects, and everything that brings TEDxGUC to life.</p>
+          <div className="login-features">
+            <div><Layers3 size={19} /><span>Make things happen<small>Keep projects and tasks moving.</small></span></div>
+            <div><CalendarDays size={19} /><span>Stay in the loop<small>Find your next meeting or team event.</small></span></div>
+            <div><Users size={19} /><span>One team, connected<small>Catch up on people and announcements.</small></span></div>
           </div>
-
-          {error && (
-            <div className="tx-toast tx-toast--bad" role="alert" style={{ boxShadow: 'none', maxWidth: 'none' }}>
-              <span aria-hidden="true" className="font-display text-h4 text-bad">!</span>
-              <div><div className="tx-toast__t">We couldn’t log you in.</div><div className="tx-toast__d">{error}</div></div>
-              <span />
-            </div>
-          )}
-
-          {DEMO ? (
-            <section className="grid gap-s3" aria-labelledby="demo">
-              <p id="demo" className="text-ink-2">Demo mode: pick who you want to be. Each role sees what the permissions matrix allows.</p>
-              <ul className="grid gap-s2">
-                {demoPersonas().map((p) => (
-                  <li key={p.user_id}>
-                    <button onClick={() => pickDemo(p.user_id)} className="tx-card w-full text-left flex items-center gap-s3 hover:bg-surface-2" style={{ padding: 12 }}>
-                      <Avatar name={p.member.name} />
-                      <span className="grid grid-cols-1 flex-1 min-w-0">
-                        <span className="font-semibold">{p.label}</span>
-                        <span className="text-caption text-ink-3 truncate">{p.member.name} · {p.hint}</span>
-                      </span>
-                      <ArrowRight size={20} className="text-ink-3" aria-hidden="true" />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-              <button className="tx-link text-body-sm justify-self-start bg-transparent border-0 cursor-pointer" onClick={() => { resetDemo(); toast('ok', 'Demo data reset.'); }}>
-                Reset demo data
-              </button>
-            </section>
-          ) : (
-            <>
-              {notice && <div className="tx-card text-body-sm" role="status">{notice}</div>}
-              {GOOGLE_LOGIN && !firstTime && (
-                <>
-                  <Button block variant="primary" onClick={google} loading={busy === 'google'}>
-                    <LogIn aria-hidden="true" />Continue with GUC Google
-                  </Button>
-                  <p className="text-caption text-ink-3 -mt-s3">Use your @student.guc.edu.eg or @guc.edu.eg account.</p>
-                  <div className="flex items-center gap-s3 text-caption text-ink-3" aria-hidden="true">
-                    <span className="flex-1 h-px bg-line" />or<span className="flex-1 h-px bg-line" />
-                  </div>
-                </>
-              )}
-              <form className="grid gap-s4" onSubmit={withEmail}>
-                <TextInput label="Email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-                <TextInput label={firstTime ? 'New password' : 'Password'} type="password" autoComplete={firstTime ? 'new-password' : 'current-password'} value={password} onChange={(e) => setPassword(e.target.value)} required help={firstTime ? 'At least 8 characters.' : undefined} />
-                {firstTime && <TextInput label="Repeat password" type="password" autoComplete="new-password" value={password2} onChange={(e) => setPassword2(e.target.value)} required />}
-                <Button type="submit" block variant={GOOGLE_LOGIN && !firstTime ? 'secondary' : 'primary'} loading={busy === 'email'}>{firstTime ? 'Create my account' : 'Log in'}</Button>
-                {!firstTime && <button type="button" onClick={reset} className="tx-link text-body-sm justify-self-start bg-transparent border-0 cursor-pointer">Forgot password?</button>}
+          <div className="login-story-footer"><span>IDEAS WORTH SPREADING</span><span>TEDxGUC / TEAM PORTAL</span></div>
+        </section>
+        <section className="login-access" aria-labelledby="login-title">
+          <div className="login-card">
+            <div className="login-card-top"><PortalMark size={34} /><span><LockKeyhole size={12} />{DEMO ? 'DEMO ACCESS' : 'MEMBER ACCESS'}</span></div>
+            <h2 id="login-title">{DEMO ? 'Meet your portal.' : mode === 'setup' ? 'Your journey starts here.' : mode === 'reset' ? 'Let\'s get you back in.' : 'Welcome back.'}</h2>
+            <p className="login-card-intro">{DEMO ? 'Explore the team workspace. Choose a demo role to see it in action.' : mode === 'setup' ? 'Use the email your Chairman or Curator invited to set up your account.' : mode === 'reset' ? 'Enter your account email and we will send you a reset link.' : 'Sign in to your TEDxGUC team workspace.'}</p>
+            {error && <div className="login-message is-error" role="alert">{error}</div>}
+            {notice && <div className="login-message" role="status"><Check size={18} /><span>{notice}</span></div>}
+            {DEMO ? <>
+              <ul className="login-personas">{demoPersonas().map(p => <li key={p.user_id}><button onClick={() => pickDemo(p.user_id)}><Avatar name={p.member.name} /><span><strong>{p.label}</strong><small>{p.member.name} / {p.hint}</small></span><ArrowRight size={18} /></button></li>)}</ul>
+              <button className="login-text-button login-demo-reset" onClick={() => { resetDemo(); toast('ok', 'Demo data reset.'); }}>Reset demo data</button>
+            </> : <>
+              {GOOGLE_LOGIN && mode === 'signin' && <>
+                <Button block variant="secondary" onClick={google} loading={busy === 'google'} disabled={!!busy}><span className="login-google" aria-hidden="true">G</span>Continue with GUC Google</Button>
+                <p className="login-provider-help">Use your GUC university account.</p>
+                <div className="login-divider"><span />or use email<span /></div>
+              </>}
+              <form className="login-form" onSubmit={submit} aria-busy={!!busy}>
+                <label className="login-field"><span>Email address</span><span className="login-input-wrap"><Mail size={18} aria-hidden="true" /><input type="email" autoComplete="email" inputMode="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} required disabled={!!busy} /></span></label>
+                {mode !== 'reset' && <>
+                  <label className="login-field"><span className="login-field-heading">{mode === 'setup' ? 'Create a password' : 'Password'}</span><span className="login-input-wrap"><LockKeyhole size={18} aria-hidden="true" /><input type={showPassword ? 'text' : 'password'} autoComplete={mode === 'setup' ? 'new-password' : 'current-password'} placeholder={mode === 'setup' ? 'At least 8 characters' : 'Enter your password'} value={password} onChange={e => setPassword(e.target.value)} onKeyUp={e => setCapsLock(e.getModifierState('CapsLock'))} onKeyDown={e => setCapsLock(e.getModifierState('CapsLock'))} onBlur={() => setCapsLock(false)} minLength={mode === 'setup' ? 8 : undefined} required disabled={!!busy} /><button type="button" className="login-reveal" aria-label={showPassword ? 'Hide password' : 'Show password'} aria-pressed={showPassword} onClick={() => setShowPassword(!showPassword)} disabled={!!busy}>{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button></span></label>
+                  {capsLock && <p className="login-field-note" role="status">Caps Lock is on.</p>}
+                  {mode === 'setup' && <label className="login-field"><span>Confirm password</span><span className="login-input-wrap"><LockKeyhole size={18} aria-hidden="true" /><input type={showPassword ? 'text' : 'password'} autoComplete="new-password" value={confirm} onChange={e => setConfirm(e.target.value)} minLength={8} required disabled={!!busy} placeholder="Repeat your password" /></span></label>}
+                  {mode === 'signin' && <button type="button" className="login-text-button login-forgot" disabled={!!busy} onClick={() => changeMode('reset')}>Forgot password?</button>}
+                </>}
+                <Button block type="submit" loading={busy === 'email'} disabled={!!busy}>{mode === 'setup' ? 'Create my account' : mode === 'reset' ? 'Send reset link' : 'Sign in'}<ArrowRight size={18} aria-hidden="true" /></Button>
               </form>
-              <p className="text-body-sm text-ink-3">{firstTime ? 'Already set your password? ' : 'First time here? '}
-                <button type="button" className="tx-link bg-transparent border-0 cursor-pointer p-0" onClick={() => { setFirstTime(!firstTime); setError(null); setNotice(null); }}>{firstTime ? 'Log in' : 'Set your password'}</button>
-                {firstTime ? '' : '. The portal is invite-only: ask your Chairman or Curator to add your email first.'}</p>
-            </>
-          )}
-        </div>
+              <div className="login-switch">{mode === 'signin' ? <>First time here? <button className="login-text-button" disabled={!!busy} onClick={() => changeMode('setup')}>Set up your account</button></> : <button className="login-text-button" disabled={!!busy} onClick={() => changeMode('signin')}><ArrowLeft size={14} />Back to sign in</button>}</div>
+              <p className="login-invite-note"><LockKeyhole size={13} />Invite-only access. Need an invitation? Contact your Chairman or Curator.</p>
+            </>}
+          </div>
+          <div className="login-help"><span>Need a hand?</span><Link href="/contact/">Get in touch<ArrowRight size={13} /></Link></div>
+        </section>
       </main>
-      <div className="tx-bottombar" />
+      <footer className="login-footer"><span>Independent ideas. Collective effort.</span><Link href="/privacy/">Privacy</Link></footer>
     </div>
   );
 }
-
 export default function LoginPage() {
-  return <Suspense><LoginInner /></Suspense>;
+  return <Suspense fallback={<div className="login-loading" role="status">Loading your workspace...</div>}><LoginInner /></Suspense>;
 }

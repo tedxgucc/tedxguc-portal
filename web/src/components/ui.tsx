@@ -123,25 +123,30 @@ export function Modal({ open, onClose, title, children, actions, labelledBy }: {
   open: boolean; onClose: () => void; title: string; children: React.ReactNode; actions?: React.ReactNode; labelledBy?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const close = useRef(onClose); close.current = onClose;
   const tid = useId();
   useEffect(() => {
     if (!open) return;
     const prev = document.activeElement as HTMLElement | null;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const overflow = document.body.style.overflow;
+    const focusable = () => Array.from(ref.current?.querySelectorAll<HTMLElement>('a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), [tabindex="0"]') ?? []).filter((el) => el.getClientRects().length > 0);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { e.preventDefault(); close.current(); }
+      if (e.key !== 'Tab') return;
+      const items = focusable(), first = items[0], last = items.at(-1);
+      if (!first) { e.preventDefault(); ref.current?.focus(); }
+      else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    };
     document.addEventListener('keydown', onKey);
     document.body.style.overflow = 'hidden';
-    const first = ref.current?.querySelector<HTMLElement>('input, select, textarea, button:not([data-close])');
-    first?.focus();
-    return () => {
-      document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = '';
-      prev?.focus();
-    };
-  }, [open, onClose]);
+    (focusable().find((el) => !el.hasAttribute('data-close')) ?? focusable()[0] ?? ref.current)?.focus();
+    return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = overflow; if (prev?.isConnected) prev.focus({ preventScroll: true }); };
+  }, [open]);
   if (!open) return null;
   return createPortal(
     <div className="tx-scrim" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div ref={ref} className="tx-modal" role="dialog" aria-modal="true" aria-labelledby={labelledBy ?? tid}>
+      <div ref={ref} tabIndex={-1} className="tx-modal" role="dialog" aria-modal="true" aria-labelledby={labelledBy ?? tid}>
         <div className="tx-modal__grab md:hidden" aria-hidden="true" />
         <div className="flex items-start justify-between gap-s3 mb-s4">
           <h2 id={tid} className="h4">{title}</h2>

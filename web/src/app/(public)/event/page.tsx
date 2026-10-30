@@ -8,20 +8,24 @@ import { eventKind } from '@/components/EventCard';
 import { SpeakerCard } from '@/components/SpeakerCard';
 import { EmptyState } from '@/components/ui';
 import { api } from '@/lib/api';
-import { PageLoading, useLoad } from '@/lib/useLoad';
+import { PageLoading } from '@/lib/useLoad';
+import { usePublicData } from '@/lib/usePublicData';
+import { DataNotice } from '@/components/public/DataNotice';
+import { EventActions } from '@/components/public/EventActions';
 import { fmtDate, fmtTime } from '@/lib/format';
 import { RegisterPanel } from './RegisterPanel';
 
 // One event, by its web address: /event?s=loose-ends
 function EventInner() {
   const slug = useSearchParams().get('s') ?? '';
-  const d = useLoad(async () => {
+  const { data: d, error, loading, reload } = usePublicData(async () => {
     const event = await api.getEventBySlug(slug);
     if (!event) return { event: null, fields: [], speakers: [] };
     const [fields, speakers] = await Promise.all([api.getEventFields(event.id), api.listSpeakers(event.id)]);
     return { event, fields, speakers };
   }, [slug]);
   useEffect(() => { if (d?.event) document.title = `${d.event.title} · TEDxGUC`; }, [d]);
+  if (!d && error) return <div className="public-container pt-s7"><DataNotice message={error} retry={reload} loading={loading} /></div>;
   if (!d) return <PageLoading />;
   const { event, fields, speakers } = d;
   if (!event) {
@@ -44,12 +48,13 @@ function EventInner() {
             <li className="flex items-center gap-s2"><Clock size={18} aria-hidden="true" />{fmtTime(event.starts_at)}{event.ends_at ? ` – ${fmtTime(event.ends_at)}` : ''}</li>
             {event.venue && <li className="flex items-center gap-s2"><MapPin size={18} aria-hidden="true" />{event.venue}</li>}
           </ul>
+          <EventActions event={event} />
         </div>
       </section>
 
       <div className="mx-auto max-w-[1200px] px-s4 md:px-s6 grid gap-s7 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-start">
         <div className="grid gap-s7">
-          {event.cover_url && <img src={event.cover_url} alt="" className="w-full aspect-[16/9] object-cover" />} {/* eslint-disable-line @next/next/no-img-element */}
+          {event.cover_url && <img src={event.cover_url} alt="" className="w-full aspect-[16/9] object-cover" width={1200} height={675} decoding="async" />} {/* eslint-disable-line @next/next/no-img-element */}
           {event.description && <p className="body-lg text-ink-2 max-w-[68ch]">{event.description}</p>}
         </div>
 

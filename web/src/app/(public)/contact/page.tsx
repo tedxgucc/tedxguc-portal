@@ -4,15 +4,18 @@ import { PageTitle, SectionHeading } from '@/components/Brand';
 import { InquiryForm } from '@/components/InquiryForm';
 import { FaqList } from '@/components/SiteSections';
 import { api } from '@/lib/api';
-import { PageLoading, useLoad } from '@/lib/useLoad';
+import { PageLoading } from '@/lib/useLoad';
+import { usePublicData } from '@/lib/usePublicData';
+import { DataNotice } from '@/components/public/DataNotice';
 import { INSTAGRAM_URL } from '@/lib/env';
 
 
 export default function ContactPage() {
-  const d = useLoad(async () => {
+  const { data: d, error, loading, reload } = usePublicData(async () => {
     const { faq } = await api.getSections(['faq']);
     return { faq };
   });
+  if (!d && error) return <div className="public-container pt-s7"><DataNotice message={error} retry={reload} loading={loading} /></div>;
   if (!d) return <PageLoading />;
   const { faq } = d;
   return (

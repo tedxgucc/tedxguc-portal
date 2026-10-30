@@ -26,6 +26,7 @@ jobs:
       NEXT_PUBLIC_SUPABASE_URL: https://qqgnvrjqrxafskkwxsvc.supabase.co
       NEXT_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxZ252cmpxcnhhZnNra3d4c3ZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4Nzg5MjEsImV4cCI6MjEwODQ1NDkyMX0.QIRJ4I357KHgohR4ehKvUH56vDdauvg2ANvvhh_ZpNY
       # Repository variable CUSTOM_DOMAIN (e.g. tedxguc.com): leave unset until the domain points here.
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${{ vars.TURNSTILE_SITE_KEY }}
       CUSTOM_DOMAIN: ${{ vars.CUSTOM_DOMAIN }}
     steps:
       - uses: actions/checkout@v4
@@ -36,9 +37,17 @@ jobs:
           cache-dependency-path: web/package-lock.json
       # On tedxgucc.github.io the site lives under /tedxguc-portal; on its own domain, at the root.
       - run: |
-          if [ -n "$CUSTOM_DOMAIN" ]; then echo "NEXT_PUBLIC_BASE_PATH=" >> "$GITHUB_ENV"; else echo "NEXT_PUBLIC_BASE_PATH=/tedxguc-portal" >> "$GITHUB_ENV"; fi
+          if [ -n "$CUSTOM_DOMAIN" ]; then
+            echo "NEXT_PUBLIC_BASE_PATH=" >> "$GITHUB_ENV"
+            echo "NEXT_PUBLIC_SITE_URL=https://$CUSTOM_DOMAIN" >> "$GITHUB_ENV"
+          else
+            echo "NEXT_PUBLIC_BASE_PATH=/tedxguc-portal" >> "$GITHUB_ENV"
+            echo "NEXT_PUBLIC_SITE_URL=https://tedxgucc.github.io/tedxguc-portal" >> "$GITHUB_ENV"
+          fi
       - run: npm ci
-      - run: npx next build
+      - run: npm run check:launch
+      - run: npm run build
+      - run: npm run check:export
       - run: |
           touch out/.nojekyll
           if [ -n "$CUSTOM_DOMAIN" ]; then echo "$CUSTOM_DOMAIN" > out/CNAME; fi

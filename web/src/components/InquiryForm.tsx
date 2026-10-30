@@ -12,6 +12,7 @@ export function InquiryForm({ kind }: { kind: 'partner' | 'contact' }) {
   const toast = useToast();
   const [f, setF] = useState({ name: '', email: '', phone: '', company: '', message: '' });
   const [consent, setConsent] = useState(false);
+  const [captchaAttempt, setCaptchaAttempt] = useState(0);
   const [token, setToken] = useState<string>();
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
@@ -32,6 +33,7 @@ export function InquiryForm({ kind }: { kind: 'partner' | 'contact' }) {
       await api.sendInquiry({ kind, ...f, consent, turnstile_token: token });
       setSent(true);
     } catch (x) {
+      setToken(undefined); setCaptchaAttempt((n) => n + 1);
       toast('bad', "That didn't send.", (x as ApiError).message);
     } finally {
       setBusy(false);
@@ -60,7 +62,7 @@ export function InquiryForm({ kind }: { kind: 'partner' | 'contact' }) {
           label={<>TEDxGUC may store these details to reply to me. <Link href="/privacy" className="tx-link">Privacy notice</Link></>} />
         {error.consent && <p className="tx-help mt-s1" role="alert">{error.consent}</p>}
       </div>
-      <Turnstile onToken={setToken} />
+      <Turnstile resetKey={captchaAttempt} onToken={setToken} />
       <Button type="submit" loading={busy} className="justify-self-start"><Send aria-hidden="true" />Send</Button>
     </form>
   );

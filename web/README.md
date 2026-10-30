@@ -1,6 +1,6 @@
 # TEDxGUC: web app
 
-The public site and the members' portal, built with Next.js 15 and Tailwind 3 on the **TEDxGUC design system**. The design system's own stylesheet (`src/styles/bundle.css`, every `tx-` component) and tokens (`src/styles/tokens.css`) are copied in unchanged, so the screens match it exactly. Tailwind reads the same tokens (`tailwind.config.ts`, from the design system's "Tokens as code" page).
+The public site and the members' portal, built with Next.js 15 and Tailwind 3 on the **TEDxGUC design system**. The design system stylesheet (`src/styles/bundle.css`) and tokens (`src/styles/tokens.css`) provide the shared base. The public site adds a responsive presentation layer in `src/styles/public.css`. Tailwind reads the same tokens (`tailwind.config.ts`, from the design system's "Tokens as code" page).
 
 ## Run it
 
@@ -18,7 +18,7 @@ Open http://localhost:3000. The dev server compiles each page the first time you
 npm run preview
 ```
 
-**Demo mode.** Without Supabase settings the app runs on sample data, and the login page offers a role picker: Chairman, Operations Curator, Marketing Curator, the Media & Design, L&P and Partnerships Executives, and two Associates. Each role sees what the permissions matrix allows. Nothing is saved beyond the browser tab. "Reset demo data" on the login page starts fresh. Demo ticket codes for the door are `demo0001` … `demo0036`. In demo mode each area keeps its own sample data, so a demo package sale does not appear in the demo cashbook (the real database posts it automatically).
+**Demo mode.** Without Supabase settings the app runs on sample data, and the login page offers a role picker: Chairman, Operations Curator, Marketing Curator, the Media & Design, L&P and Partnerships Executives, and two Associates. Each role sees what the permissions matrix allows. Nothing is saved beyond the browser tab. "Reset demo data" on the login page starts fresh. Demo ticket codes for the door are `demo0001` … `demo0036`. In demo mode each area keeps its own sample data, so a demo package sale does not appear in the demo cashbook (signup money is recorded manually in Bank).
 
 **Live mode.** Copy `.env.example` to `.env.local` and fill in `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` from the Supabase project (see the main README for setting that up). Everything then goes through the real database and its security rules.
 
@@ -44,7 +44,9 @@ npm run preview
 
 **Brand rules applied:** dark by default with a full light theme (remembered per device); Anton for titles and buttons, Inter for text; square corners; `tx-label` above every page title; one faded X per hero; the 12px deep-red bar and the TEDx license line on public pages and the login; status chips always carry an icon and a word; division colours on tags, task cards and calendar pills; 16px inputs and 52px buttons; works at 375px with no sideways scrolling.
 
-**Checked in the browser** (demo mode, 375px and 1280px, dark and light): home page, event registration with validation, ticket page with QR, associate dashboard and task permissions, door check-in, the double-entry block, and the Chairman dashboard.
+**Current validation:** the production static export, public-page links, private-page search exclusions, and automated discovery/calendar/configuration tests are checked. See the launch guide for live API results and remaining manual checks.
+
+**Public launch:** see [the launch guide](../docs/public-launch.md) for configuration, release checks and the live smoke test.
 
 **Not checked yet:**
 - Anything against a real Supabase project.
@@ -58,4 +60,4 @@ npm run preview
 - **Executives see only their own team** (Team, Tasks, Attendance, expense requests). Cross-team task requests are for Curators and the Chairman.
 - **Ticket numbers** follow each event's prefix (`TX27-0001`). The design system shows `TX27-0412-LE` with an event code suffix; that's easy to add if you want it.
 - **Fonts** are self-hosted through `next/font`, not loaded from Google at runtime.
-- **Security headers** are set in `next.config.mjs`. The camera is allowed only on this site.
+- **Static hosting:** GitHub Pages serves the export. Search exclusions and privacy metadata are built into the pages. The local preview adds basic response headers; production HTTP headers depend on the hosting provider.

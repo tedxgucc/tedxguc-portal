@@ -3,7 +3,9 @@ import { Instagram } from 'lucide-react';
 import { PageTitle, SectionHeading, TxLabel } from '@/components/Brand';
 import { DivTag } from '@/components/ui';
 import { api } from '@/lib/api';
-import { PageLoading, useLoad } from '@/lib/useLoad';
+import { PageLoading } from '@/lib/useLoad';
+import { usePublicData } from '@/lib/usePublicData';
+import { DataNotice } from '@/components/public/DataNotice';
 import { recruitmentApi } from '@/lib/api/phase2b';
 import { INSTAGRAM_URL } from '@/lib/env';
 import { fmtDate } from '@/lib/format';
@@ -12,7 +14,7 @@ import { ApplyForm } from './ApplyForm';
 
 // FR-1.6, FR-4.1, FR-4.2: open roles per team, the form, the deadline.
 export default function JoinPage() {
-  const d = useLoad(async () => {
+  const { data: d, error, loading, reload } = usePublicData(async () => {
     const [divisions, teams, cycles] = await Promise.all([api.listDivisions(), api.listTeams(), recruitmentApi.listCycles()]);
     const now = Date.now();
     const open = cycles.find((c) => c.kind === 'associates' && new Date(c.opens_at).getTime() <= now && new Date(c.closes_at).getTime() >= now) ?? null;
@@ -20,6 +22,7 @@ export default function JoinPage() {
     const fill = open ? await recruitmentApi.positionFill(open.id).catch(() => []) : [];
     return { divisions, teams, cycles, now, open, positions, fill };
   });
+  if (!d && error) return <div className="public-container pt-s7"><DataNotice message={error} retry={reload} loading={loading} /></div>;
   if (!d) return <PageLoading />;
   const { divisions, teams, cycles, now, open, positions, fill } = d;
   const full = new Set(fill.filter((x) => x.is_full).map((x) => x.team_id));

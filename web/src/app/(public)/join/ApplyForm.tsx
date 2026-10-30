@@ -19,6 +19,7 @@ export function ApplyForm({ cycle, positions, teams, full = [] }: { cycle: Cycle
   const [f, setF] = useState({ name: '', gucId: '', email: '', phone: '+20 ', major: '', first: '', second: '' });
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [consent, setConsent] = useState(false);
+  const [captchaAttempt, setCaptchaAttempt] = useState(0);
   const [token, setToken] = useState<string>();
   const [busy, setBusy] = useState(false);
   const [step, setStep] = useState<'teams' | 'form'>('teams');
@@ -59,6 +60,7 @@ export function ApplyForm({ cycle, positions, teams, full = [] }: { cycle: Cycle
       });
       router.push(`/join/status?t=${res.status_token}&new=1`);
     } catch (x) {
+      setToken(undefined); setCaptchaAttempt((n) => n + 1);
       toast('bad', "That didn't send.", (x as Error).message);
       setBusy(false);
     }
@@ -111,7 +113,7 @@ export function ApplyForm({ cycle, positions, teams, full = [] }: { cycle: Cycle
           label={<>TEDxGUC may keep my application to review it. It’s deleted 6 months after this round unless I join. <Link href="/privacy" className="tx-link">Privacy notice</Link></>} />
         {errors.consent && <p className="tx-help mt-s1" role="alert">{errors.consent}</p>}
       </div>
-      <Turnstile onToken={setToken} />
+      <Turnstile resetKey={captchaAttempt} onToken={setToken} />
       <Button type="submit" block loading={busy}><Send aria-hidden="true" />Continue to interview times</Button>
       </>}
     </form>

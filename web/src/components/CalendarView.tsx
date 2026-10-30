@@ -4,10 +4,11 @@
 // division colour (design system: CalendarPill).
 import { ChevronLeft, ChevronRight, Clock, ExternalLink, MapPin, Trash2 } from 'lucide-react';
 import Link from 'next/link';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { cairoDay, fmtDate, fmtTime } from '@/lib/format';
 import { divClass } from '@/lib/roles';
 import type { CalendarItem, Division, Team } from '@/lib/types';
+import { DataNotice } from './public/DataNotice';
 import { Button, EmptyState, Modal, Segmented, Skeleton } from './ui';
 
 type View = 'month' | 'week' | 'list';
@@ -26,6 +27,8 @@ export function CalendarView({ load, teams = [], divisions = [], canDelete, onDe
   reloadKey?: number;
   publicMode?: boolean;
 }) {
+  const request = useRef(0);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [view, setView] = useState<View>('month');
   const [cursor, setCursor] = useState(() => new Date());
   const [items, setItems] = useState<CalendarItem[] | null>(null);
@@ -49,11 +52,11 @@ export function CalendarView({ load, teams = [], divisions = [], canDelete, onDe
   }, [view, cursor]);
 
   const fetchItems = useCallback(async () => {
-    setItems(null);
-    const list = await load(range.from.toISOString(), range.to.toISOString()).catch(() => []);
-    setItems(list);
+    const id = ++request.current; setItems(null); setLoadError(null);
+    try { const list = await load(range.from.toISOString(), range.to.toISOString()); if (id === request.current) setItems(list); }
+    catch { if (id === request.current) setLoadError('The calendar could not be loaded. Please try again.'); }
   }, [load, range]);
-  useEffect(() => { fetchItems(); }, [fetchItems, reloadKey]);
+  useEffect(() => { void fetchItems(); return () => { request.current++; }; }, [fetchItems, reloadKey]);
 
   const kindOf = (item: CalendarItem) => {
     if (item.visibility !== 'team' || !item.team_id) return 'club';
@@ -101,7 +104,8 @@ export function CalendarView({ load, teams = [], divisions = [], canDelete, onDe
         </div>
       </div>
 
-      {items === null && <Skeleton h={view === 'list' ? 240 : 480} />}
+      {loadError && <DataNotice message={loadError} retry={fetchItems} />}
+      {items === null && !loadError && <Skeleton h={view === 'list' ? 240 : 480} />}
 
       {items && view === 'month' && (
         <div>

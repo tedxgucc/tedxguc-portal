@@ -1,0 +1,26 @@
+/* A semantic nested list draws the reporting lines without hiding names on phones. */
+.board-scroll { overflow-x: auto; padding: 4px 4px 24px; }
+.board-tree { min-width: 1120px; padding-top: 8px; }
+.board-tree ul { list-style: none; margin: 0; padding: 0; }
+.board-chair { width: 232px; margin: 0 auto; position: relative; padding-bottom: 40px; }
+.board-chair::after { content: ''; position: absolute; bottom: 0; left: 50%; height: 40px; border-left: 1px solid var(--accent); }
+.board-tree .board-divisions { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.board-branch { position: relative; padding: 40px 12px 0; }
+.board-branch::before { content: ''; position: absolute; top: 0; left: 0; right: 0; border-top: 1px solid var(--accent); }
+.board-branch:first-child::before { left: 50%; }
+.board-branch:last-child::before { right: 50%; }
+.board-curator { position: relative; margin: 0 16px; padding-bottom: 32px; }
+.board-curator::before { content: ''; position: absolute; left: 50%; top: -40px; height: 40px; border-left: 1px solid var(--accent); }
+.board-curator::after { content: ''; position: absolute; left: 50%; bottom: 0; height: 32px; border-left: 1px solid var(--line-strong); }
+.board-tree .board-executives { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.board-executives > li { position: relative; padding-top: 28px; }
+.board-executives > li::before { content: ''; position: absolute; top: 0; height: 28px; left: 50%; border-left: 1px solid var(--line-strong); }
+.board-executives > li::after { content: ''; position: absolute; top: 0; left: -6px; right: -6px; border-top: 1px solid var(--line-strong); }
+.board-executives > li:first-child::after { left: 50%; }
+.board-executives > li:last-child::after { right: 50%; }
+.board-card { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 20px 12px; min-height: 192px; height: 100%; text-align: center; background: var(--surface-1); border: 1px solid var(--line); }
+.board-card--chair { border-top: 3px solid var(--accent); min-height: 176px; }
+.board-card .tx-label { color: var(--accent-ink); }
+.board-unit { font: 600 14px/20px var(--font-sans); min-height: 40px; display: grid; place-items: center; }
+.board-person { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.board-person p { overflow-wrap: anywhere; }
