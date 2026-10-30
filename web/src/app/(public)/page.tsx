@@ -51,7 +51,7 @@ function HomeContent() {
       <section className="hm__hero" aria-labelledby="home-title">
         <div className="hm__wm" id="home-watermark" aria-hidden="true" />
         <div className="hm__stack">
-          <div className="public-hero-eyebrow reveal"><span className="public-eyebrow-dot" aria-hidden="true" /><TxLabel count={next ? new Date(next.starts_at).getFullYear() : undefined}>{next ? eventKind(next) : 'Independently organized. Endlessly curious.'}</TxLabel></div>
+          <div className="public-hero-eyebrow reveal"><span className="public-eyebrow-x" aria-hidden="true">x</span><TxLabel count={next ? new Date(next.starts_at).getFullYear() : undefined}>{next ? eventKind(next) : 'Independently organized. Endlessly curious.'}</TxLabel></div>
           <h1 id="home-title" className={'hm__title reveal-wipe ' + (firstLine.length > 8 || secondLine.length > 10 ? 'hm__title--long' : '')}>{firstLine}{secondLine && <span>{secondLine}</span>}</h1>
           <p className="hm__sub reveal">{next?.description ?? 'A space for ideas that challenge, connect and stay with you. Welcome to TEDx at the German University in Cairo.'}</p>
           <a className="public-scroll-cue reveal" href="#discover">Discover TEDxGUC<ArrowDown size={16} aria-hidden="true" /></a>
