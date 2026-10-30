@@ -51,7 +51,7 @@ export function RoundsTab() {
         </ul>
       )}
       {deleting && <Modal open title={'Delete ' + deleting.name + '?'} onClose={() => { if (!removing) setDeleting(null); }} actions={<><Button variant="secondary" disabled={removing} onClick={() => setDeleting(null)}>Keep round</Button><Button variant="danger" loading={removing} onClick={remove}>Delete round</Button></>}>
-        <p>This permanently removes the round, its roles and interview availability. Rounds with applications or board plans cannot be deleted; close them by editing the closing date instead.</p>
+        <p>This permanently deletes the round and ALL its applicants, answers, interview scores, referrals, board plans, roles and interview availability. This cannot be undone. Existing member accounts are kept.</p>
         {deleteError && <p className="text-bad mt-s3" role="alert">{deleteError}</p>}
       </Modal>}
       {editing && <RoundModal cycle={editing === 'new' ? null : editing} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); load(); }} />}
