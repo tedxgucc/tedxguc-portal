@@ -95,7 +95,7 @@ export function BankTab() {
                   <td className="tx-amt neg">{t.direction === 'out' ? amt(t.amount_net) : ''}</td>
                   {admin && <td className="tx-amt hidden sm:table-cell">{amt(bal)}</td>}
                   <td>{t.status !== 'void' && (admin || (t.created_by === me.id && isPartnershipsExec(me) && ['bank_deposit', 'sponsorship'].includes(t.kind))) && <div className="flex gap-s2">
-                    {t.account === 'bank' && ['bank_deposit', 'sponsorship', 'bank_out'].includes(t.kind) && <Button small variant="secondary" onClick={() => setEditing(t)}><Pencil size={16} aria-hidden="true" />Edit</Button>}
+                    {t.account === 'bank' && (['bank_deposit', 'sponsorship', 'bank_out'].includes(t.kind) || (admin && t.kind === 'opening_balance')) && <Button small variant="secondary" onClick={() => setEditing(t)}><Pencil size={16} aria-hidden="true" />Edit</Button>}
                     <Button small variant="secondary" onClick={() => setDeleting(t)}><Trash2 size={16} aria-hidden="true" />Delete</Button>
                   </div>}</td>
                 </tr>
@@ -294,7 +294,7 @@ function BankEntryModal({ entry, admin, deleting = false, onClose, onSaved }: { 
         <TextInput label="Amount (EGP)" type="number" min="0.01" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} />
         <TextInput label="Date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
         <TextArea label="Description" value={description} onChange={(e) => setDescription(e.target.value)} />
-        {direction === 'in' && <Check2 label="VAT applies" checked={vat} onChange={(e) => setVat(e.target.checked)} />}
+        {direction === 'in' && entry.kind !== 'opening_balance' && <Check2 label="VAT applies" checked={vat} onChange={(e) => setVat(e.target.checked)} />}
       </>}
       <TextArea label="Reason" value={reason} onChange={(e) => setReason(e.target.value)} />
       {error && <p className="tx-help" role="alert">{error}</p>}

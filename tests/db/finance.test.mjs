@@ -225,3 +225,22 @@ test('bank corrections replace entries atomically and enforce direction permissi
   const totals = await db.as(chair, ({ one }) => one('select finance_balances() as balances'));
   assert.equal(Number(totals.balances.bank), 0);
 });
+
+test('finance admins correct imported bank statement rows; they stay opening balances', async () => {
+  const db = await createDb();
+  const chair = await db.member('chairman');
+  const partnerships = await db.member('executive', 'partnerships');
+  const row = await db.one(
+    "insert into transactions (kind, direction, method, amount_gross, vat_applies, description) values ('opening_balance', 'in', 'bank', 1000, false, 'Imported row') returning id");
+  await rejects(db.as(partnerships, ({ one }) => one(
+    "select edit_bank_transaction($1, 'in', 900, current_date, 'x', false, 'typo') as id", [row.id])), /not_allowed/);
+  const fixed = await db.as(chair, ({ one }) => one(
+    "select edit_bank_transaction($1, 'out', 900, '2026-03-01', 'Fees', true, 'Was money out') as id", [row.id]));
+  const t = await db.one('select * from transactions where id = $1', [fixed.id]);
+  assert.equal(t.kind, 'opening_balance');
+  assert.equal(t.direction, 'out');
+  assert.equal(Number(t.amount_net), 900);
+  assert.equal(Number(t.vat_amount), 0);
+  assert.equal((await db.one('select status from transactions where id = $1', [row.id])).status, 'void');
+  await db.as(chair, ({ q }) => q("select void_transaction($1, 'cleanup')", [fixed.id]));
+});
