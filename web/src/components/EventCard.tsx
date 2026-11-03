@@ -15,6 +15,14 @@ export function EventCard({ event, past = false }: { event: TxEvent; past?: bool
     <div className="public-event-card__visual">
       {event.cover_url ? <img src={event.cover_url} alt="" width={960} height={540} loading="lazy" decoding="async" /> : <div className="public-event-card__graphic" aria-hidden="true"><span>{eventKind(event)}</span><b>{event.title}</b></div>}
       <div className="public-event-card__date" aria-hidden="true"><b>{day}</b><span>{month}</span><span>{year}</span></div>
+      <div className="public-event-card__preview" aria-hidden="true">
+        <span className="tx-label">{past ? 'From the archive' : eventKind(event)}</span>
+        <strong>{event.title}</strong>
+        <span>{fmtDate(event.starts_at, { year: true })}{hasKnownTime(event.starts_at) ? ' / ' + fmtTime(event.starts_at) + ' Cairo' : ''}</span>
+        {event.venue && <span>{event.venue}</span>}
+        {event.description && <p>{event.description.replace(/\s*Official event listing:\s*https?:\/\/\S+/i, '')}</p>}
+        <span className="public-event-card__preview-link">Explore this event <ArrowUpRight size={15} /></span>
+      </div>
       <span className="public-event-card__tag">{event.status === 'cancelled' ? 'Cancelled' : past ? 'Past event' : eventKind(event)}</span>
     </div>
     <div className="public-event-card__body"><div className="public-event-card__title"><h3>{event.title}</h3><span className="public-event-card__arrow"><ArrowUpRight size={22} aria-hidden="true" /></span></div>
