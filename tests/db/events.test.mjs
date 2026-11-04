@@ -60,6 +60,35 @@ test('Chairman and every Curator can create, edit and delete event setup', async
   }
 });
 
+test('event deletion removes responses and setup while preserving unrelated events and accounting', async () => {
+  const e = await newEvent(1);
+  const other = await newEvent();
+  const guest = await register(e.id, 'delete@example.com');
+  await register(e.id, 'delete-wait@example.com');
+  await register(other.id, 'keep@example.com');
+  await db.q(`insert into checkin_scans (event_id, registration_id, scanned_at, result) values ($1, $2, now(), 'ok')`, [e.id, guest.registration_id]);
+  await db.q(`insert into event_fields (event_id, label) values ($1, 'Question')`, [e.id]);
+  await db.q(`insert into event_staff (event_id, user_id) values ($1, $2)`, [e.id, mediaAssoc]);
+  await db.q(`insert into run_of_show (event_id, starts_at, item) values ($1, now(), 'Doors')`, [e.id]);
+  const speaker = await db.one(`insert into speakers (event_id, name) values ($1, 'Keep speaker') returning id`, [e.id]);
+  const expense = await db.one(`insert into expense_requests (event_id, team_id, requested_by, item, amount_egp) values ($1, $2, $3, 'Supplies', 100) returning id`, [e.id, await db.team('logistics_planning'), chairman]);
+  const txn = await db.one(`insert into transactions (event_id, kind, method, amount_gross) values ($1, 'bank_deposit', 'bank', 100) returning id`, [e.id]);
+
+  await rejects(db.as(mediaAssoc, ({ q }) => q(`select delete_event($1)`, [e.id])), /not_allowed/);
+  await rejects(db.as('anon', ({ q }) => q(`select delete_event($1)`, [e.id])), /permission denied/);
+  assert.equal((await db.one(`select count(*)::int as n from registrations where event_id = $1`, [e.id])).n, 2);
+  await db.as(talksCurator, ({ q }) => q(`select delete_event($1)`, [e.id]));
+  for (const table of ['registrations', 'checkin_scans', 'event_fields', 'event_staff', 'run_of_show']) {
+    assert.equal((await db.one(`select count(*)::int as n from ${table} where event_id = $1`, [e.id])).n, 0, table);
+  }
+  assert.equal((await db.q(`select id from events where id = $1`, [e.id])).length, 0);
+  assert.equal((await db.one(`select event_id from speakers where id = $1`, [speaker.id])).event_id, null);
+  assert.equal((await db.one(`select event_id from expense_requests where id = $1`, [expense.id])).event_id, null);
+  assert.equal((await db.one(`select event_id from transactions where id = $1`, [txn.id])).event_id, null);
+  assert.equal((await db.one(`select count(*)::int as n from registrations where event_id = $1`, [other.id])).n, 1);
+  await rejects(db.as(chairman, ({ q }) => q(`select delete_event($1)`, [e.id])), /not_found/);
+});
+
 test('guests see only published, licensed, public events (FR-1.8)', async () => {
   await newEvent(10, { title: 'Unlicensed', license: 'pending' });
   await newEvent(10, { title: 'Draft', status: 'draft' });

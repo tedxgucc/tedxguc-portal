@@ -570,7 +570,7 @@ export const demoApi: Api = {
     if (!canManageEvents(requireMe())) fail('not_allowed');
     const st = s();
     if (!st.events.some(e => e.id === eventId)) fail('not_found');
-    if (st.guests.some(g => g.event_id === eventId)) throw new ApiError('event_has_records', 'This event has registrations or financial records. Cancel or hide it instead.');
+    st.guests = st.guests.filter(g => g.event_id !== eventId);
     st.events = st.events.filter(e => e.id !== eventId);
     st.eventFields = st.eventFields.filter(f => f.event_id !== eventId);
     st.staff = st.staff.filter(row => row.event_id !== eventId);

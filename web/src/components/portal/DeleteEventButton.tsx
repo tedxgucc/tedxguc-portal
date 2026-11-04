@@ -21,8 +21,8 @@ export function DeleteEventButton({ event, onDeleted }: { event: TxEvent; onDele
   return <>
     <Button small variant="danger" onClick={() => { setError(null); setOpen(true); }}><Trash2 size={16} aria-hidden="true" />Delete event</Button>
     <Modal open={open} title={'Delete ' + event.title + '?'} onClose={() => { if (!busy) setOpen(false); }} actions={<><Button variant="secondary" disabled={busy} onClick={() => setOpen(false)}>Keep event</Button><Button variant="danger" loading={busy} onClick={remove}>Delete event</Button></>}>
-      <p>This permanently removes the event from the public site and portal, including its setup and staff assignments. Speaker profiles are kept.</p>
-      <p className="text-body-sm text-ink-2 mt-s3">Events with ticket registrations or linked financial records cannot be deleted. Cancel or hide those events using Edit instead.</p>
+      <p>This permanently removes the event from the public site and portal, including all registrations, responses, tickets, check-in data, setup and staff assignments.</p>
+      <p className="text-body-sm text-ink-2 mt-s3">This cannot be undone. Speaker profiles and financial records are kept and unlinked from the event.</p>
       {error && <p className="text-bad mt-s3" role="alert">{error}</p>}
     </Modal>
   </>;
