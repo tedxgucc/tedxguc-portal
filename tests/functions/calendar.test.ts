@@ -4,13 +4,13 @@ import { publicCalendarEvents } from '../../web/src/lib/calendar.ts';
 import { canSeeMeeting } from '../../web/src/lib/roles.ts';
 import type { Me, TxEvent, Team } from '../../web/src/lib/types.ts';
 
-test('public calendar contains upcoming published public events only', () => {
+test('public calendar shows upcoming and past public events in range', () => {
   const event = { id: 'upcoming', title: 'Event', is_public: true, status: 'published', license_status: 'licensed', starts_at: '2030-06-15T12:00:00Z', ends_at: null, venue: 'Cairo' } as TxEvent;
-  const cases = [event, { ...event, id: 'private', is_public: false }, { ...event, id: 'past', starts_at: '2030-06-01T12:00:00Z' },
+  const cases = [event, { ...event, id: 'private', is_public: false }, { ...event, id: 'past', starts_at: '2030-06-01T12:00:00Z' }, { ...event, id: 'done', status: 'completed' as const, starts_at: '2030-06-05T12:00:00Z' },
     { ...event, id: 'draft', status: 'draft' as const }, { ...event, id: 'cancelled', status: 'cancelled' as const },
     { ...event, id: 'pending', license_status: 'pending' as const }, { ...event, id: 'later', starts_at: '2030-08-01T12:00:00Z' }];
-  const feed = publicCalendarEvents(cases, '2030-06-01T00:00:00Z', '2030-07-01T00:00:00Z', '2030-06-10T00:00:00Z');
-  assert.deepEqual(feed.map((x) => x.id), ['upcoming']);
+  const feed = publicCalendarEvents(cases, '2030-06-01T00:00:00Z', '2030-07-01T00:00:00Z');
+  assert.deepEqual(feed.map((x) => x.id), ['past', 'done', 'upcoming']);
   assert.ok(feed.every((x) => x.source === 'event' && x.visibility === 'public'));
 });
 

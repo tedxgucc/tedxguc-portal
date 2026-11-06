@@ -77,11 +77,10 @@ export const supabaseApi: Api = {
     return run(db().rpc('get_public_board'));
   },
   async publicCalendar(from, to) {
-    const now = new Date().toISOString();
-    const events = await run(db().from('events').select(EVENT_COLS).eq('is_public', true).eq('status', 'published')
-      .in('license_status', ['licensed', 'not_required']).gte('starts_at', new Date(Math.max(Date.parse(from), Date.parse(now))).toISOString())
+    const events = await run(db().from('events').select(EVENT_COLS).eq('is_public', true).in('status', ['published', 'completed'])
+      .in('license_status', ['licensed', 'not_required']).gte('starts_at', from)
       .lt('starts_at', to).order('starts_at'));
-    return publicCalendarEvents(events as TxEvent[], from, to, now);
+    return publicCalendarEvents(events as TxEvent[], from, to);
   },
   async register(input) {
     return invoke('public-forms', { action: 'register', ...input });
