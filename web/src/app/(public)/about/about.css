@@ -60,3 +60,20 @@
 .about-division-tabs button[aria-selected="true"] > svg { color: var(--accent); }
 .about-division-tabs button[aria-selected="true"] .about-division-tabs__number { color: var(--accent); -webkit-text-stroke-color: var(--accent); }
 .about-division-panel__teams li > span { color: var(--accent-ink); }
+
+/* Our values: six square cards; the number is outlined and the card fills TEDx red on hover. */
+.about-values { display: grid; gap: 36px; scroll-margin-top: 112px; }
+.about-values__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 1px; padding: 0; margin: 0; list-style: none; background: var(--line); border: 1px solid var(--line); counter-reset: none; }
+.about-value { position: relative; display: grid; align-content: start; gap: 14px; min-height: 240px; padding: clamp(24px, 3vw, 36px); background: var(--bg); overflow: hidden; transition: background .25s var(--ease-out); }
+.about-value__num { font: 400 72px/.85 var(--font-display); color: transparent; -webkit-text-stroke: 1px var(--line-strong); transition: color .25s, -webkit-text-stroke-color .25s; }
+.about-value h3 { font: 400 clamp(30px, 3.2vw, 40px)/1 var(--font-display); text-transform: uppercase; color: var(--ink); }
+.about-value h3::after { content: ''; display: block; width: 32px; height: 3px; margin-top: 14px; background: var(--accent); transition: width .3s var(--ease-out), background .25s; }
+.about-value p { color: var(--ink-2); font-size: 14px; line-height: 24px; max-width: 34ch; transition: color .25s; }
+.about-value:hover { background: var(--accent); }
+.about-value:hover .about-value__num { color: var(--on-accent); -webkit-text-stroke-color: var(--on-accent); }
+.about-value:hover h3, .about-value:hover p { color: var(--on-accent); }
+.about-value:hover h3::after { width: 64px; background: var(--on-accent); }
+@media (prefers-reduced-motion: reduce) { .about-value, .about-value * { transition: none !important; } }
+.about-values__grid { grid-template-columns: 1fr; }
+@media (min-width: 640px) { .about-values__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1000px) { .about-values__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }

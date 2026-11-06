@@ -8,6 +8,16 @@ import { DataNotice } from '@/components/public/DataNotice';
 import { api } from '@/lib/api';
 import { LICENSE_LINE } from '@/lib/env';
 import { DIVISION_KEYS } from '@/lib/sections';
+
+// Our six values, in this order.
+const VALUES = [
+  { name: 'Ownership', line: 'We own our work from the first idea to the last detail.' },
+  { name: 'Authenticity', line: 'We stay true to who we are, on stage and behind it.' },
+  { name: 'Significance', line: 'We choose ideas and work that leave a mark.' },
+  { name: 'Boldness', line: 'We take the risk of trying what has not been done.' },
+  { name: 'Inclusivity', line: 'Every voice and every background has a place here.' },
+  { name: 'Curiosity', line: 'We ask the next question, then the one after that.' },
+];
 import { teamDescription } from '@/lib/team-descriptions';
 import { usePublicData } from '@/lib/usePublicData';
 import './about.css';
@@ -48,7 +58,7 @@ export default function AboutPage() {
     <div className="about-facts"><div className="public-container about-facts__inner"><div><strong>2013</strong><span>Our beginning</span></div><div><strong>04</strong><span>Divisions, working together</span></div><div><strong>08</strong><span>Teams behind the experience</span></div></div></div>
     <div className="public-container about-content">
       {error && <DataNotice message={error} retry={reload} loading={loading} />}
-      <nav className="about-jump-links" aria-label="On this page"><span className="tx-label">Explore our story</span><a href="#our-story">Who we are<ArrowDown size={12} aria-hidden="true" /></a><a href="#ted-and-tedx">TED &amp; TEDx<ArrowDown size={12} aria-hidden="true" /></a><a href="#our-divisions">Our divisions<ArrowDown size={12} aria-hidden="true" /></a></nav>
+      <nav className="about-jump-links" aria-label="On this page"><span className="tx-label">Explore our story</span><a href="#our-story">Who we are<ArrowDown size={12} aria-hidden="true" /></a><a href="#ted-and-tedx">TED &amp; TEDx<ArrowDown size={12} aria-hidden="true" /></a><a href="#our-values">Our values<ArrowDown size={12} aria-hidden="true" /></a><a href="#our-divisions">Our divisions<ArrowDown size={12} aria-hidden="true" /></a></nav>
       <section id="our-story" className="about-story" aria-labelledby="story-title">
         <div><TxLabel><b className="public-label-num">01</b> The reason we are here</TxLabel><h2 id="story-title">A different perspective.<br /><span>A shared experience.</span></h2></div>
         <div className="about-story__body"><p className="body-lg">An idea can make you pause, ask a better question, or see something familiar in a completely new way.</p><p>TEDxGUC creates room for those moments. We bring people together at the German University in Cairo around talks and conversations worth having.</p><p>Behind each experience is a student team: researching, planning, designing and preparing, so an idea can reach beyond the stage.</p><Link href="/events" className="public-text-link">Explore our experiences<ArrowUpRight size={18} aria-hidden="true" /></Link></div>
@@ -58,8 +68,12 @@ export default function AboutPage() {
         <div className="about-ted__cards"><article className="about-ted-card"><span className="tx-label">The global platform</span><h3>TED</h3><p>TED shares ideas through its conferences and TED.com, bringing a wide range of voices to a global audience.</p><span className="about-ted-card__note">Ideas worth spreading</span></article><article className="about-ted-card about-ted-card--local"><span className="tx-label">The independently organized experience</span><h3>TED<span>x</span></h3><p>TEDx events are organized locally under a TED license. TEDxGUC brings that experience to our university community.</p><span className="about-ted-card__note"><span className="about-ted-card__dot" aria-hidden="true" />Local people. Shared possibilities.</span></article></div>
         <div className="about-ted__context"><p>{data?.sections.tedx?.body.text ?? 'TEDx events are independently organized under a TED license. Every TEDxGUC talk follows TED content rules.'}</p><p className="tx-legal">{LICENSE_LINE}</p></div>
       </section>
+      <section id="our-values" className="about-values" aria-labelledby="values-title">
+        <div className="about-section-heading"><div><TxLabel><b className="public-label-num">03</b> What we stand for</TxLabel><h2 id="values-title">Six values.<br /><span>One way of working.</span></h2></div><p>The ideas behind how we organize, speak and treat each other.</p></div>
+        <ol className="about-values__grid">{VALUES.map((v, i) => <li key={v.name} className="about-value"><span className="about-value__num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span><h3>{v.name}</h3><p>{v.line}</p></li>)}</ol>
+      </section>
       <section id="our-divisions" className="about-divisions" aria-labelledby="divisions-title">
-        <div className="about-section-heading"><div><TxLabel><b className="public-label-num">03</b> How it comes together</TxLabel><h2 id="divisions-title">Four divisions.<br /><span>One experience.</span></h2></div><p>Explore the different parts of the team, and the work that connects them.</p></div>
+        <div className="about-section-heading"><div><TxLabel><b className="public-label-num">04</b> How it comes together</TxLabel><h2 id="divisions-title">Four divisions.<br /><span>One experience.</span></h2></div><p>Explore the different parts of the team, and the work that connects them.</p></div>
         <div className="about-division-tabs" role="tablist" aria-label="Explore our divisions">{divisions.map((d, i) => <button key={d.key} ref={(el) => { tabs.current[i] = el; }} id={'division-tab-' + d.key} role="tab" aria-selected={active === i} aria-controls={'division-panel-' + d.key} tabIndex={active === i ? 0 : -1} type="button" onClick={() => setActive(i)} onKeyDown={(e) => onTabKey(e, i)} style={{ '--division-color': d.color } as CSSProperties}><d.icon size={20} aria-hidden="true" /><span>{data?.sections[d.key]?.title ?? d.label}</span><span className="about-division-tabs__number">{String(i + 1).padStart(2, '0')}</span></button>)}</div>
         {divisions.map((division, index) => {
           const section = data?.sections[division.key];
