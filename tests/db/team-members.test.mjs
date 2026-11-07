@@ -140,3 +140,14 @@ test('inactive members, missing users and teams in another season are rejected',
   const team = await db.one(`insert into teams(season_id, division_id, kind, name) values ($1, $2, 'media_design', 'Other team') returning id`, [season.id, division.id]);
   await rejects(change(chair, 'add', team.id, assoc), /not_allowed/);
 });
+
+test('only the Chairman can delete a member from the club', async () => {
+  const gone = await db.member('associate', 'coaching');
+  const del = (who, user) => db.as(who, ({ q }) => q(`select delete_member($1)`, [user]));
+  await rejects(del(curator, gone), /not_allowed/);
+  await rejects(del(chair, chair), /cannot_delete_yourself/);
+  await del(chair, gone);
+  assert.equal((await db.q(`select status from memberships where user_id = $1`, [gone]))[0].status, 'removed');
+  assert.deepEqual(await links(gone), []);
+  await rejects(del(chair, gone), /not_a_member/);
+});

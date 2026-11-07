@@ -359,6 +359,13 @@ export const demoApi: Api = {
     if (member!.team_id === teamId) Object.assign(member!, { team_id: null, team: null });
     save();
   },
+  async deleteMember(userId) {
+    const actor = requireMe();
+    if (actor.role !== 'chairman') fail('not_allowed');
+    if (userId === actor.id) fail('cannot_delete_yourself');
+    s().members = s().members.filter((m) => m.user_id !== userId);
+    save();
+  },
   async listInvites() {
     const me = requireMe();
     return s().invites.filter((i) => me.role === 'chairman' || (me.role === 'curator' && i.division_id === me.division_id));

@@ -1,7 +1,7 @@
 'use client';
 // Team (FR-3.5 org chart, member directory, FR-2.3 invites).
 // Phone numbers never show here; they live in a separate, locked table.
-import { Search, Trash2, UserCog, UserPlus, X } from 'lucide-react';
+import { Search, Trash2, UserCog, UserPlus, UserX, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { PageTitle, SectionHeading } from '@/components/Brand';
 import { RequestChangeModal } from '@/components/portal/admin/PeopleTabs';
@@ -26,6 +26,10 @@ export default function TeamPage() {
   const [removingBusy, setRemovingBusy] = useState(false);
   const [removeError, setRemoveError] = useState<string | null>(null);
   const [removed, setRemoved] = useState(false);
+  const [deleting, setDeleting] = useState<Member | null>(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const canDelete = (m: Member) => me.role === 'chairman' && m.user_id !== me.id;
+  const delBtn = (m: Member) => canDelete(m) && <button type="button" className="tx-iconbtn shrink-0" title={`Delete ${m.name} from the club`} aria-label={`Delete ${m.name} from the club`} onClick={() => setDeleting(m)}><UserX size={16} aria-hidden="true" /></button>;
   // Curators ask the Chairman to promote, move or remove people in their division (FR-3.6).
   const canRequest = (m: Member) => me.role === 'curator' && ['executive', 'associate'].includes(m.role) && m.division_id === me.division_id && m.user_id !== me.id;
   const canInvite = me.role === 'chairman' || me.role === 'curator';
@@ -67,7 +71,7 @@ export default function TeamPage() {
             <section key={d.id} className="grid gap-s4" aria-labelledby={`dv-${d.id}`}>
               <div className="flex items-center gap-s3 flex-wrap">
                 <SectionHeading as="h3" className="flex-1"><span id={`dv-${d.id}`}>{d.name}</span></SectionHeading>
-                {curator && <span className="flex items-center gap-s2 text-body-sm"><Avatar name={curator.name} photo={curator.photo_url} small />{curator.name} · Curator</span>}
+                {curator && <span className="flex items-center gap-s2 text-body-sm"><Avatar name={curator.name} photo={curator.photo_url} small />{curator.name} · Curator{delBtn(curator)}</span>}
               </div>
               <div className="grid gap-s4 md:grid-cols-2">
                 {dTeams.map((t) => {
@@ -89,6 +93,7 @@ export default function TeamPage() {
                             <span className="text-caption text-ink-3">{roleLabel[m.role]}</span>
                             {canRequest(m) && <button type="button" className="tx-iconbtn" aria-label={`Request a role change for ${m.name}`} onClick={() => setChanging(m)}><UserCog size={16} /></button>}
                             {canManageTeamMember(me, t, m, 'remove', teams) && <button type="button" className="tx-iconbtn shrink-0" title={`Remove ${m.name} from ${t.name}`} aria-label={`Remove ${m.name} from ${t.name}`} onClick={() => { setRemoveError(null); setRemoved(false); setRemoving({ member: m, team: t }); }}><Trash2 size={16} aria-hidden="true" /></button>}
+                            {delBtn(m)}
                           </li>
                         ))}
                       </ul>
@@ -145,6 +150,15 @@ export default function TeamPage() {
         <p>Remove <b>{removing?.member.name}</b> from <b>{removing?.team.name}</b>? Their account, club role and all other team memberships will be kept.</p>
         {removed && <p className="text-body-sm mt-s3">The member was removed. Refresh the roster to see the latest list.</p>}
         {removeError && <p className="tx-help mt-s3" role="alert">{removeError}</p>}
+      </Modal>
+      <Modal open={!!deleting} onClose={() => { if (!deleteBusy) setDeleting(null); }} title={`Delete ${deleting?.name ?? 'member'}?`}
+        actions={<><Button variant="secondary" disabled={deleteBusy} onClick={() => setDeleting(null)}>Cancel</Button><Button variant="danger" loading={deleteBusy} onClick={async () => {
+          if (!deleting) return;
+          setDeleteBusy(true);
+          try { await api.deleteMember(deleting.user_id); await refreshMembers(); toast('ok', `${deleting.name} was deleted from the club.`); setDeleting(null); }
+          catch (e) { toast('bad', 'Couldn’t delete.', (e as Error).message); } finally { setDeleteBusy(false); }
+        }}>Delete member</Button></>}>
+        <p><b>{deleting?.name}</b> will lose access to the portal and be taken off every team and open task. Their past work (files, tasks, money records) stays. You can invite them again later.</p>
       </Modal>
       {canInvite && <InviteModal open={inviting} onClose={() => setInviting(false)} onSent={() => { setInviting(false); loadInvites(); }} />}
     </>

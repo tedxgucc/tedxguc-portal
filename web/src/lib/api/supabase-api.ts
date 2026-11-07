@@ -204,6 +204,9 @@ export const supabaseApi: Api = {
   async removeTeamMember(teamId, userId) {
     await run(db().rpc('remove_team_member', { p_team_id: teamId, p_user_id: userId }));
   },
+  async deleteMember(userId) {
+    await run(db().rpc('delete_member', { p_user_id: userId }));
+  },
   async listInvites() {
     return run(db().from('invites').select('id, email, role, team_id, division_id, expires_at, accepted_at, revoked_at, created_at')
       .order('created_at', { ascending: false }).limit(100));
