@@ -1,6 +1,7 @@
 // Fills the official GUC / SAO papers (blank PDFs in public/paperwork) and
 // returns one PDF ready to print and sign by hand. Box positions come from
 // sao-layouts.json, made once from the official papers.
+import fontkit from '@pdf-lib/fontkit';
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from 'pdf-lib';
 import layouts from './sao-layouts.json';
 import { SAO_ADVISOR, SAO_CLUB, type SaoForm } from './sao-forms';
@@ -9,7 +10,7 @@ export type SaoValues = Record<string, string>;
 type Box = { x: number; y: number; w: number; h: number; prefix?: number };
 type Layout = { file: string; text: Record<string, Box | Box[]>; checks: Record<string, { x: number; y: number }>; specify: Record<string, Box>; advisor: Box | null; awg: Box | null; boxes: { x: number; y: number }[] };
 
-const INK = rgb(0.05, 0.1, 0.35); // dark blue, like a filled-in form
+const INK = rgb(0, 0, 0); // same black as the printed form
 const DARK = rgb(0.07, 0.07, 0.07);
 const WHITE = rgb(1, 1, 1);
 
@@ -43,8 +44,9 @@ function fillCell(page: PDFPage, font: PDFFont, b: Box, value: string, clear = t
   let size = 9, lines = wrap(value, font, size, w);
   while (size > 5 && lines.length * size * 1.2 > h) { size -= 0.5; lines = wrap(value, font, size, w); }
   const lh = size * 1.2, total = lines.length * lh;
-  let y = b.y + b.h / 2 + total / 2 - size * 0.95;
-  for (const l of lines) { page.drawText(l, { x, y, size, font, color: INK }); y -= lh; }
+  // Centre the block in the cell, each line centred too.
+  let y = b.y + b.h / 2 + total / 2 - size * 0.9;
+  for (const l of lines) { page.drawText(l, { x: x + (w - font.widthOfTextAtSize(l, size)) / 2, y, size, font, color: INK }); y -= lh; }
 }
 
 function tick(page: PDFPage, p: { x: number; y: number }) {
@@ -56,13 +58,16 @@ function tick(page: PDFPage, p: { x: number; y: number }) {
 export async function saoFormPdf(form: SaoForm, v: SaoValues, load: (file: string) => Promise<ArrayBuffer>): Promise<Uint8Array> {
   const out = await PDFDocument.create();
   out.setTitle(`${form.name} - ${SAO_CLUB}`);
-  const font = await out.embedFont(StandardFonts.Helvetica);
   if (form.key === 'expense') {
-    await expensePage(out, font, v, load);
-    await memoPage(out, font, v, load);
+    await expensePage(out, await out.embedFont(StandardFonts.TimesRoman), v, load);
+    await memoPage(out, await out.embedFont(StandardFonts.Helvetica), v, load);
     return out.save();
   }
   const L = (layouts as unknown as Record<string, Layout>)[form.key];
+  // Same font as the paper: Times New Roman Bold, or Calibri Bold (Carlito has the same shapes) on the sponsorship forms.
+  let font: PDFFont;
+  if (form.cat === 'Sponsorship') { out.registerFontkit(fontkit); font = await out.embedFont(await load('carlito-bold.woff'), { subset: true }); }
+  else font = await out.embedFont(StandardFonts.TimesRomanBold);
   const src = await PDFDocument.load(await load(L.file));
   const [page] = await out.copyPages(src, [0]);
   out.addPage(page);
@@ -104,19 +109,20 @@ export async function saoFormPdf(form: SaoForm, v: SaoValues, load: (file: strin
 async function expensePage(out: PDFDocument, font: PDFFont, v: SaoValues, load: (f: string) => Promise<ArrayBuffer>) {
   const src = await PDFDocument.load(await load('expense.pdf'));
   const [page] = await out.copyPages(src, [0]); out.addPage(page);
-  const put = (s: string, x: number, y: number, max: number) => {
-    let size = 10; const t = clean(s);
-    while (size > 6 && font.widthOfTextAtSize(t, size) > max) size -= 0.5;
-    page.drawText(t, { x, y: y + 2, size, font, color: INK });
+  // Each value is centred on its printed line (from, to = the line's ends).
+  const put = (s: string, from: number, to: number, y: number, start = 11) => {
+    let size = start; const t = clean(s);
+    while (size > 6 && font.widthOfTextAtSize(t, size) > to - from - 4) size -= 0.5;
+    page.drawText(t, { x: from + (to - from - font.widthOfTextAtSize(t, size)) / 2, y: y + 2.5, size, font, color: INK });
   };
-  put(fmtDate(v.requestedDate ?? ''), 172, 507, 175);
-  put(SAO_CLUB, 163, 479, 185);
-  put(v.requestedBy ?? '', 162, 452, 165);
-  put(v.academicAdvisor || SAO_ADVISOR, 188, 424, 150);
-  put(money(v.amount ?? ''), 178, 369, 80);
-  let size = 9.5, ls = wrap(v.justification ?? '', font, size, 420);
-  while (ls.length > 2 && size > 6) { size -= 0.5; ls = wrap(v.justification ?? '', font, size, 420); }
-  [321, 300].forEach((y, i) => { if (ls[i]) page.drawText(ls[i], { x: 92, y: y + 2, size, font, color: INK }); });
+  put(fmtDate(v.requestedDate ?? ''), 170, 352, 507);
+  put(SAO_CLUB, 160, 357, 479);
+  put(v.requestedBy ?? '', 160, 332, 452);
+  put(v.academicAdvisor || SAO_ADVISOR, 186, 343, 424);
+  put(money(v.amount ?? ''), 178, 261, 369);
+  let size = 11, ls = wrap(v.justification ?? '', font, size, 410);
+  while (ls.length > 2 && size > 6) { size -= 0.5; ls = wrap(v.justification ?? '', font, size, 410); }
+  ([[90, 459, 321], [90, 517, 300]] as const).forEach(([a, b, y], i) => { if (ls[i]) put(ls[i], a, b, y, size); });
 }
 
 // TEDxGUC memo template: date, subject and body.
