@@ -142,7 +142,7 @@ const canManageDivision = (u: Me, did: string | null) => u.role === 'chairman' |
 
 // ----- Attendance rules (0008) -----
 function expected(m: Meeting) {
-  return demoMembers().filter((x) => (m.type === 'board_meeting' ? ['executive', 'curator'].includes(x.role) : x.role === 'associate')
+  return demoMembers().filter((x) => (m.type === 'board_meeting' ? ['executive', 'curator'].includes(x.role) : m.type === 'boc_meeting' ? x.role === 'curator' : m.type === 'boe_meeting' ? x.role === 'executive' : x.role === 'associate')
     && meetingVisible({ ...x, id: x.user_id, email: '', team_name: x.team, team_kind: null, division_name: x.division }, m, demoTeams()));
 }
 function canMark(u: Me, target: string) {
@@ -166,6 +166,7 @@ function canSeeMeeting(u: Me, m: Meeting) {
   return meetingVisible(u, m, demoTeams());
 }
 function canWriteMeeting(u: Me, input: Pick<Meeting, 'type' | 'team_id' | 'division_id'>) {
+  if (input.type === 'boc_meeting' || input.type === 'boe_meeting') return u.role === 'chairman';
   if (input.team_id) return canManageTeam(u, input.team_id);
   if (input.division_id) return canManageDivision(u, input.division_id);
   if (input.type === 'board_meeting') return u.role === 'chairman';

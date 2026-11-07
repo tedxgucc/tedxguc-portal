@@ -161,3 +161,19 @@ test('meetings show on the calendar for the right people (FR-15.7)', async () =>
   const theirs = await db.as(other, ({ q }) => q(`select source from calendar_feed($1, $2) where source = 'meeting'`, [from, to]));
   assert.equal(theirs.length, 0);
 });
+
+test('BOC meetings expect Curators; BOE meetings expect Executives; only the Chairman calls them', async () => {
+  const make = (type) => db.as(chairman, ({ one }) => one(
+    `insert into meetings (type, title, starts_at) values ($1::meeting_type, $1::text, now() - interval '1 hour') returning id`, [type]));
+  const roll = async (id) => new Set((await db.as(chairman, ({ q }) => q(`select user_id from meeting_roll_call($1)`, [id]))).map((r) => r.user_id));
+  const boc = await make('boc_meeting');
+  const boe = await make('boe_meeting');
+  assert.deepEqual(await roll(boc.id), new Set([mktCurator]));
+  assert.deepEqual(await roll(boe.id), new Set([mediaExec, campaignsExec]));
+  const sees = (who, id) => db.as(who, ({ q }) => q(`select id from meetings where id = $1`, [id])).then((r) => r.length === 1);
+  assert.equal(await sees(mediaExec, boe.id), true);
+  assert.equal(await sees(mediaExec, boc.id), false);
+  assert.equal(await sees(mktCurator, boe.id), false);
+  assert.equal(await sees(a1, boe.id), false);
+  await rejects(db.as(mktCurator, ({ q }) => q(`insert into meetings (type, title, starts_at) values ('boe_meeting', 'x', now())`)), /row-level security/);
+});

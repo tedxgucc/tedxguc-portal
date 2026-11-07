@@ -53,9 +53,9 @@ function MeetingInner() {
   };
 
   return (
-    <>
+    <div className="max-w-[1000px] mx-auto">
       <Link href="/portal/meetings" className="inline-flex items-center gap-s1 text-body-sm text-ink-2 no-underline mb-s3"><ArrowLeft size={16} aria-hidden="true" />All meetings</Link>
-      <PageTitle label={`${meetingTypeOne[meeting.type]} · ${meeting.team_id ? team(meeting.team_id)?.name : meeting.division_id ? 'Division' : 'Whole club'}`} title={meeting.title} />
+      <PageTitle label={`${meetingTypeOne[meeting.type]} · ${meeting.type === 'boc_meeting' ? 'Curators' : meeting.type === 'boe_meeting' ? 'Executives' : meeting.team_id ? team(meeting.team_id)?.name : meeting.division_id ? 'Division' : 'Whole club'}`} title={meeting.title} />
       <p className="text-ink-2 -mt-s4 mb-s5">{fmtDate(meeting.starts_at, { year: true })} · {fmtTime(meeting.starts_at)}{meeting.ends_at ? `–${fmtTime(meeting.ends_at)}` : ''}{meeting.slot ? ` · ${meeting.slot}` : ''}{meeting.location ? ` · ${meeting.location}` : ''}
         {meeting.online_url && <> · <a className="tx-link" href={meeting.online_url} target="_blank" rel="noopener noreferrer">Join online</a></>}</p>
 
@@ -82,7 +82,7 @@ function MeetingInner() {
           </section>
         )}
       </div>
-    </>
+    </div>
   );
 }
 

@@ -27,10 +27,10 @@ export default function MeetingsPage() {
   const upcoming = (meetings ?? []).filter((m) => new Date(m.ends_at ?? m.starts_at).getTime() >= now).sort((a, b) => a.starts_at.localeCompare(b.starts_at));
   const past = (meetings ?? []).filter((m) => new Date(m.ends_at ?? m.starts_at).getTime() < now).sort((a, b) => b.starts_at.localeCompare(a.starts_at));
   const shown = when === 'upcoming' ? upcoming : past;
-  const scope = (m: Meeting) => (m.team_id ? team(m.team_id)?.name ?? 'Team' : m.division_id ? 'Division' : 'Whole club');
+  const scope = (m: Meeting) => (m.type === 'boc_meeting' ? 'Curators' : m.type === 'boe_meeting' ? 'Executives' : m.team_id ? team(m.team_id)?.name ?? 'Team' : m.division_id ? 'Division' : 'Whole club');
 
   return (
-    <>
+    <div className="max-w-[860px] mx-auto">
       <PageTitle label="Meetings" title={when === 'upcoming' ? 'Coming up' : 'Past meetings'}>
         {canSchedule && <Button onClick={() => setCreating(true)}><Plus aria-hidden="true" />Schedule a meeting</Button>}
       </PageTitle>
@@ -64,6 +64,6 @@ export default function MeetingsPage() {
         </ul>
       )}
       {canSchedule && <NewMeetingModal open={creating} onClose={() => setCreating(false)} onCreated={() => { setCreating(false); load(); }} />}
-    </>
+    </div>
   );
 }

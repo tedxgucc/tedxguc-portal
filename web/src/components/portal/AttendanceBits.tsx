@@ -8,6 +8,8 @@ import type { AttendanceStatus, MeetingType, MySession } from '@/lib/types';
 export const meetingTypeLabel: Record<MeetingType, string> = {
   team_meeting: 'Team meetings',
   board_meeting: 'Board meetings',
+  boc_meeting: 'BOC meetings',
+  boe_meeting: 'BOE meetings',
   workshop: 'Workshops',
   general_assembly: 'General assemblies',
   event: 'Events',
@@ -15,7 +17,7 @@ export const meetingTypeLabel: Record<MeetingType, string> = {
 };
 
 export const meetingTypeOne: Record<MeetingType, string> = {
-  team_meeting: 'Team meeting', board_meeting: 'Board meeting', workshop: 'Workshop',
+  team_meeting: 'Team meeting', board_meeting: 'Board meeting', boc_meeting: 'BOC meeting (Board of Curators)', boe_meeting: 'BOE meeting (Board of Executives)', workshop: 'Workshop',
   general_assembly: 'General assembly', event: 'Event', session: 'Session',
 };
 

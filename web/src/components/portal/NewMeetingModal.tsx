@@ -29,7 +29,7 @@ export function NewMeetingModal({ open, onClose, onCreated }: { open: boolean; o
   const clubWide = me.role === 'chairman' || me.role === 'curator' || (me.role === 'executive' && me.division_kind === 'org_development');
   if (clubWide) scopes.unshift({ key: 'club', label: 'Whole club', team_id: null, division_id: null });
 
-  const types: MeetingType[] = me.role === 'chairman' ? ['team_meeting', 'board_meeting', 'workshop', 'general_assembly', 'session']
+  const types: MeetingType[] = me.role === 'chairman' ? ['team_meeting', 'boc_meeting', 'boe_meeting', 'board_meeting', 'workshop', 'general_assembly', 'session']
     : ['team_meeting', 'workshop', 'session', ...(clubWide ? ['general_assembly' as MeetingType] : [])];
 
   const [scope, setScope] = useState(scopes.find((x) => x.team_id)?.key ?? scopes[0]?.key ?? '');
@@ -42,7 +42,8 @@ export function NewMeetingModal({ open, onClose, onCreated }: { open: boolean; o
   const [agenda, setAgenda] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  useEffect(() => { if (type === 'board_meeting') setScope('club'); }, [type]);
+  const boardType = type === 'board_meeting' || type === 'boc_meeting' || type === 'boe_meeting';
+  useEffect(() => { if (boardType) setScope('club'); }, [boardType]);
 
   const save = async () => {
     const sc = scopes.find((x) => x.key === scope);
@@ -72,11 +73,11 @@ export function NewMeetingModal({ open, onClose, onCreated }: { open: boolean; o
           <Select label="Type" value={type} onChange={(e) => setType(e.target.value as MeetingType)}>
             {types.map((t) => <option key={t} value={t}>{meetingTypeOne[t]}</option>)}
           </Select>
-          <Select label="Who’s expected" value={scope} onChange={(e) => setScope(e.target.value)} disabled={type === 'board_meeting' || scopes.length === 1}>
+          <Select label="Who’s expected" value={scope} onChange={(e) => setScope(e.target.value)} disabled={boardType || scopes.length === 1}>
             {scopes.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
           </Select>
         </div>
-        <p className="text-caption text-ink-3 -mt-s2">{type === 'board_meeting' ? 'Board meetings expect every Executive and Curator.' : 'Associates in that scope are expected and marked.'}</p>
+        <p className="text-caption text-ink-3 -mt-s2">{type === 'boc_meeting' ? 'Every Curator is expected.' : type === 'boe_meeting' ? 'Every Executive is expected.' : type === 'board_meeting' ? 'Board meetings expect every Executive and Curator.' : 'Associates in that scope are expected and marked.'}</p>
         <TextInput label="Title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Media & Design weekly" />
         <div className="grid gap-s4 sm:grid-cols-2">
           <TextInput label="Starts" type="datetime-local" value={starts} onChange={(e) => setStarts(e.target.value)} />

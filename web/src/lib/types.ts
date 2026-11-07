@@ -186,7 +186,7 @@ export type SearchRow = { registration_id: string; guest_name: string; email_hin
 export type Invite = { id: string; email: string; role: Role; team_id: string | null; division_id: string | null; expires_at: string; accepted_at: string | null; revoked_at: string | null; created_at: string };
 
 // ----- Meetings & attendance (Phase 2, FR-7) -----
-export type MeetingType = 'team_meeting' | 'board_meeting' | 'workshop' | 'general_assembly' | 'event' | 'session';
+export type MeetingType = 'team_meeting' | 'board_meeting' | 'boc_meeting' | 'boe_meeting' | 'workshop' | 'general_assembly' | 'event' | 'session';
 export type AttendanceStatus = 'attended' | 'absent' | 'late' | 'excused';
 export type Meeting = {
   id: string;
