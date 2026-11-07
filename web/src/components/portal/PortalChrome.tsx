@@ -2,7 +2,7 @@
 // Portal chrome (design system: AppChrome): sticky top bar with the lockup,
 // notifications and avatar; a 248px sidebar on desktop; five tabs on mobile.
 import {
-  Bell, CalendarClock, CalendarDays, CircleUser, CreditCard, Globe, Inbox, Settings2, ClipboardCheck, FolderOpen, LayoutDashboard, LogOut, Megaphone, Menu, Package, ScanLine, Sparkles, SquareKanban, UserSearch, Users, Wallet,
+  Bell, CalendarClock, CalendarDays, CircleUser, CreditCard, Globe, Inbox, Settings2, ClipboardCheck, FileSignature, FolderOpen, LayoutDashboard, LogOut, Megaphone, Menu, Package, ScanLine, Sparkles, SquareKanban, UserSearch, Users, Wallet,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -47,6 +47,7 @@ export function useNav() {
         { href: '/portal/team', label: me.role === 'executive' ? 'My team' : 'Team', icon: Users },
         { href: '/portal/recruitment', label: 'Recruitment', icon: UserSearch, show: me.role !== 'associate' && !!me.role },
         { href: '/portal/files', label: 'Files', icon: FolderOpen },
+        { href: '/portal/paperwork', label: 'Paperwork', icon: FileSignature, show: me.role !== 'associate' && !!me.role },
         { href: '/portal/profile', label: 'Profile', icon: CircleUser },
       ],
     },
