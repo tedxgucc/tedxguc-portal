@@ -169,7 +169,7 @@ async function draftMemo(input: Record<string, unknown>) {
     body: JSON.stringify({
       systemInstruction: { parts: [{ text: MEMO_SYSTEM }] },
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      generationConfig: { maxOutputTokens: 2048, temperature: 0.4 },
+      generationConfig: { maxOutputTokens: 8192, temperature: 0.4, thinkingConfig: { thinkingLevel: 'low' } },
     }),
   });
   if (res.status === 429) throw new HttpError(429, 'ai_busy', 'The AI is busy. Try again in a minute.');
