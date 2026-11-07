@@ -16,7 +16,7 @@ const statusWord: Record<TaskStatus, string> = {
 };
 
 export function TaskSheet({ task, canManage, onClose, onChanged }: { task: Task; canManage: boolean; onClose: () => void; onChanged: () => void }) {
-  const { me, members, memberName, team, divisionOfTeam } = usePortal();
+  const { me, members, memberName, team, divisionOfTeam, teams } = usePortal();
   const toast = useToast();
   const [comments, setComments] = useState<TaskComment[]>([]);
   const [body, setBody] = useState('');
@@ -30,7 +30,7 @@ export function TaskSheet({ task, canManage, onClose, onChanged }: { task: Task;
   const loadComments = useCallback(() => api.listComments(task.id).then(setComments).catch(() => {}), [task.id]);
   useEffect(() => { loadComments(); setAssignees(task.assignees); }, [loadComments, task.assignees]);
 
-  const teamMembers = members.filter((m) => canAssignTask(me, team(task.team_id), m));
+  const teamMembers = members.filter((m) => canAssignTask(me, team(task.team_id), m, teams));
   const isCreator = task.created_by === me.id;
   const isAssignee = task.assignees.includes(me.id);
 

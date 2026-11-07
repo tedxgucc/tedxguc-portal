@@ -113,11 +113,11 @@ export function canSeeMeeting(me: Me | null, meeting: { type: string; team_id: s
   return true;
 }
 
-// Task delegation within the selected team and division.
-export function canAssignTask(me: Me | null, team: Team | null | undefined, member: Member): boolean {
-  if (!team || !canManageTeam(me, team)) return false;
-  if (me?.role === 'chairman') return (member.role === 'curator' && member.division_id === team.division_id)
-    || (member.role === 'executive' && isInTeam(member, team.id));
-  if (me?.role === 'curator') return ['executive', 'associate'].includes(member.role) && isInTeam(member, team.id);
-  return me?.role === 'executive' && member.role === 'associate' && isInTeam(member, team.id);
+// Task delegation: Chairman -> whole board, Curator -> their division, Executive -> their team.
+export function canAssignTask(me: Me | null, team: Team | null | undefined, member: Member, teams: Team[] = []): boolean {
+  if (!me || !team || !canManageTeam(me, team)) return false;
+  if (me.role === 'chairman') return ['curator', 'executive'].includes(member.role);
+  if (me.role === 'curator') return ['executive', 'associate'].includes(member.role)
+    && (member.division_id === me.division_id || teams.some((t) => t.division_id === me.division_id && isInTeam(member, t.id)));
+  return me.role === 'executive' && member.role === 'associate' && isInTeam(member, team.id);
 }

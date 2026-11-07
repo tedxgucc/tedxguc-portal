@@ -41,8 +41,10 @@ test('task assignee picker follows the delegation hierarchy and scope', () => {
   for (const role of ['chairman', 'curator', 'executive', 'associate'] as Role[]) {
     for (const target of ['chairman', 'curator', 'executive', 'associate'] as Role[]) {
       const allowed = role === 'chairman' ? ['curator', 'executive'] : role === 'curator' ? ['executive', 'associate'] : role === 'executive' ? ['associate'] : [];
-      assert.equal(canAssignTask(actor(role), own, member(target)), allowed.includes(target));
-      assert.equal(canAssignTask(actor(role), own, member(target, outside)), false);
+      assert.equal(canAssignTask(actor(role), own, member(target), teams), allowed.includes(target));
+      // Chairman reaches the whole board; curator their division; executive their team.
+      assert.equal(canAssignTask(actor(role), own, member(target, outside), teams), role === 'chairman' && allowed.includes(target));
+      assert.equal(canAssignTask(actor(role), own, member(target, sibling), teams), role !== 'executive' && allowed.includes(target));
     }
   }
   assert.equal(canAssignTask(actor('chairman'), own, member('curator', null)), true);

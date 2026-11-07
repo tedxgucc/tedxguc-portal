@@ -149,8 +149,10 @@ test('task delegation follows chair, curator, executive hierarchy', async () => 
   await assign(chairman, mediaExec);
   assert.equal(await visible(mktCurator, t.id), true);
   await rejects(assign(chairman, mediaAssoc), /assignee_not_allowed/);
-  await rejects(assign(chairman, talksCurator), /assignee_not_in_team/);
-  await rejects(assign(mktCurator, chairman), /assignee_not_in_team/);
+  await assign(chairman, talksCurator); // whole board, any division
+  assert.equal(await visible(talksCurator, t.id), true);
+  await rejects(assign(mktCurator, chairman), /assignee_not_allowed/);
+  await rejects(assign(talksCurator, mediaAssoc), /assignee_not_allowed/);
   await rejects(assign(mediaExec, mktCurator), /assignee_not_allowed/);
   await rejects(assign(mediaExec, mediaExec), /assignee_not_allowed/);
   await assign(mktCurator, mediaAssoc);

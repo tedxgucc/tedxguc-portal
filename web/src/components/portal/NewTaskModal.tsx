@@ -31,7 +31,7 @@ export function NewTaskModal({ open, onClose, onCreated }: { open: boolean; onCl
   }, [open, mine]);
 
   const targetTeams = mode === 'task' ? mine : teams.filter((t) => t.id !== fromTeam);
-  const teamMembers = members.filter((m) => canAssignTask(me, teams.find((t) => t.id === teamId), m));
+  const teamMembers = members.filter((m) => canAssignTask(me, teams.find((t) => t.id === teamId), m, teams));
 
   const save = async () => {
     if (!title.trim()) { setError('Give the task a title.'); return; }
@@ -78,7 +78,7 @@ export function NewTaskModal({ open, onClose, onCreated }: { open: boolean; onCl
         </div>
         {mode === 'task' && teamMembers.length > 0 && (
           <fieldset className="grid gap-s2">
-            <legend className="tx-label mb-s2">Assign to</legend>
+            <legend className="tx-label mb-s2 flex w-full items-center justify-between">Assign to<button type="button" className="text-caption" style={{ color: "var(--accent)" }} onClick={() => setAssignees(assignees.length === teamMembers.length ? [] : teamMembers.map((m) => m.user_id))}>{assignees.length === teamMembers.length ? "Clear all" : "Select all"}</button></legend>
             {teamMembers.map((m) => (
               <label key={m.user_id} className="tx-check">
                 <input type="checkbox" checked={assignees.includes(m.user_id)}
