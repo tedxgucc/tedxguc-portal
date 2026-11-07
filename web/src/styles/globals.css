@@ -141,3 +141,11 @@ a { color: inherit; }
 /* Amounts in number tiles wrap rather than spill out of the tile. */
 .tx-kpi .money { overflow-wrap: anywhere; }
 @media (max-width: 480px) { .tx-kpi .money { font-size: 16px; line-height: 20px; } }
+
+/* Page-switch loader: the TEDx X fills with red from the bottom up. */
+.tx-navload { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; pointer-events: none; background: color-mix(in srgb, var(--bg) 55%, transparent); backdrop-filter: blur(2px); animation: tx-navload-in .18s ease both; }
+@media (min-width: 1024px) { :root:not([data-nav="closed"]) .tx-navload { left: 248px; } }
+.tx-navload__fill { transform-box: view-box; transform-origin: bottom; animation: tx-navload-fill 1.1s cubic-bezier(.65,0,.35,1) infinite; }
+@keyframes tx-navload-fill { 0% { transform: scaleY(0); } 70%, 100% { transform: scaleY(1); } }
+@keyframes tx-navload-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .tx-navload__fill { animation-duration: 2.4s; } }

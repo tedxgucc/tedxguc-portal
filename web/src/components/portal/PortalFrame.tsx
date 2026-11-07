@@ -5,6 +5,7 @@ import { Skeleton } from '@/components/ui';
 import { DemoBannerClient } from '@/components/portal/DemoBannerClient';
 import { PortalSidebar, PortalTabBar, PortalTopBar } from '@/components/portal/PortalChrome';
 import { PortalProvider } from '@/components/portal/PortalContext';
+import { NavLoading } from '@/components/portal/NavLoading';
 import { BASE_PATH } from '@/lib/env';
 
 // Shown only on a first visit in this tab; it has the portal's own shape,
@@ -47,6 +48,7 @@ export default function PortalFrame({ children }: { children: React.ReactNode })
           <PortalTopBar />
           <main id="main" className="flex-1 w-full max-w-[1200px] mx-auto px-s4 md:px-s6 pt-s5 pb-s7 tx-page">{children}</main>
           <PortalTabBar />
+          <NavLoading />
         </div>
       </div>
     </PortalProvider>
