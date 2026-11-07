@@ -1,7 +1,7 @@
 'use client';
 // Account menu, top right: photo, name and role; opens a panel with the
 // profile link, appearance (light / dark / auto), password and sign out.
-import { ChevronRight, CircleUser, KeyRound, LogOut, Moon } from 'lucide-react';
+import { ChevronRight, ChevronsUpDown, CircleUser, CreditCard, Globe, KeyRound, LogOut, Moon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -19,7 +19,8 @@ function applyTheme(mode: Mode) {
   try { localStorage.setItem('tx-theme', mode); } catch { /* private mode */ }
 }
 
-export function AccountMenu() {
+export function AccountMenu({ placement = 'top' }: { placement?: 'top' | 'sidebar' }) {
+  const side = placement === 'sidebar';
   const { me } = usePortal();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -54,6 +55,16 @@ export function AccountMenu() {
 
   return (
     <div className="relative" ref={box}>
+      {side ? (
+        <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} aria-haspopup="menu" className={`tx-account-btn${open ? ' is-open' : ''}`}>
+          <Avatar name={me.name} photo={me.photo_url} size={34} />
+          <span className="grid text-left leading-tight min-w-0 flex-1">
+            <span className="font-semibold text-body-sm truncate">{me.name}</span>
+            <span className="text-caption text-ink-3 truncate">{role}{scope ? ` · ${scope}` : ''}</span>
+          </span>
+          <ChevronsUpDown size={16} className="text-ink-3 shrink-0" aria-hidden="true" />
+        </button>
+      ) : (
       <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} aria-haspopup="menu"
         className="flex items-center gap-s2 rounded-pill border border-line-strong bg-transparent cursor-pointer p-[3px] md:pr-s4 hover:bg-surface-1">
         <Avatar name={me.name} photo={me.photo_url} size={36} />
@@ -63,8 +74,9 @@ export function AccountMenu() {
         </span>
         <span className="sr-only">Account menu</span>
       </button>
+      )}
       {open && (
-        <div role="menu" className="absolute right-0 top-[calc(100%+8px)] z-nav w-[320px] max-w-[calc(100vw-32px)] bg-surface-1 border border-line shadow-[var(--shadow-pop)] rounded-[var(--radius-2)] overflow-hidden">
+        <div role="menu" className={`absolute z-nav ${side ? 'left-0 right-0 bottom-[calc(100%+6px)]' : 'right-0 top-[calc(100%+8px)] w-[320px]'} max-w-[calc(100vw-32px)] bg-surface-1 border border-line shadow-[var(--shadow-pop)] rounded-[var(--radius-2)] overflow-hidden`}>
           <div className="flex items-center gap-s3 p-s4 border-b border-line">
             <Avatar name={me.name} photo={me.photo_url} size={44} />
             <div className="grid min-w-0">
@@ -74,6 +86,12 @@ export function AccountMenu() {
           </div>
           <Link role="menuitem" href="/portal/profile" className={`${item} text-ink`} onClick={() => setOpen(false)}>
             <CircleUser size={18} aria-hidden="true" /><span className="flex-1">My profile</span><ChevronRight size={16} className="text-ink-3" aria-hidden="true" />
+          </Link>
+          {me.role && <Link role="menuitem" href="/portal/xaccess" className={`${item} text-ink`} onClick={() => setOpen(false)}>
+            <CreditCard size={18} aria-hidden="true" /><span className="flex-1">X Access card</span><ChevronRight size={16} className="text-ink-3" aria-hidden="true" />
+          </Link>}
+          <Link role="menuitem" href="/" className={`${item} text-ink`} onClick={() => setOpen(false)}>
+            <Globe size={18} aria-hidden="true" /><span className="flex-1">Visit the website</span><ChevronRight size={16} className="text-ink-3" aria-hidden="true" />
           </Link>
           <div className="grid gap-s2 px-s4 py-s3 border-y border-line">
             <span className="flex items-center gap-s3 font-medium"><Moon size={18} aria-hidden="true" />Appearance</span>

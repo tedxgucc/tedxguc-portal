@@ -96,10 +96,20 @@ a { color: inherit; }
 .tx-sidebar { scrollbar-width: none; }
 .tx-sidebar::-webkit-scrollbar { display: none; }
 
-.tx-sidebar a { display: flex; align-items: center; gap: var(--space-3); padding: 10px var(--space-4); color: var(--ink-2); text-decoration: none; font: 500 15px/20px var(--font-sans); border-left: 3px solid transparent; }
-.tx-sidebar a svg { width: 20px; height: 20px; }
-.tx-sidebar a:hover { background: var(--surface-1); color: var(--ink); }
-.tx-sidebar a.is-on { color: var(--ink); border-left-color: var(--accent); background: var(--surface-1); }
+.tx-sidebar-nav { padding: var(--space-3) var(--space-2) !important; gap: var(--space-4) !important; min-height: 0; overflow-y: auto; scrollbar-width: none; }
+.tx-sidebar-nav::-webkit-scrollbar { display: none; }
+@media (min-width: 1024px) { .tx-sidebar { overflow-y: hidden !important; } .tx-sidebar-logo { flex-shrink: 0; } }
+.tx-navgroup { display: grid; gap: 1px; }
+.tx-navgroup__title { padding: 0 10px 4px; font: 600 11px/16px var(--font-sans); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+.tx-sidebar-nav a { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 8px; color: var(--ink-2); text-decoration: none; font: 500 14px/20px var(--font-sans); transition: background .15s ease, color .15s ease; }
+.tx-sidebar-nav a svg { width: 18px; height: 18px; flex-shrink: 0; opacity: .85; }
+.tx-sidebar-nav a:hover { background: var(--surface-1); color: var(--ink); }
+.tx-sidebar-nav a.is-on { background: var(--surface-2); color: var(--ink); font-weight: 600; box-shadow: inset 3px 0 0 var(--accent); }
+.tx-sidebar-nav a.is-on svg { color: var(--accent); opacity: 1; }
+/* Account button at the bottom of the menu (opens upward). */
+.tx-sidebar-account { flex-shrink: 0; padding: var(--space-2); border-top: 1px solid var(--line); background: var(--bg); }
+.tx-account-btn { display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px; border: 0; border-radius: 10px; background: transparent; color: var(--ink); cursor: pointer; font-family: var(--font-sans); text-align: left; }
+.tx-account-btn:hover, .tx-account-btn.is-open { background: var(--surface-1); }
 
 /* Mobile kanban: columns become swipeable. */
 .tx-header-panel { position: absolute; right: 0; top: calc(100% + 8px); z-index: var(--z-nav); width: 380px; max-width: calc(100vw - 32px); max-height: calc(100dvh - 88px); overflow-y: auto; overscroll-behavior: contain; background: var(--surface-1); border: 1px solid var(--line); border-radius: var(--radius-2); box-shadow: var(--shadow-pop); }
