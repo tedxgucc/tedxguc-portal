@@ -59,8 +59,8 @@ function FillForm({ form, onBack }: { form: SaoForm; onBack: () => void }) {
     setBusy(true);
     try {
       const { saoFormPdf } = await import('@/lib/sao-pdf');
-      const logo = await fetch(`${BASE_PATH}/paperwork/guc-logo.jpg`).then((r) => r.ok ? r.arrayBuffer() : null).catch(() => null);
-      const bytes = await saoFormPdf(form, v, logo);
+      const load = (name: string) => fetch(`${BASE_PATH}/paperwork/${name}`).then((r) => { if (!r.ok) throw new Error(`Missing paper: ${name}`); return r.arrayBuffer(); });
+      const bytes = await saoFormPdf(form, v, load);
       const url = URL.createObjectURL(new Blob([bytes as BlobPart], { type: 'application/pdf' }));
       const a = document.createElement('a');
       const title = (v.eventName || v.sponsorName || v.memoSubject || '').replace(/[^\w\- ]+/g, '').trim();
@@ -118,7 +118,7 @@ function FillForm({ form, onBack }: { form: SaoForm; onBack: () => void }) {
           ) : null}
           <div className="sm:col-span-2 flex flex-wrap gap-s3 items-center mt-s3">
             <Button onClick={download} loading={busy}><Download aria-hidden="true" />Download PDF</Button>
-            <span className="text-caption text-ink-3">Signature boxes are left empty for signing by hand.</span>
+            <span className="text-caption text-ink-3">Printed on the official GUC papers. Signature boxes stay empty for signing by hand.</span>
           </div>
         </div>
         <aside className="tx-card tx-card--outline grid gap-s3">
