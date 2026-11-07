@@ -163,7 +163,7 @@ async function draftMemo(input: Record<string, unknown>) {
     current_draft: clip(input.current, 4000),
   };
   const prompt = `Draft the memo body for this expense request:\n${JSON.stringify(details, null, 2)}${details.current_draft ? '\nImprove the current draft rather than starting over.' : ''}`;
-  const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent', {
+  const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent', {
     method: 'POST',
     headers: { 'x-goog-api-key': key, 'content-type': 'application/json' },
     body: JSON.stringify({
