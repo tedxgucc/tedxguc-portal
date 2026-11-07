@@ -13,7 +13,9 @@ import { SAO_ADVISOR, SAO_FORMS, SAO_OFFICE, SERVICE_GROUPS, type SaoForm } from
 const CATS = ['Events', 'Sponsorship', 'Finance'] as const;
 
 export default function PaperworkPage() {
+  const { me } = usePortal();
   const [form, setForm] = useState<SaoForm | null>(null);
+  if (me.role === 'associate' || !me.role) return <><PageTitle label="Paperwork" title="Board only" /><p className="text-body text-ink-2">Paperwork is for the board: the Chairman, Curators and Executives.</p></>;
   return form ? <FillForm form={form} onBack={() => setForm(null)} /> : (
     <>
       <PageTitle label="Paperwork" title="SAO forms" />
