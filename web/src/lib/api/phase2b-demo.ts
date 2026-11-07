@@ -407,7 +407,7 @@ export const canWriteFile = (u: Me, f: Pick<LibFile, 'scope' | 'team_id' | 'divi
 export const demoFilesApi: FilesApi = {
   async listFiles() {
     const u = me();
-    return s().files.filter((f) => canSeeFile(u, f));
+    return s().files.filter((f) => canSeeFile(u, f) && (!f.roles?.length || f.uploaded_by === u.id || u.role === 'chairman' || (f.roles as string[]).includes(u.role ?? '') || (u.role === 'curator' && (f.scope !== 'division' || f.division_id === u.division_id) && f.scope !== 'team') || (f.scope === 'team' && (u.role === 'curator' || (u.role === 'executive' && u.team_id === f.team_id)))));
   },
   async upload({ file, ...f }) {
     const u = me();

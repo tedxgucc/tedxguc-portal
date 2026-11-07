@@ -4,7 +4,7 @@ import { DEMO } from '../env';
 import { db } from '../supabase';
 import type { InterviewAvailability } from '../interview-availability';
 import type {
-  Application, ApplicationView, ApplicationDecisionContext, BoardPlan, Cycle, FileScope, HandoverRow, InterviewScore, InterviewSlot, LibFile,
+  Application, Role, ApplicationView, ApplicationDecisionContext, BoardPlan, Cycle, FileScope, HandoverRow, InterviewScore, InterviewSlot, LibFile,
   FormAnswer, Order, OrderMethod, OrderPlaced, OrderView, Package, Position, Question, SalesRow, Stage,
 } from '../types';
 import { friendly, toApiError } from './errors';
@@ -19,7 +19,7 @@ export type ApplyInput = {
 export type PositionInput = { id?: string; cycle_id: string; team_id: string; seats: number | null; description: string | null; questions: Question[]; is_open: boolean };
 export type SlotInput = { cycle_id: string; team_id: string; starts_at: string; ends_at: string; location?: string; interviewer_ids: string[] };
 export type PlanInput = { id?: string; cycle_id: string; target_role: 'executive' | 'curator'; team_id: string | null; division_id: string | null; answers: Record<string, string>; submit?: boolean };
-export type UploadInput = { scope: FileScope; team_id: string | null; division_id: string | null; folder: string; file: File; is_handover: boolean };
+export type UploadInput = { scope: FileScope; team_id: string | null; division_id: string | null; folder: string; file: File; is_handover: boolean; roles?: Role[] | null };
 export type PackageInput = Omit<Package, 'id' | 'stock_left'> & { id?: string };
 // Members sign up from the portal; name and email come from their account.
 export type SignUpInput = {

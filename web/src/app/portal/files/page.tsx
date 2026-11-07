@@ -14,7 +14,7 @@ import { Button, Check2, Chip, EmptyState, Modal, Segmented, Select, Skeleton, T
 import { filesApi } from '@/lib/api/phase2b';
 import { fmtShortDate } from '@/lib/format';
 import { canManageTeam } from '@/lib/roles';
-import type { FileScope, HandoverRow, LibFile, Me, Team } from '@/lib/types';
+import type { FileScope, HandoverRow, LibFile, Me, Role, Team } from '@/lib/types';
 
 type Tab = 'library' | 'handover';
 
@@ -91,7 +91,7 @@ function Library() {
                       <span className="tx-file__thumb" style={{ width: 40, height: 40 }}><FileText aria-hidden="true" /></span>
                       <button className="grid grid-cols-1 min-w-0 text-left bg-transparent border-0 cursor-pointer p-0 text-ink" onClick={() => open(f)}>
                         <span className="font-semibold truncate">{f.name}</span>
-                        <span className="text-caption text-ink-3 truncate">{size(f.size_bytes)} · {memberName(f.uploaded_by)} · {fmtShortDate(f.created_at)}</span>
+                        <span className="text-caption text-ink-3 truncate">{size(f.size_bytes)} · {memberName(f.uploaded_by)} · {fmtShortDate(f.created_at)}{f.roles?.length ? ' · ' + f.roles.map((r) => r[0].toUpperCase() + r.slice(1) + 's').join(', ') + ' only' : ''}</span>
                       </button>
                       <span className="flex items-center gap-s1">
                         {f.is_handover && <Chip kind="ok">Handover</Chip>}
@@ -126,6 +126,7 @@ function UploadModal({ folders, onClose, onDone }: { folders: string[]; onClose:
   const [folder, setFolder] = useState(folders[0] ?? 'General');
   const [newFolder, setNewFolder] = useState('');
   const [handover, setHandover] = useState(false);
+  const [onlyRoles, setOnlyRoles] = useState<Role[]>([]);
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const ref = useRef<HTMLInputElement>(null);
@@ -135,7 +136,7 @@ function UploadModal({ folders, onClose, onDone }: { folders: string[]; onClose:
     if (!t || !file) { toast('bad', 'Pick a file and where it goes.'); return; }
     if (file.size > 50 * 1024 * 1024) { toast('bad', 'Files must be under 50 MB.'); return; }
     setBusy(true);
-    try { await filesApi.upload({ scope: t.scope, team_id: t.team_id, division_id: t.division_id, folder: handover ? 'Handover' : fld, file, is_handover: handover }); toast('ok', 'Uploaded.', `${file.name} is in ${t.label}.`); onDone(); }
+    try { await filesApi.upload({ scope: t.scope, team_id: t.team_id, division_id: t.division_id, folder: handover ? 'Handover' : fld, file, is_handover: handover, roles: onlyRoles.length ? onlyRoles : null }); toast('ok', 'Uploaded.', `${file.name} is in ${t.label}.`); onDone(); }
     catch (e) { toast('bad', 'That didn’t upload.', (e as Error).message); } finally { setBusy(false); }
   };
   return (
@@ -149,7 +150,12 @@ function UploadModal({ folders, onClose, onDone }: { folders: string[]; onClose:
         ) : (
           <button type="button" className="tx-upload w-full" onClick={() => ref.current?.click()}><Upload aria-hidden="true" /><span className="tx-upload__t">Choose a file</span><span className="tx-upload__d">Up to 50 MB</span></button>
         )}
-        <Select label="Who can see it" value={target} onChange={(e) => setTarget(e.target.value)}>{targets.map((t) => <option key={t.key} value={t.key}>{t.label}</option>)}</Select>
+        <Select label="Where it goes" value={target} onChange={(e) => setTarget(e.target.value)}>{targets.map((t) => <option key={t.key} value={t.key}>{t.label}</option>)}</Select>
+        <fieldset className="grid gap-s2">
+          <legend className="tx-label mb-s2">Who can see it</legend>
+          <p className="text-caption text-ink-3">Leave all unticked so everyone there can see it. You, the Chairman and whoever runs that place always can.</p>
+          {(["curator", "executive", "associate"] as Role[]).map((r) => <Check2 key={r} label={r[0].toUpperCase() + r.slice(1) + "s only"} checked={onlyRoles.includes(r)} onChange={(e) => setOnlyRoles(e.target.checked ? [...onlyRoles, r] : onlyRoles.filter((x) => x !== r))} />)}
+        </fieldset>
         {!handover && <>
           <Select label="Folder" value={folder} onChange={(e) => setFolder(e.target.value)}>
             {[...new Set(['General', 'Brand kit', 'Templates', ...folders])].map((f) => <option key={f} value={f}>{f}</option>)}

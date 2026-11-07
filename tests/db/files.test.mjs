@@ -65,3 +65,16 @@ test('handover status lists board members without a handover file (FR-9.4)', asy
   assert.equal(byName['executive 3'], 0);
   await rejects(db.as(mktCurator, ({ q }) => q(`select * from handover_status()`)), /not_allowed/);
 });
+
+test('files can be limited to certain roles inside their place', async () => {
+  const id = randomUUID();
+  const f = await db.as(mktCurator, ({ one }) => one(
+    `insert into files (id, scope, name, storage_path, roles) values ($1, 'club', 'exec.pdf', $2, '{executive}') returning id`, [id, `${id}/exec.pdf`]));
+  assert.equal(await sees(mediaExec, f.id), true);
+  assert.equal(await sees(mediaAssoc, f.id), false);
+  assert.equal(await sees(mktCurator, f.id), true); // uploader
+  assert.equal(await sees(chairman, f.id), true);
+  const ok = (who) => db.as(who, ({ one }) => one(`select private.file_access($1, false) as ok`, [`${id}/exec.pdf`])).then((r) => r.ok);
+  assert.equal(await ok(mediaExec), true);
+  assert.equal(await ok(coachingAssoc), false);
+});

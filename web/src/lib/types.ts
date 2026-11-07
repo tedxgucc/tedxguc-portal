@@ -293,6 +293,7 @@ export type FileScope = 'club' | 'division' | 'team' | 'board';
 export type LibFile = {
   id: string; scope: FileScope; division_id: string | null; team_id: string | null; folder: string; name: string;
   storage_path: string; mime_type: string | null; size_bytes: number | null; is_handover: boolean; uploaded_by: string; created_at: string;
+  roles?: Role[] | null;
 };
 export type HandoverRow = { user_id: string; name: string; role: Role; division: string | null; team: string | null; handover_files: number; last_upload: string | null };
 
