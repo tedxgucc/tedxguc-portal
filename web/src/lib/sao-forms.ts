@@ -129,3 +129,5 @@ export const SAO_FORMS: SaoForm[] = [
 ];
 
 export const SAO_CLUB = 'TEDxGUC';
+export const SAO_ADVISOR = 'Dr. Manar Mansour';
+export const SAO_OFFICE = 'Student Activities Office';

@@ -1,7 +1,7 @@
 // Builds a filled SAO form as a PDF, laid out like the paper form, with
 // empty signature boxes so it can be printed and signed by hand.
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFImage, type PDFPage } from 'pdf-lib';
-import { SAO_CLUB, SERVICE_GROUPS, type SaoForm } from './sao-forms';
+import { SAO_ADVISOR, SAO_CLUB, SAO_OFFICE, SERVICE_GROUPS, type SaoForm } from './sao-forms';
 
 export type SaoValues = Record<string, string>;
 // Ticked services are stored as values[`svc:<group>:<item>`] = '1'; "Others" text in values[`svc:<group>:other`].
@@ -162,14 +162,15 @@ class Writer {
     for (const a of list) { this.ensure(16); this.check(M + 6, this.y - 12, false); this.text(a, M + 20, this.y - 12); this.y -= 15; }
   }
   signatures(names: string[], withComments = true) {
-    const per = Math.min(names.length, 4), w = CW / per, h = 70;
+    const per = Math.min(names.length, 4), w = CW / per, h = 80;
     this.ensure(30 + h + (withComments ? 50 : 0));
     this.section('Signatures');
     names.forEach((n, i) => {
       const x = M + (i % per) * w;
       this.box(x, this.y, w, h);
-      this.page.drawLine({ start: { x: x + 10, y: this.y - h + 22 }, end: { x: x + w - 10, y: this.y - h + 22 }, thickness: 0.5, color: LINE });
-      this.text(n, x + 8, this.y - h + 9, 8.5, this.bold, GREY);
+      this.page.drawLine({ start: { x: x + 10, y: this.y - h + 32 }, end: { x: x + w - 10, y: this.y - h + 32 }, thickness: 0.5, color: LINE });
+      this.text(n, x + 8, this.y - h + 19, 8.5, this.bold, GREY);
+      if (n === 'Academic Advisor') this.text(SAO_ADVISOR, x + 8, this.y - h + 8, 8, this.font, GREY);
       this.text('Date: ___________', x + 8, this.y - 14, 7.5, this.font, GREY);
     });
     this.y -= h;
@@ -187,6 +188,7 @@ export async function saoFormPdf(form: SaoForm, v: SaoValues, logoBytes?: ArrayB
   w.newPage();
 
   w.row([['AWG Name', SAO_CLUB]]);
+  if (form.key === 'expense' && !v.academicAdvisor) v = { ...v, academicAdvisor: SAO_ADVISOR };
   const val = (f: { k: string; t: string; money?: boolean }) => {
     const x = v[f.k] ?? '';
     return f.t === 'date' ? fmtDate(x) : f.money ? money(x) : x;
@@ -217,7 +219,7 @@ export async function saoFormPdf(form: SaoForm, v: SaoValues, logoBytes?: ArrayB
     w.title = 'MEMORANDUM';
     w.newPage();
     const today = new Date().toISOString().slice(0, 10);
-    w.row([['To', v.memoTo || 'Youth Welfare Director']]);
+    w.row([['To', v.memoTo || SAO_OFFICE]]);
     w.row([['From', `${SAO_CLUB}${v.requestedBy ? ' - ' + v.requestedBy : ''}`], ['Date', fmtDate(v.requestedDate || today)]]);
     w.row([['Subject', v.memoSubject ?? '']]);
     w.y -= 10;

@@ -1,13 +1,14 @@
 'use client';
 // SAO paperwork: pick a form, fill it in, download a PDF to print and sign by hand.
-import { ArrowLeft, Download, FileText } from 'lucide-react';
+import { ArrowLeft, Download, FileText, Sparkles } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { PageTitle, SectionHeading } from '@/components/Brand';
 import { usePortal } from '@/components/portal/PortalContext';
 import { useToast } from '@/components/Toast';
 import { Button, Check2, TextArea, TextInput } from '@/components/ui';
 import { BASE_PATH } from '@/lib/env';
-import { SAO_FORMS, SERVICE_GROUPS, type SaoForm } from '@/lib/sao-forms';
+import { draftMemo } from '@/lib/api/phase2b';
+import { SAO_ADVISOR, SAO_FORMS, SAO_OFFICE, SERVICE_GROUPS, type SaoForm } from '@/lib/sao-forms';
 
 const CATS = ['Events', 'Sponsorship', 'Finance'] as const;
 
@@ -41,7 +42,14 @@ function FillForm({ form, onBack }: { form: SaoForm; onBack: () => void }) {
   const toast = useToast();
   const today = new Date().toISOString().slice(0, 10);
   const [v, setV] = useState<Record<string, string>>((): Record<string, string> => form.key === 'expense'
-    ? { requestedDate: today, requestedBy: me.name, memoTo: 'Mr. Yehia Al-Razaz, Youth Welfare Director' } : {});
+    ? { requestedDate: today, requestedBy: me.name, academicAdvisor: SAO_ADVISOR, memoTo: SAO_OFFICE } : {});
+  const [drafting, setDrafting] = useState(false);
+  const aiDraft = async () => {
+    if (!v.amount || !v.memoSubject || !v.justification) { toast('bad', 'Fill in the amount, justification and subject first.'); return; }
+    setDrafting(true);
+    try { set('memoBody', await draftMemo({ requestedBy: v.requestedBy ?? '', advisor: v.academicAdvisor ?? SAO_ADVISOR, amount: v.amount, subject: v.memoSubject, justification: v.justification, current: v.memoBody ?? '' })); }
+    catch (e) { toast('bad', 'Couldn’t draft the memo.', (e as Error).message); } finally { setDrafting(false); }
+  };
   const [busy, setBusy] = useState(false);
   const set = (k: string, x: string) => setV((o) => ({ ...o, [k]: x }));
   const missing = useMemo(() => form.fields.filter((f) => 'k' in f && 'req' in f && f.req && !(v[f.k] ?? '').trim()).map((f) => f.label), [form, v]);
@@ -91,7 +99,7 @@ function FillForm({ form, onBack }: { form: SaoForm; onBack: () => void }) {
               </fieldset>
             );
             const label = f.label + (f.req ? ' *' : '');
-            if (f.t === 'textarea') return <div key={f.k} className="sm:col-span-2"><TextArea label={label} placeholder={f.ph} rows={f.k === 'memoBody' ? 8 : 3} value={v[f.k] ?? ''} onChange={(e) => set(f.k, e.target.value)} /></div>;
+            if (f.t === 'textarea') return <div key={f.k} className="sm:col-span-2 grid gap-s2"><TextArea label={label} placeholder={f.k === 'memoBody' ? 'Write the memo, or fill in the amount, justification and subject and click Draft with AI.' : f.ph} rows={f.k === 'memoBody' ? 8 : 3} value={v[f.k] ?? ''} onChange={(e) => set(f.k, e.target.value)} />{f.k === 'memoBody' && <div><Button small variant="secondary" onClick={aiDraft} loading={drafting}><Sparkles size={16} aria-hidden="true" />{v.memoBody?.trim() ? 'Improve with AI' : 'Draft with AI'}</Button></div>}</div>;
             return <div key={f.k} className={f.half ? '' : 'sm:col-span-2'}><TextInput label={label} type={f.t} placeholder={f.ph} value={v[f.k] ?? ''} onChange={(e) => set(f.k, e.target.value)} /></div>;
           })}
           {form.services?.length ? (

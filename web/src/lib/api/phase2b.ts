@@ -333,3 +333,13 @@ const livePackages: PackagesApi = {
 export const recruitmentApi: RecruitmentApi = DEMO ? demoRecruitmentApi : liveRecruitment;
 export const filesApi: FilesApi = DEMO ? demoFilesApi : liveFiles;
 export const packagesApi: PackagesApi = DEMO ? demoPackagesApi : livePackages;
+
+// Paperwork: ask the server for an AI memo draft. Demo mode returns a sample.
+export async function draftMemo(input: { requestedBy: string; advisor: string; amount: string; subject: string; justification: string; current: string }): Promise<string> {
+  if (DEMO) {
+    await new Promise((r) => setTimeout(r, 600));
+    const amt = input.amount ? `${Number(input.amount).toLocaleString('en-US')} EGP` : 'the requested amount';
+    return `TEDxGUC kindly requests approval to spend ${amt} on ${input.subject || 'the item described below'}.\n\n${input.justification || 'This expense is needed for our upcoming activity.'} It directly supports the event and the experience we offer to GUC students.\n\nWe would be grateful for your approval of this request.`;
+  }
+  return (await invoke<{ body: string }>('staff-actions', { action: 'draft_memo', ...input })).body;
+}
