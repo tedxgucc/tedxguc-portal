@@ -2,7 +2,7 @@
 // Profile (FR-2.5) and session controls (FR-2.4).
 import { Camera, KeyRound, LogOut, MonitorSmartphone } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { PageTitle, SectionHeading } from '@/components/Brand';
 import { usePortal } from '@/components/portal/PortalContext';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -23,6 +23,10 @@ export default function ProfilePage() {
   const [semester, setSemester] = useState('');
   const [phone, setPhone] = useState('');
   const [busy, setBusy] = useState<string | null>(null);
+  // Fill the form with what is already saved.
+  useEffect(() => {
+    api.getMyDetails().then((d) => { setMajor(d.major ?? ''); setSemester(d.semester ? String(d.semester) : ''); setPhone(d.phone ?? ''); }).catch(() => {});
+  }, []);
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,10 +34,11 @@ export default function ProfilePage() {
     try {
       await api.updateProfile({
         name: name.trim() || undefined,
-        ...(major ? { major } : {}),
-        ...(semester ? { semester: Number(semester) } : {}),
-        ...(phone ? { phone } : {}),
+        major: major.trim() || null,
+        semester: semester ? Number(semester) : null,
+        phone: phone.trim() || null,
       });
+      reload();
       toast('ok', 'Profile saved.');
     } catch (x) {
       toast('bad', "That didn't save.", (x as Error).message);

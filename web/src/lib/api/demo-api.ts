@@ -306,10 +306,17 @@ export const demoApi: Api = {
     clearCache();
     document.cookie = `${DEMO_COOKIE}=; path=/; max-age=0; samesite=lax`;
   },
+  async getMyDetails() {
+    const me = requireMe();
+    const mem = s().members.find((x) => x.user_id === me.id) as unknown as { major?: string | null; semester?: number | null; phone?: string | null };
+    return { major: mem?.major ?? null, semester: mem?.semester ?? null, phone: mem?.phone ?? null };
+  },
   async updateProfile(patch) {
     const me = requireMe();
     const mem = s().members.find((x) => x.user_id === me.id)!;
     if (patch.name) mem.name = patch.name;
+    const extra = mem as unknown as Record<string, unknown>;
+    for (const k of ['major', 'semester', 'phone'] as const) if (patch[k] !== undefined) extra[k] = patch[k];
     if (patch.photo_url !== undefined) mem.photo_url = patch.photo_url;
     save();
   },

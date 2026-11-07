@@ -100,6 +100,8 @@ export interface Api {
   sendPasswordReset(email: string): Promise<void>;
   signOut(everywhere?: boolean): Promise<void>;
   updateProfile(patch: { name?: string; major?: string | null; semester?: number | null; phone?: string | null; photo_url?: string | null }): Promise<void>;
+  /** My saved profile details, to fill the profile form. */
+  getMyDetails(): Promise<{ major: string | null; semester: number | null; phone: string | null }>;
   /** Upload my profile photo; returns its address. */
   uploadAvatar(file: File): Promise<string>;
   /** Change my password while logged in (no email needed). */
