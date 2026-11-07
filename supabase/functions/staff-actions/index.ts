@@ -173,7 +173,10 @@ async function draftMemo(input: Record<string, unknown>) {
     }),
   });
   if (res.status === 429) throw new HttpError(429, 'ai_busy', 'The AI is busy. Try again in a minute.');
-  if (!res.ok) throw new HttpError(502, 'ai_error', `AI service error (${res.status}).`);
+  if (!res.ok) {
+    const why = await res.json().then((j) => j?.error?.message).catch(() => '');
+    throw new HttpError(502, 'ai_error', `AI service error (${res.status})${why ? ': ' + String(why).slice(0, 200) : '.'}`);
+  }
   const out = await res.json();
   const text = (out.candidates?.[0]?.content?.parts ?? []).map((p: { text?: string }) => p.text ?? '').join('').trim();
   if (!text) throw new HttpError(422, 'ai_empty', 'The AI could not draft this memo. Please write it yourself.');
