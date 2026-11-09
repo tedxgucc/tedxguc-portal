@@ -159,10 +159,10 @@ export const supabaseApi: Api = {
   async getMyDetails() {
     const id = await uid();
     const [u, p] = await Promise.all([
-      run(db().from('users').select('major, semester').eq('id', id).maybeSingle()),
+      run(db().from('users').select('major, semester, bio').eq('id', id).maybeSingle()),
       run(db().from('user_private').select('phone').eq('user_id', id).maybeSingle()),
-    ]) as [{ major: string | null; semester: number | null } | null, { phone: string | null } | null];
-    return { major: u?.major ?? null, semester: u?.semester ?? null, phone: p?.phone ?? null };
+    ]) as [{ major: string | null; semester: number | null; bio: string | null } | null, { phone: string | null } | null];
+    return { major: u?.major ?? null, semester: u?.semester ?? null, phone: p?.phone ?? null, bio: u?.bio ?? null };
   },
   async updateProfile(patch) {
     const id = await uid();

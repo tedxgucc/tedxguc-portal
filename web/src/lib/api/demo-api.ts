@@ -14,7 +14,7 @@ import { friendly } from './errors';
 import { ApiError, type Api } from './types';
 
 export const DEMO_COOKIE = 'tx-demo-user';
-const KEY = 'tx-demo-v9';
+const KEY = 'tx-demo-v10';
 
 type Guest = {
   id: string; event_id: string; guest_name: string; guest_email: string; guest_phone: string; guest_type: string;
@@ -210,7 +210,7 @@ export const demoApi: Api = {
     return Object.fromEntries(s().sections.filter((x) => keys.includes(x.key) && x.is_published).map((x) => [x.key, { key: x.key, title: x.title, body: x.body }]));
   },
   async getBoard() {
-    return s().members.filter((x) => x.role !== 'associate').map((x) => ({ name: x.name, photo_url: x.photo_url, role: x.role, division: x.division, team: x.team }));
+    return s().members.filter((x) => x.role !== 'associate').map((x) => ({ name: x.name, photo_url: x.photo_url, role: x.role, division: x.division, team: x.team, bio: (x as unknown as { bio?: string | null }).bio ?? null, major: (x as unknown as { major?: string | null }).major ?? null }));
   },
   async publicCalendar(from, to) {
     return publicCalendarEvents(s().events, from, to);
@@ -308,15 +308,15 @@ export const demoApi: Api = {
   },
   async getMyDetails() {
     const me = requireMe();
-    const mem = s().members.find((x) => x.user_id === me.id) as unknown as { major?: string | null; semester?: number | null; phone?: string | null };
-    return { major: mem?.major ?? null, semester: mem?.semester ?? null, phone: mem?.phone ?? null };
+    const mem = s().members.find((x) => x.user_id === me.id) as unknown as { major?: string | null; semester?: number | null; phone?: string | null; bio?: string | null };
+    return { major: mem?.major ?? null, semester: mem?.semester ?? null, phone: mem?.phone ?? null, bio: mem?.bio ?? null };
   },
   async updateProfile(patch) {
     const me = requireMe();
     const mem = s().members.find((x) => x.user_id === me.id)!;
     if (patch.name) mem.name = patch.name;
     const extra = mem as unknown as Record<string, unknown>;
-    for (const k of ['major', 'semester', 'phone'] as const) if (patch[k] !== undefined) extra[k] = patch[k];
+    for (const k of ['major', 'semester', 'phone', 'bio'] as const) if (patch[k] !== undefined) extra[k] = patch[k];
     if (patch.photo_url !== undefined) mem.photo_url = patch.photo_url;
     save();
   },

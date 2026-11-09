@@ -7,7 +7,7 @@ import { PageTitle, SectionHeading } from '@/components/Brand';
 import { usePortal } from '@/components/portal/PortalContext';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useToast } from '@/components/Toast';
-import { Avatar, Button, DivTag, TextInput } from '@/components/ui';
+import { Avatar, Button, DivTag, TextArea, TextInput } from '@/components/ui';
 import { api } from '@/lib/api';
 import { roleLabel } from '@/lib/roles';
 
@@ -22,10 +22,11 @@ export default function ProfilePage() {
   const [major, setMajor] = useState('');
   const [semester, setSemester] = useState('');
   const [phone, setPhone] = useState('');
+  const [bio, setBio] = useState('');
   const [busy, setBusy] = useState<string | null>(null);
   // Fill the form with what is already saved.
   useEffect(() => {
-    api.getMyDetails().then((d) => { setMajor(d.major ?? ''); setSemester(d.semester ? String(d.semester) : ''); setPhone(d.phone ?? ''); }).catch(() => {});
+    api.getMyDetails().then((d) => { setMajor(d.major ?? ''); setSemester(d.semester ? String(d.semester) : ''); setPhone(d.phone ?? ''); setBio(d.bio ?? ''); }).catch(() => {});
   }, []);
 
   const save = async (e: React.FormEvent) => {
@@ -37,6 +38,7 @@ export default function ProfilePage() {
         major: major.trim() || null,
         semester: semester ? Number(semester) : null,
         phone: phone.trim() || null,
+        ...(me.role && me.role !== 'associate' ? { bio: bio.trim() || null } : {}),
       });
       reload();
       toast('ok', 'Profile saved.');
@@ -104,6 +106,9 @@ export default function ProfilePage() {
           </div>
           <TextInput label="Phone / WhatsApp" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+20"
             help="Only you, executives and curators can see it." />
+          {me.role && me.role !== 'associate' && <TextArea label="Board intro" rows={3} maxLength={400} value={bio} onChange={(e) => setBio(e.target.value)}
+            placeholder="A line or two about you: what you study, what you lead, what you love about TEDxGUC."
+            help={`Shown on the public Board page. ${400 - bio.length} characters left.`} />}
           <Button type="submit" loading={busy === 'save'} className="justify-self-start">Save</Button>
         </form>
         <form id="password" className="tx-card grid gap-s4 scroll-mt-[88px] lg:col-start-1" onSubmit={changePassword}>

@@ -90,7 +90,7 @@ export type Speaker = {
 
 export type Partner = { id: string; company: string; tier: string | null; logo_url: string | null; website: string | null };
 export type Section = { key: string; title: string; body: { text?: string; items?: { q: string; a: string }[] } };
-export type BoardMember = { name: string; photo_url: string | null; role: Role; division: string | null; team: string | null };
+export type BoardMember = { name: string; photo_url: string | null; role: Role; division: string | null; team: string | null; bio?: string | null; major?: string | null };
 
 export type RegistrationStatus = 'registered' | 'waitlisted' | 'cancelled';
 export type RegisterResult = {

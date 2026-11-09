@@ -18,9 +18,57 @@
 .board-executives > li::after { content: ''; position: absolute; top: 0; left: -6px; right: -6px; border-top: 1px solid var(--line-strong); }
 .board-executives > li:first-child::after { left: 50%; }
 .board-executives > li:last-child::after { right: 50%; }
-.board-card { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 20px 12px; min-height: 192px; height: 100%; text-align: center; background: var(--surface-1); border: 1px solid var(--line); }
 .board-card--chair { border-top: 3px solid var(--accent); min-height: 176px; }
 .board-card .tx-label { color: var(--accent-ink); }
 .board-unit { font: 600 14px/20px var(--font-sans); min-height: 40px; display: grid; place-items: center; }
-.board-person { display: flex; flex-direction: column; align-items: center; gap: 12px; }
-.board-person p { overflow-wrap: anywhere; }
+.board-card { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 20px 10px; min-height: 192px; height: 100%; text-align: center; background: var(--surface-1); border: 1px solid var(--line); transition: border-color .2s, box-shadow .2s, transform .2s; }
+.board-card:hover { border-color: var(--accent); box-shadow: 0 10px 28px -16px rgba(230, 43, 30, .45); transform: translateY(-3px); }
+
+/* People are buttons that open their intro. */
+.board-people { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 8px; }
+.board-person { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 6px; background: none; border: 0; border-radius: 12px; cursor: pointer; color: inherit; font: inherit; max-width: 140px; }
+.board-card--pair .board-person { max-width: 104px; }
+.board-person > span { overflow-wrap: anywhere; }
+.board-person__ring { border-radius: 999px; padding: 3px; box-shadow: 0 0 0 2px transparent; transition: box-shadow .2s, transform .25s; }
+.board-person:hover .board-person__ring, .board-person:focus-visible .board-person__ring { box-shadow: 0 0 0 2px var(--accent); transform: scale(1.06); }
+.board-person__more { font-size: 12px; color: var(--accent-ink); opacity: 0; transform: translateY(-4px); transition: opacity .2s, transform .2s; }
+.board-person:hover .board-person__more, .board-person:focus-visible .board-person__more { opacity: 1; transform: none; }
+@media (hover: none) { .board-person__more { opacity: 1; transform: none; } }
+.board-person:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Cards rise in, division by division. */
+.board-chair, .board-branch { animation: board-rise .5s both; }
+.board-branch { animation-delay: var(--d, 0ms); }
+@keyframes board-rise { from { opacity: 0; transform: translateY(14px); } }
+
+/* Intro spotlight */
+.board-intro { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; padding: 16px; background: rgba(10, 10, 10, .62); backdrop-filter: blur(6px); animation: board-fade .2s both; }
+@keyframes board-fade { from { opacity: 0; } }
+.board-intro__card { position: relative; width: min(760px, 100%); max-height: calc(100vh - 32px); overflow: auto; background: var(--surface-1); border-top: 4px solid var(--accent); border-radius: 16px; box-shadow: 0 30px 80px -20px rgba(0, 0, 0, .55); outline: none; }
+.board-intro__close { position: absolute; top: 10px; right: 10px; z-index: 1; }
+.board-intro__body { display: grid; grid-template-columns: 260px 1fr; animation: board-slide .35s both; }
+@keyframes board-slide { from { opacity: 0; transform: translateX(18px); } }
+.board-intro__photo { position: relative; min-height: 300px; background: #111; overflow: hidden; }
+.board-intro__photo::after { content: ''; position: absolute; inset: 0; background: linear-gradient(160deg, transparent 55%, rgba(230, 43, 30, .55)); }
+.board-intro__photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.board-intro__initials { position: absolute; inset: 0; display: grid; place-items: center; font: 800 88px/1 var(--font-sans); color: #fff; letter-spacing: -2px; }
+.board-intro__text { padding: 36px 32px 24px; display: grid; align-content: center; gap: 10px; }
+.board-intro__text .tx-label { color: var(--accent-ink); }
+.board-intro__name { font: 800 34px/1.1 var(--font-sans); letter-spacing: -.5px; }
+.board-intro__title { color: var(--ink-3); font-size: 14px; }
+.board-intro__bio { font-size: 17px; line-height: 1.6; color: var(--ink-2); margin-top: 6px; }
+.board-intro__nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-top: 1px solid var(--line); }
+.board-intro__dots { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.board-intro__dots span { width: 7px; height: 7px; border-radius: 99px; background: var(--line-strong); cursor: pointer; transition: width .25s, background .25s; }
+.board-intro__dots span.is-on { width: 22px; background: var(--accent); }
+@media (max-width: 640px) {
+  .board-intro__body { grid-template-columns: 1fr; }
+  .board-intro__photo { min-height: 220px; }
+  .board-intro__text { padding: 22px 20px 16px; }
+  .board-intro__name { font-size: 28px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .board-chair, .board-branch, .board-intro, .board-intro__body { animation: none; }
+  .board-card, .board-person__ring { transition: none; }
+  .board-card:hover { transform: none; }
+}

@@ -51,6 +51,7 @@ export const members: Member[] = [
   m('u-ex-coach', 'Salma Hany', 'executive', 't-coach', null),
   m('u-ex-rnp', 'Omar Khaled', 'executive', 't-rnp', null),
   m('u-ex-lnp', 'Karim Nabil', 'executive', 't-lnp', null),
+  m('u-ex-lnp2', 'Rana Gamal', 'executive', 't-lnp', null),
   m('u-ex-part', 'Farida Samir', 'executive', 't-part', null),
   m('u-ex-ae', 'Ali Tarek', 'executive', 't-ae', null),
   m('u-ex-ad', 'Habiba Ashraf', 'executive', 't-ad', null),
@@ -310,3 +311,13 @@ export const seededGuests = Array.from({ length: 36 }, (_, i) => {
     created_at: iso(-10 + (i % 9), 12),
   };
 });
+
+// Sample Board intros for the demo Board page.
+const bios: Record<string, string> = {
+  'u-chair': 'Leads TEDxGUC this season. Believes every student has one idea worth a stage.',
+  'u-cur-talks': 'Curates the talks: finds the speakers and shapes their stories.',
+  'u-cur-ops': 'Runs Operations: venues, money and partners, so the day just works.',
+  'u-ex-lnp': 'Plans every event day minute by minute, from load-in to the last chair.',
+  'u-ex-lnp2': 'Handles venues, transport and the door team for every event.',
+};
+for (const x of members) if (bios[x.user_id]) (x as unknown as { bio: string }).bio = bios[x.user_id];
