@@ -1,5 +1,6 @@
 'use client';
-import { Search, X } from 'lucide-react';
+import { ArrowRight, PlayCircle, Search, X } from 'lucide-react';
+import Link from 'next/link';
 import { useState } from 'react';
 import { PageTitle } from '@/components/Brand';
 import { EventCard } from '@/components/EventCard';
@@ -29,7 +30,26 @@ export default function EventsPage() {
     {error && <DataNotice message={error} retry={reload} loading={loading} />}
     {!data && loading ? <div className="public-event-grid" aria-label="Loading events" aria-busy="true"><Skeleton h={380} /><Skeleton h={380} /></div> : data && <>
       <div className="public-results"><p role="status" aria-live="polite">{rows.length} {rows.length === 1 ? 'experience' : 'experiences'}{query.trim() ? ' matching your search' : period === 'upcoming' ? ' coming up' : ' from our archive'}</p>{(query || kind) && <button type="button" onClick={reset}><X size={14} aria-hidden="true" />Clear filters</button>}</div>
-      {rows.length ? <div className="public-event-grid">{rows.map((e) => <EventCard key={e.id} event={e} past={period === 'past'} />)}</div> : <EmptyState title={query || kind ? 'No matches yet.' : period === 'upcoming' ? 'The next chapter is taking shape.' : 'Our archive is on its way.'} action={(query || kind) ? <Button variant="secondary" onClick={reset}>Clear filters</Button> : undefined}>{query || kind ? 'Try another name, venue or event type.' : 'Check back soon for the next TEDxGUC experience.'}</EmptyState>}
+      {period === 'upcoming' && !rows.length && !query && !kind && data.past.length ? <Rewatch past={data.past} onBrowse={() => setPeriod('past')} />
+        : rows.length ? <div className="public-event-grid">{rows.map((e, i) => <div key={e.id} className="public-rise" style={{ animationDelay: `${Math.min(i, 8) * 60}ms` }}><EventCard event={e} past={period === 'past'} /></div>)}</div> : <EmptyState title={query || kind ? 'No matches yet.' : period === 'upcoming' ? 'The next chapter is taking shape.' : 'Our archive is on its way.'} action={(query || kind) ? <Button variant="secondary" onClick={reset}>Clear filters</Button> : undefined}>{query || kind ? 'Try another name, venue or event type.' : 'Check back soon for the next TEDxGUC experience.'}</EmptyState>}
     </>}
   </div>;
+}
+
+// Nothing coming up: point people to the archive instead of an empty page.
+function Rewatch({ past, onBrowse }: { past: import('@/lib/types').TxEvent[]; onBrowse: () => void }) {
+  const latest = [...past].sort((a, b) => Date.parse(b.starts_at) - Date.parse(a.starts_at)).slice(0, 3);
+  return <section className="public-rewatch" aria-labelledby="rewatch-title">
+    <div className="public-rewatch__panel">
+      <span className="tx-label">Nothing on the calendar yet</span>
+      <h2 id="rewatch-title">Meanwhile, relive the ideas that brought us here.</h2>
+      <p>Our next chapter is taking shape. Until then, explore our past events and watch the talks from the speakers who stood on our red circle.</p>
+      <div className="public-rewatch__actions">
+        <button type="button" className="tx-btn tx-btn--primary" onClick={onBrowse}>Browse past events<ArrowRight size={18} aria-hidden="true" /></button>
+        <Link href="/speakers" className="tx-btn tx-btn--secondary"><PlayCircle size={18} aria-hidden="true" />Watch the talks</Link>
+      </div>
+    </div>
+    <div className="public-rewatch__head"><span className="tx-label">From the archive</span><button type="button" onClick={onBrowse}>See all {past.length}<ArrowRight size={14} aria-hidden="true" /></button></div>
+    <div className="public-event-grid">{latest.map((e, i) => <div key={e.id} className="public-rise" style={{ animationDelay: `${i * 80}ms` }}><EventCard event={e} past /></div>)}</div>
+  </section>;
 }
