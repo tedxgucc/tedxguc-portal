@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { useRef } from 'react';
 import { eventKind } from '@/components/EventCard';
+import { SectionHeading, TxLabel } from '@/components/Brand';
 import { fmtDate } from '@/lib/format';
 import type { TxEvent } from '@/lib/types';
 
@@ -16,7 +17,7 @@ export function GlassCarousel({ events }: { events: TxEvent[] }) {
   };
   return <section className="latest-row" aria-labelledby="latest-title">
     <div className="latest-row__head">
-      <h2 id="latest-title" className="h3">Our latest events</h2>
+      <div><TxLabel>From the archive</TxLabel><SectionHeading><span id="latest-title">Our latest events</span></SectionHeading></div>
       <div className="flex gap-s2">
         <button type="button" className="tx-iconbtn" onClick={() => move(-1)} aria-label="Scroll back"><ChevronLeft aria-hidden="true" /></button>
         <button type="button" className="tx-iconbtn" onClick={() => move(1)} aria-label="Scroll forward"><ChevronRight aria-hidden="true" /></button>
@@ -25,7 +26,7 @@ export function GlassCarousel({ events }: { events: TxEvent[] }) {
     <div className="latest-row__track" ref={track}>
       {events.map((e) => <Link key={e.id} href={'/event?s=' + encodeURIComponent(e.slug ?? '')} className="latest-card">
         <div className="latest-card__img">{e.cover_url ? <img src={e.cover_url} alt="" loading="lazy" decoding="async" /> : <span>{e.title}</span>}</div>
-        <span className="latest-card__kind">{eventKind(e)} · {fmtDate(e.starts_at, { year: true })}</span>
+        <span className="tx-label latest-card__kind">{eventKind(e)} · {fmtDate(e.starts_at, { year: true })}</span>
         <strong>{e.title}</strong>
         {e.venue && <span className="latest-card__venue">{e.venue}</span>}
       </Link>)}
