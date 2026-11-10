@@ -17,7 +17,7 @@ export function GlassCarousel({ events }: { events: TxEvent[] }) {
   };
   return <section className="latest-row" aria-labelledby="latest-title">
     <div className="latest-row__head">
-      <div><TxLabel>From the archive</TxLabel><SectionHeading><span id="latest-title">Our latest events</span></SectionHeading></div>
+      <div><TxLabel>From the archive</TxLabel><SectionHeading><span id="latest-title" className="uppercase">Our latest events</span></SectionHeading></div>
       <div className="flex gap-s2">
         <button type="button" className="tx-iconbtn" onClick={() => move(-1)} aria-label="Scroll back"><ChevronLeft aria-hidden="true" /></button>
         <button type="button" className="tx-iconbtn" onClick={() => move(1)} aria-label="Scroll forward"><ChevronRight aria-hidden="true" /></button>
