@@ -6,6 +6,8 @@ import { useEffect } from 'react';
 import { HomeArchive } from '@/components/public/HomeArchive';
 import { SectionHeading, TxLabel } from '@/components/Brand';
 import { DataNotice } from '@/components/public/DataNotice';
+import { GlassCarousel } from '@/components/public/GlassCarousel';
+import { INSTAGRAM_URL } from '@/lib/env';
 import { EventCard } from '@/components/EventCard';
 import { SpeakerCard } from '@/components/SpeakerCard';
 import { api } from '@/lib/api';
@@ -39,11 +41,11 @@ export default function HomeClient({ initial }: { initial?: HomeData }) {
   }, [data]);
   return <>
     <div className="hm public-home-hero">
-      <section className="hm__hero" aria-labelledby="home-title">
+      <section className={"hm__hero" + (isNext ? "" : " hm__hero--solo")} aria-labelledby="home-title">
         <div className="hm__wm" id="home-watermark" aria-hidden="true" />
         <div className="hm__stack">
-          <div className="public-hero-eyebrow reveal"><TxLabel>{featured ? (isNext ? 'Next main event' : 'Our latest main event') : 'TEDxGUC · German University in Cairo'}</TxLabel></div>
-          {featured ? <>
+          <div className="public-hero-eyebrow reveal"><TxLabel>{isNext ? 'Next main event' : 'TEDxGUC · German University in Cairo'}</TxLabel></div>
+          {featured && isNext ? <>
             <h1 id="home-title" className={'hm__title reveal-wipe' + (featured.title.length > 12 ? ' hm__title--long' : '')}>{featured.title}</h1>
             <div className="public-hero-facts reveal">
               <span><CalendarDays size={18} aria-hidden="true" />{fmtDate(featured.starts_at, { year: true })}{hasKnownTime(featured.starts_at) ? ` · ${fmtTime(featured.starts_at)}` : ''}</span>
@@ -54,22 +56,26 @@ export default function HomeClient({ initial }: { initial?: HomeData }) {
                 : <Link href={'/event?s=' + encodeURIComponent(featured.slug ?? '')} className="tx-btn tx-btn--primary"><PlayCircle size={18} aria-hidden="true" />See the talks</Link>}
               <Link href="/events" className="tx-btn tx-btn--secondary">{isNext ? 'All events' : 'What’s next'}</Link>
             </div>
-            {!isNext && <p className="hm__sub reveal">The next event isn’t announced yet. Follow us on Instagram to hear first.</p>}
           </> : <>
             <h1 id="home-title" className="hm__title reveal-wipe">Ideas worth{' '}<span>spreading</span></h1>
-            <p className="hm__sub reveal">We’re a student team at the German University in Cairo, putting on TEDx events since 2013.</p>
+            <p className="hm__sub reveal">Stay tuned: our next event is on its way. Until then, swipe through the stages we’ve built so far.</p>
+            <div className="flex flex-wrap gap-s3 reveal">
+              <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="tx-btn tx-btn--primary">Get notified on Instagram<ArrowUpRight size={18} aria-hidden="true" /></a>
+              <Link href="/events" className="tx-btn tx-btn--secondary">All events</Link>
+            </div>
           </>}
           <a className="public-scroll-cue reveal" href="#discover">More about TEDxGUC<ArrowDown size={16} aria-hidden="true" /></a>
         </div>
         <div className="hm__actions reveal">
-          {featured?.cover_url && <Link href={'/event?s=' + encodeURIComponent(featured.slug ?? '')} className="public-hero-photo"><img src={featured.cover_url} alt={`${featured.title}, TEDxGUC`} width={960} height={640} fetchPriority="high" /></Link>}
+          {isNext && featured?.cover_url && <Link href={'/event?s=' + encodeURIComponent(featured.slug ?? '')} className="public-hero-photo"><img src={featured.cover_url} alt={`${featured.title}, TEDxGUC`} width={960} height={640} fetchPriority="high" /></Link>}
           {error && <DataNotice message={error} retry={reload} loading={loading} />}
         </div>
       </section>
+      {!isNext && past.length > 0 && <GlassCarousel events={past.slice(0, 8)} />}
     </div>
     <div id="discover" className="public-container public-home-sections">
       {!!upcoming.length && <section aria-labelledby="upcoming" className="public-section tx-reveal"><div className="public-section-heading"><div><TxLabel>Save the date</TxLabel><SectionHeading><span id="upcoming">Coming up</span></SectionHeading></div><Link href="/events" className="public-text-link">All experiences<ArrowUpRight size={18} aria-hidden="true" /></Link></div><div className="public-event-grid">{upcoming.slice(0, 2).map((e) => <EventCard key={e.id} event={e} />)}</div></section>}
-      <HomeArchive events={past} speakers={allSpeakers} />
+      {isNext && <HomeArchive events={past} speakers={allSpeakers} />}
       <section className="public-about-section tx-reveal" aria-labelledby="about-title"><div><TxLabel>Who we are</TxLabel><h2 id="about-title" className="public-facts">
         <span><b>{years}</b> years</span>{past.length > 0 && <span><b>{past.length}</b> events</span>}{talks.length > 0 && <span><b>{talks.length}</b> talks</span>}</h2></div>
         <div className="grid gap-s4 content-center"><p className="body-lg text-ink-2">We’re a student team at GUC. Every year we pick a theme, find speakers, and put on one main event plus a few salons. Tickets are free.</p>
