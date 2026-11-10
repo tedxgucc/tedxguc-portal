@@ -206,3 +206,4 @@
 .latest-card__img img { transition: transform .4s var(--ease, ease); }
 .latest-card:hover .latest-card__img img { transform: scale(1.04); }
 @media (prefers-reduced-motion: reduce) { .latest-card__img img { transition: none; } }
+.latest-row__track { scrollbar-width: none; } .latest-row__track::-webkit-scrollbar { display: none; }
