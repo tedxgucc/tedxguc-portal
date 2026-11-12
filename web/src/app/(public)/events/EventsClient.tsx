@@ -47,7 +47,7 @@ function Rewatch({ past, onBrowse }: { past: import('@/lib/types').TxEvent[]; on
       <p>Our next chapter is taking shape. Until then, explore our past events and watch the talks from the speakers who stood on our red circle.</p>
       <div className="public-rewatch__actions">
         <button type="button" className="tx-btn tx-btn--primary" onClick={onBrowse}>Browse past events<ArrowRight size={18} aria-hidden="true" /></button>
-        <Link href="/speakers" className="tx-btn tx-btn--secondary"><PlayCircle size={18} aria-hidden="true" />Watch the talks</Link>
+        <Link href="/talks" className="tx-btn tx-btn--secondary"><PlayCircle size={18} aria-hidden="true" />Watch the talks</Link>
       </div>
     </div>
     <div className="public-rewatch__head"><span className="tx-label">From the archive</span><button type="button" onClick={onBrowse}>See all {past.length}<ArrowRight size={14} aria-hidden="true" /></button></div>

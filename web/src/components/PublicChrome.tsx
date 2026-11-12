@@ -12,7 +12,7 @@ import { ThemeToggle } from './ThemeToggle';
 const links = [
   { href: '/', label: 'Home', icon: Home },
   { href: '/events', label: 'Events', icon: Sparkles },
-  { href: '/speakers', label: 'Speakers', icon: Mic },
+  { href: '/talks', label: 'Talks', icon: Mic },
   { href: '/calendar', label: 'Calendar', icon: CalendarDays },
   { href: '/about', label: 'About', icon: Info },
   { href: '/board', label: 'Board', icon: Users },

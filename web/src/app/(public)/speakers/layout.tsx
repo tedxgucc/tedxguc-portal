@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
 import { siteUrl } from '@/lib/site';
-export const metadata: Metadata = { title: "Speakers", description: "Meet TEDxGUC speakers, discover their ideas and watch their talks.", ...(siteUrl('/speakers') ? { alternates: { canonical: siteUrl('/speakers') } } : {}), openGraph: { title: "Speakers · TEDxGUC", description: "Meet TEDxGUC speakers, discover their ideas and watch their talks." }, twitter: { title: "Speakers · TEDxGUC", description: "Meet TEDxGUC speakers, discover their ideas and watch their talks." } };
+const d = 'Watch every TEDxGUC talk, grouped by event, and find them on YouTube.';
+export const metadata: Metadata = { title: 'Talks', description: d, ...(siteUrl('/talks') ? { alternates: { canonical: siteUrl('/talks') } } : {}) };
 export default function Layout({ children }: { children: React.ReactNode }) { return children; }
