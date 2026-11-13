@@ -1,35 +1,17 @@
 'use client';
-/* eslint-disable @next/next/no-img-element */
-// Latest events as a simple sideways-scrolling row.
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+// Latest events, shown as Red Dot rows.
+import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
-import { useRef } from 'react';
-import { eventKind } from '@/components/EventCard';
+import { EventRow } from '@/components/EventCard';
 import { SectionHeading, TxLabel } from '@/components/Brand';
-import { fmtDate } from '@/lib/format';
 import type { TxEvent } from '@/lib/types';
 
 export function GlassCarousel({ events }: { events: TxEvent[] }) {
-  const track = useRef<HTMLDivElement>(null);
-  const move = (dir: 1 | -1) => {
-    const el = track.current; if (!el) return;
-    el.scrollBy({ left: dir * el.clientWidth * 0.8, behavior: 'smooth' });
-  };
   return <section className="latest-row" aria-labelledby="latest-title">
-    <div className="latest-row__head">
-      <div><TxLabel>From the archive</TxLabel><SectionHeading><span id="latest-title" className="uppercase">Our latest events</span></SectionHeading></div>
-      <div className="flex gap-s2">
-        <button type="button" className="tx-iconbtn" onClick={() => move(-1)} aria-label="Scroll back"><ChevronLeft aria-hidden="true" /></button>
-        <button type="button" className="tx-iconbtn" onClick={() => move(1)} aria-label="Scroll forward"><ChevronRight aria-hidden="true" /></button>
-      </div>
+    <div className="public-section-heading latest-row__head">
+      <div><TxLabel>From the archive</TxLabel><SectionHeading><span id="latest-title">Our latest events</span></SectionHeading></div>
+      <Link href="/events" className="rd-more">All events<span><ArrowRight size={16} aria-hidden="true" /></span></Link>
     </div>
-    <div className="latest-row__track" ref={track}>
-      {events.map((e) => <Link key={e.id} href={'/event?s=' + encodeURIComponent(e.slug ?? '')} className="latest-card">
-        <div className="latest-card__img">{e.cover_url ? <img src={e.cover_url} alt="" loading="lazy" decoding="async" /> : <span>{e.title}</span>}</div>
-        <span className="tx-label latest-card__kind">{eventKind(e)} · {fmtDate(e.starts_at, { year: true })}</span>
-        <strong>{e.title}</strong>
-        {e.venue && <span className="latest-card__venue">{e.venue}</span>}
-      </Link>)}
-    </div>
+    <div className="rd-rows">{events.map((e) => <EventRow key={e.id} event={e} past />)}</div>
   </section>;
 }

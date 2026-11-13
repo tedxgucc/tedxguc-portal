@@ -1,5 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
-import { ArrowUpRight, MapPin } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import { fmtDate, fmtTime, hasKnownTime } from '@/lib/format';
 import type { TxEvent } from '@/lib/types';
@@ -31,5 +31,19 @@ export function EventCard({ event, past = false }: { event: TxEvent; past?: bool
       {event.description && <p className="public-event-card__description">{event.description.replace(/\s*Official event listing:\s*https?:\/\/\S+/i, '')}</p>}
       <span className="public-event-card__cta">{past || event.status === 'cancelled' ? 'Explore this event' : 'Discover the experience'}<ArrowUpRight size={15} aria-hidden="true" /></span>
     </div>
+  </Link>;
+}
+
+// Red Dot event row: year, title, type, date and venue, round arrow. Fills with red from where the pointer enters.
+export function EventRow({ event, past = false }: { event: TxEvent; past?: boolean }) {
+  const href = event.slug ? '/event?s=' + encodeURIComponent(event.slug) : '/events';
+  const year = new Intl.DateTimeFormat('en-GB', { year: 'numeric', timeZone: 'Africa/Cairo' }).format(new Date(event.starts_at));
+  return <Link href={href} className={'rd-row' + (past ? ' is-past' : '')}
+    onPointerEnter={(e) => e.currentTarget.style.setProperty('--mx', `${e.clientX - e.currentTarget.getBoundingClientRect().left}px`)}>
+    <span className="rd-row__yr">{year}</span>
+    <span className="rd-row__t">{event.title}</span>
+    <span className="rd-row__kind">{event.status === 'cancelled' ? 'Cancelled' : eventKind(event)}</span>
+    <span className="rd-row__meta">{fmtDate(event.starts_at)}{hasKnownTime(event.starts_at) ? ` · ${fmtTime(event.starts_at)}` : ''}{event.venue ? <><br />{event.venue}</> : null}</span>
+    <span className="rd-row__go" aria-hidden="true"><ArrowRight size={18} /></span>
   </Link>;
 }

@@ -1,16 +1,64 @@
-/* TEDxGUC — generated from tokens.json */
-:root, [data-theme="dark"] {
-  --bg: #000000;
-  --surface-1: #111111;
-  --surface-2: #1a1a1a;
-  --surface-3: #242424;
+/* TEDxGUC — Red Dot identity. Same variable names as before, so every screen re-skins.
+   Light is now the default; dark stays available through the theme switch. */
+:root, [data-theme="light"] {
+  --bg: #ffffff;
+  --surface-1: #f6f5f2;
+  --surface-2: #eeece8;
+  --surface-3: #e4e1dc;
+  --line: #dedbd6;
+  --line-strong: #767370;
+  --ink: #0c0c0c;
+  --ink-2: #4d4a47;
+  --ink-3: #5f5c58;
+  --accent: #e62b1e;
+  --accent-deep: #b81d12;
+  --accent-ink: #c21b10;
+  --on-accent: #ffffff;
+  --watermark: #fbe9e8;
+  --focus: #0c0c0c;
+  --scrim: rgba(10, 10, 10, 0.48);
+  --ok: #137a43;
+  --on-ok: #ffffff;
+  --ok-tint: #e3f4ea;
+  --bad: #c21b10;
+  --on-bad: #ffffff;
+  --bad-tint: #fbe5e3;
+  --warn: #e8a200;
+  --on-warn: #0a0a0a;
+  --warn-tint: #fdf1d3;
+  --warn-ink: #7a4f00;
+  --void: #5e5e5e;
+  --on-void: #ffffff;
+  --void-tint: #eceae7;
+  --lvl-0: var(--ok);
+  --lvl-1: #e8a200;
+  --on-lvl-1: #0a0a0a;
+  --lvl-2: #b54a00;
+  --on-lvl-2: #ffffff;
+  --lvl-3: #c21b10;
+  --on-lvl-3: #ffffff;
+  --div-talks: #1a55bd;
+  --div-ops: #086b60;
+  --div-od: #6a42d6;
+  --div-mc: #a61e6e;
+  --on-div: #ffffff;
+  --game-ground: #e62b1e;
+  --game-ink: #000000;
+  --game-paper: #ffffff;
+  --shadow-pop: 0 16px 48px rgba(10, 10, 10, 0.18);
+}
+[data-theme="dark"] {
+  --bg: #0c0c0c;
+  --surface-1: #161616;
+  --surface-2: #1e1e1e;
+  --surface-3: #282828;
   --line: #2a2a2a;
   --line-strong: #7a7a7a;
   --ink: #ffffff;
   --ink-2: #b8b8b8;
   --ink-3: #8f8f8f;
   --accent: #e62b1e;
-  --accent-deep: #a3001b;
+  --accent-deep: #b81d12;
   --accent-ink: #ff5d52;
   --on-accent: #ffffff;
   --watermark: #22050a;
@@ -47,53 +95,6 @@
   --shadow-pop: 0 24px 64px rgba(0, 0, 0, 0.7);
   --shadow-game: 6px 6px 0 #000000;
 }
-[data-theme="light"] {
-  --bg: #ffffff;
-  --surface-1: #f5f4f2;
-  --surface-2: #eceae7;
-  --surface-3: #e2dfdb;
-  --line: #dedbd7;
-  --line-strong: #767676;
-  --ink: #0a0a0a;
-  --ink-2: #4a4a4a;
-  --ink-3: #5e5e5e;
-  --accent: #e62b1e;
-  --accent-deep: #a3001b;
-  --accent-ink: #c21b10;
-  --on-accent: #ffffff;
-  --watermark: #fbe9e8;
-  --focus: #0a0a0a;
-  --scrim: rgba(10, 10, 10, 0.48);
-  --ok: #137a43;
-  --on-ok: #ffffff;
-  --ok-tint: #e3f4ea;
-  --bad: #c21b10;
-  --on-bad: #ffffff;
-  --bad-tint: #fbe5e3;
-  --warn: #e8a200;
-  --on-warn: #0a0a0a;
-  --warn-tint: #fdf1d3;
-  --warn-ink: #7a4f00;
-  --void: #5e5e5e;
-  --on-void: #ffffff;
-  --void-tint: #eceae7;
-  --lvl-0: var(--ok);
-  --lvl-1: #e8a200;
-  --on-lvl-1: #0a0a0a;
-  --lvl-2: #b54a00;
-  --on-lvl-2: #ffffff;
-  --lvl-3: #c21b10;
-  --on-lvl-3: #ffffff;
-  --div-talks: #1a55bd;
-  --div-ops: #086b60;
-  --div-od: #6a42d6;
-  --div-mc: #a61e6e;
-  --on-div: #ffffff;
-  --game-ground: #e62b1e;
-  --game-ink: #000000;
-  --game-paper: #ffffff;
-  --shadow-pop: 0 16px 48px rgba(10, 10, 10, 0.18);
-}
 :root {
   --space-1: 4px;
   --space-2: 8px;
@@ -109,6 +110,8 @@
   --radius-2: 4px;
   --radius-game: 20px;
   --radius-pill: 999px;
+  --radius-card: 16px;
+  --radius-field: 12px;
   --dur-1: 120ms;
   --dur-2: 200ms;
   --dur-3: 320ms;
@@ -120,21 +123,21 @@
   --z-toast: 60;
   --z-modal: 80;
   --z-game: 90;
-  --font-display: "Anton", "Bebas Neue", Impact, "Arial Narrow", sans-serif;
-  --font-sans: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-sans: "Archivo", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
 }
-.display { font-family: var(--font-display); font-size: 88px; line-height: 0.9; font-weight: 400; letter-spacing: 0px; }
-.h1 { font-family: var(--font-display); font-size: 56px; line-height: 0.95; font-weight: 400; }
-.h2 { font-family: var(--font-display); font-size: 40px; line-height: 1; font-weight: 400; }
-.h3 { font-family: var(--font-display); font-size: 28px; line-height: 1.05; font-weight: 400; }
-.stat { font-family: var(--font-display); font-size: 56px; line-height: 1; font-weight: 400; letter-spacing: 0px; }
-.button { font-family: var(--font-display); font-size: 20px; line-height: 1; font-weight: 400; letter-spacing: 0.02em; }
+.display { font-family: var(--font-display); font-stretch: 118%; letter-spacing: -0.04em; font-weight: 800; font-size: 88px; line-height: 0.86; }
+.h1 { font-family: var(--font-display); font-stretch: 118%; letter-spacing: -0.04em; font-weight: 800; font-size: 56px; line-height: 0.92; }
+.h2 { font-family: var(--font-display); font-stretch: 118%; letter-spacing: -0.04em; font-weight: 800; font-size: 40px; line-height: 0.95; }
+.h3 { font-family: var(--font-display); font-stretch: 110%; letter-spacing: -0.02em; font-weight: 800; font-size: 28px; line-height: 1.05; }
+.stat { font-family: var(--font-display); font-stretch: 118%; letter-spacing: -0.04em; font-weight: 800; font-size: 56px; line-height: 0.9; font-variant-numeric: tabular-nums; }
+.button { font-family: var(--font-sans); font-size: 16px; line-height: 1; font-weight: 600; letter-spacing: 0; }
 .h4 { font-family: var(--font-sans); font-size: 20px; line-height: 26px; font-weight: 700; }
 .body-lg { font-family: var(--font-sans); font-size: 18px; line-height: 28px; font-weight: 400; }
 .body { font-family: var(--font-sans); font-size: 16px; line-height: 24px; font-weight: 400; }
 .body-sm { font-family: var(--font-sans); font-size: 14px; line-height: 20px; font-weight: 400; }
-.label { font-family: var(--font-sans); font-size: 12px; line-height: 16px; font-weight: 700; letter-spacing: 0.12em; }
+.label { font-family: var(--font-sans); font-stretch: 110%; font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 0.14em; }
 .caption { font-family: var(--font-sans); font-size: 12px; line-height: 16px; font-weight: 500; }
 .money { font-family: var(--font-sans); font-size: 20px; line-height: 24px; font-weight: 600; }
 .code { font-family: var(--font-mono); font-size: 13px; line-height: 18px; font-weight: 500; letter-spacing: 0.04em; }

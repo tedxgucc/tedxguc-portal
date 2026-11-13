@@ -1,6 +1,6 @@
 'use client';
 // While moving between portal pages: preload every menu page, and show a
-// TEDx "X" that fills with red if the next page takes a moment to arrive.
+// red dot that fills from the bottom if the next page takes a moment to arrive.
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { BASE_PATH } from '@/lib/env';
@@ -56,7 +56,7 @@ export function NavLoading() {
       <svg viewBox="0 0 100 100" width="76" height="76" aria-hidden="true">
         <defs>
           <clipPath id="tx-navload-x">
-            <path d="M8 6h26l16 26 16-26h26L64 50l28 44H66L50 68 34 94H8l28-44z" />
+            <circle cx="50" cy="50" r="46" />
           </clipPath>
         </defs>
         <rect x="0" y="0" width="100" height="100" fill="var(--surface-2)" clipPath="url(#tx-navload-x)" />

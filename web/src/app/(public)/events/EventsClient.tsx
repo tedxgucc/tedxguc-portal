@@ -3,7 +3,7 @@ import { ArrowRight, PlayCircle, Search, X } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { PageTitle } from '@/components/Brand';
-import { EventCard } from '@/components/EventCard';
+import { EventRow } from '@/components/EventCard';
 import { DataNotice } from '@/components/public/DataNotice';
 import { Button, EmptyState, Skeleton } from '@/components/ui';
 import { api } from '@/lib/api';
@@ -32,7 +32,7 @@ export default function EventsClient({ initial }: { initial?: { upcoming: TxEven
     {!data && loading ? <div className="public-event-grid" aria-label="Loading events" aria-busy="true"><Skeleton h={380} /><Skeleton h={380} /></div> : data && <>
       <div className="public-results"><p role="status" aria-live="polite">{rows.length} {rows.length === 1 ? 'experience' : 'experiences'}{query.trim() ? ' matching your search' : period === 'upcoming' ? ' coming up' : ' from our archive'}</p>{(query || kind) && <button type="button" onClick={reset}><X size={14} aria-hidden="true" />Clear filters</button>}</div>
       {period === 'upcoming' && !rows.length && !query && !kind && data.past.length ? <Rewatch past={data.past} onBrowse={() => setPeriod('past')} />
-        : rows.length ? <div className="public-event-grid">{rows.map((e, i) => <div key={e.id} className="public-rise" style={{ animationDelay: `${Math.min(i, 8) * 60}ms` }}><EventCard event={e} past={period === 'past'} /></div>)}</div> : <EmptyState title={query || kind ? 'No matches yet.' : period === 'upcoming' ? 'The next chapter is taking shape.' : 'Our archive is on its way.'} action={(query || kind) ? <Button variant="secondary" onClick={reset}>Clear filters</Button> : undefined}>{query || kind ? 'Try another name, venue or event type.' : 'Check back soon for the next TEDxGUC experience.'}</EmptyState>}
+        : rows.length ? <div className="rd-rows">{rows.map((e) => <EventRow key={e.id} event={e} past={period === 'past'} />)}</div> : <EmptyState title={query || kind ? 'No matches yet.' : period === 'upcoming' ? 'The next chapter is taking shape.' : 'Our archive is on its way.'} action={(query || kind) ? <Button variant="secondary" onClick={reset}>Clear filters</Button> : undefined}>{query || kind ? 'Try another name, venue or event type.' : 'Check back soon for the next TEDxGUC experience.'}</EmptyState>}
     </>}
   </div>;
 }
@@ -51,6 +51,6 @@ function Rewatch({ past, onBrowse }: { past: import('@/lib/types').TxEvent[]; on
       </div>
     </div>
     <div className="public-rewatch__head"><span className="tx-label">From the archive</span><button type="button" onClick={onBrowse}>See all {past.length}<ArrowRight size={14} aria-hidden="true" /></button></div>
-    <div className="public-event-grid">{latest.map((e, i) => <div key={e.id} className="public-rise" style={{ animationDelay: `${i * 80}ms` }}><EventCard event={e} past /></div>)}</div>
+    <div className="rd-rows">{latest.map((e) => <EventRow key={e.id} event={e} past />)}</div>
   </section>;
 }

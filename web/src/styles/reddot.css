@@ -1,0 +1,62 @@
+/* TEDxGUC "Red Dot" identity: white page, black type, one red circle.
+   Loads after bundle.css and public.css, so these rules win. Everything round is brand. */
+
+/* ---------- Type: Archivo, wide and tight; no all-caps headlines ---------- */
+.display, .h1, .h2, .h3, .stat, .tx-heading,
+h1, h2, h3 { font-family: var(--font-display); font-weight: 800; font-stretch: 118%; letter-spacing: -0.04em; text-transform: none; }
+.h3, h3 { font-stretch: 110%; letter-spacing: -0.02em; }
+.display { line-height: .86; } .h1 { line-height: .92; } .h2 { line-height: .95; } .h3 { line-height: 1.05; }
+.stat { font-variant-numeric: tabular-nums; line-height: .9; }
+.tx-heading::after { height: 1.5px; background: var(--ink); opacity: 1; }
+
+/* Small labels stay uppercase, with a red dot in front. */
+.tx-label { font: 600 12px/16px var(--font-sans); font-stretch: 110%; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
+.tx-label:not(.tx-field > .tx-label):not(label.tx-label):not(legend.tx-label) { display: inline-flex; align-items: center; gap: 10px; }
+.tx-label:not(.tx-field > .tx-label):not(label.tx-label):not(legend.tx-label)::before { content: ""; flex: none; width: 9px; height: 9px; border-radius: 50%; background: var(--accent); }
+.tx-label b { color: var(--accent-ink); }
+
+/* ---------- Buttons: pills ---------- */
+.tx-btn { border-radius: var(--radius-pill); border-width: 1.5px; font: 600 16px/1 var(--font-sans); letter-spacing: 0; text-transform: none;
+  transition: background .25s, color .25s, transform .25s var(--ease-spring), translate .2s var(--ease-out); }
+.tx-btn--sm { font-size: 15px; }
+.tx-btn--primary { background: var(--ink); color: var(--bg); }
+.tx-btn--primary:hover { background: var(--accent); color: #fff; transform: scale(1.04); }
+.tx-btn--primary:active { background: var(--accent-deep); }
+.tx-btn--secondary { border-color: var(--ink); }
+.tx-btn--secondary:hover { background: var(--ink); color: var(--bg); transform: scale(1.04); }
+.tx-btn--danger { border-color: var(--accent-ink); }
+.tx-btn[disabled], .tx-btn.is-disabled { transform: none; }
+.tx-iconbtn { border-radius: 50%; }
+
+/* ---------- Fields ---------- */
+.tx-input, .tx-select { border-radius: var(--radius-field); border: 1.5px solid var(--line-strong); background: var(--bg); }
+.tx-input:focus, .tx-select:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 3px rgba(230, 43, 30, .25); }
+.tx-seg { border-radius: var(--radius-pill); }
+.tx-seg button { border-radius: var(--radius-pill); }
+.tx-menu { border-radius: var(--radius-card); }
+.tx-menu a, .tx-menu button { border-radius: var(--radius-field); }
+
+/* ---------- Cards, chips, tags ---------- */
+.tx-card { border-radius: var(--radius-card); }
+.tx-card--red { background: var(--accent); }
+.tx-chip, .tx-lvl, .tx-tag, .tx-pill { border-radius: var(--radius-pill); }
+.tx-tag::before { border-radius: 50%; }
+.tx-modal { border-radius: var(--radius-card) var(--radius-card) 0 0; }
+@media (min-width: 768px) { .tx-modal { border-radius: var(--radius-card); } }
+.tx-kcard { border-radius: var(--radius-card); }
+
+/* ---------- Removed: watermark x, halftone, glow edges, red bottom bar ---------- */
+.tx-watermark::before, .hm__wm { display: none !important; }
+.tx-halftone { background-image: none !important; }
+.tx-glow { box-shadow: none !important; }
+.tx-glow::before, .tx-glow::after { display: none !important; }
+.tx-bottombar { display: none; }
+
+@media (prefers-reduced-motion: reduce) { .tx-btn { transition: none; } .tx-btn:hover { transform: none; } }
+
+/* No all-caps headlines anywhere (small labels keep their caps). */
+:is(h1, h2, h3, .display, .h1, .h2, .h3).uppercase, :is(h1, h2, h3) .uppercase { text-transform: none; }
+#login-story-title { font-family: var(--font-display); font-weight: 800; font-stretch: 118%; letter-spacing: -0.04em; text-transform: none; }
+/* Portal headings set with Tailwind utilities */
+.font-display { font-weight: 800; font-stretch: 118%; letter-spacing: -0.04em; }
+.font-display.uppercase, .uppercase .font-display { text-transform: none; }

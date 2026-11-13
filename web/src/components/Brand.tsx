@@ -45,7 +45,7 @@ export function PageTitle({ label, count, title, children }: { label: string; co
     <header className="grid gap-s3 mb-s6">
       <TxLabel count={count}>{label}</TxLabel>
       <div className="flex flex-wrap items-end justify-between gap-s4">
-        <h1 className="h1 uppercase">{title}</h1>
+        <h1 className="h1">{title}</h1>
         {children}
       </div>
     </header>

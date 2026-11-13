@@ -1,6 +1,8 @@
 import { PublicFooter, PublicHeader } from '@/components/PublicChrome';
 import { PublicExperience } from '@/components/public/PublicExperience';
 import '@/styles/public.css';
+import '@/styles/reddot.css';
+import '@/styles/reddot-public.css';
 import { DemoBanner } from '@/components/DemoBanner';
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {

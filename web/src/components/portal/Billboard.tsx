@@ -47,7 +47,7 @@ export function Billboard({ items }: { items: Announcement[] }) {
             className="relative shrink-0 w-full snap-start no-underline h-[260px] md:h-[340px]" tabIndex={i === at ? 0 : -1}>
             {a.image_url
               ? <img src={a.image_url} alt="" className="absolute inset-0 w-full h-full object-cover" /> /* eslint-disable-line @next/next/no-img-element */
-              : <div className="absolute inset-0 bg-accent" aria-hidden="true"><span className="absolute -right-[40px] -bottom-[90px] font-display text-[320px] leading-none text-white/15 select-none">X</span></div>}
+              : <div className="absolute inset-0 bg-accent" aria-hidden="true"><span className="absolute -right-[60px] -bottom-[120px] w-[320px] h-[320px] rounded-full bg-white/15" /></div>}
             <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,.82) 100%)' }} aria-hidden="true" />
             <div className="absolute inset-x-0 bottom-0 p-s5 md:p-s6 grid gap-s2 text-white max-w-[820px]">
               <span className="tx-label flex items-center gap-s1" style={{ color: '#fff' }}><Megaphone size={16} aria-hidden="true" />{a.pinned ? 'Pinned' : 'Announcement'} · {fmtRelative(a.created_at)}</span>
