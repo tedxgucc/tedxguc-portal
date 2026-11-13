@@ -77,3 +77,13 @@
 .about-values__grid { grid-template-columns: 1fr; }
 @media (min-width: 640px) { .about-values__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (min-width: 1000px) { .about-values__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+/* Red Dot: Archivo 800, wide and tight, no all-caps headlines */
+.about-hero h1, .about-hero__year b, .about-facts strong, .about-story h2, .about-section-heading h2, .about-invitation h2,
+.about-division-panel__intro h3, .about-value h3, .about-ted-card h3 { font-family: var(--font-display); font-weight: 800; font-stretch: 118%; letter-spacing: -0.04em; text-transform: none; }
+.about-hero__year b, .about-facts strong { font-stretch: 120%; letter-spacing: -0.05em; font-variant-numeric: tabular-nums; }
+.about-division-panel__intro h3, .about-value h3 { font-stretch: 110%; letter-spacing: -0.02em; }
+.about-value__num { font: 600 12px/1 var(--font-sans); color: var(--ink-3); -webkit-text-stroke: 0; }
+.about-division-tabs__number, .about-division-panel__teams li > span { font-family: var(--font-sans); }
+.about-hero__x { display: none; }
+.about-value h3::after { border-radius: 999px; }

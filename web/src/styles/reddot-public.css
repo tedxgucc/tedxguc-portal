@@ -179,3 +179,6 @@
 html.rd-quiet :is(.rd-dot, .rd-dot svg, .rd-dot__in, .rd-hero > .tx-label, .rd-h1 .w i, .rd-hero__foot p, .rd-hero__cta, .rd-hero .public-scroll-cue) { animation-duration: 0s !important; animation-delay: 0s !important; }
 html.rd-quiet .rd-dot svg { animation: rd-spin 46s linear infinite !important; }
 @media (max-width: 480px) { .rd-h1 { font-size: 15.5vw; } .rd-h1--long { font-size: 12vw; } }
+/* Numbered section labels: a round red badge instead of a square */
+.public-label-num { border-radius: 999px; min-width: 24px; padding-inline: 7px; text-align: center; }
+.tx-label:has(.public-label-num)::before { display: none; }
