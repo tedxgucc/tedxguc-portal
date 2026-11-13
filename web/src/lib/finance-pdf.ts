@@ -53,7 +53,7 @@ function signatures(page: PDFPage, bold: PDFFont, y: number, names: string[]) {
 }
 
 function footer(page: PDFPage, font: PDFFont) {
-  page.drawText('This independent TEDx event is operated under license from TED.', { x: 48, y: 36, size: 8, font, color: GREY });
+  page.drawText('This independent TEDxGUC event is operated under license from TED.', { x: 48, y: 36, size: 8, font, color: GREY });
 }
 
 export async function expenseFormPdf(c: CashOut): Promise<Uint8Array> {

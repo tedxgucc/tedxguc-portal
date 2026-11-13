@@ -12,7 +12,7 @@ export const GOOGLE_LOGIN = process.env.NEXT_PUBLIC_GOOGLE_LOGIN === 'on';
 export const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
 export const DEMO = !SUPABASE_URL || !SUPABASE_ANON_KEY;
 
-export const LICENSE_LINE = 'This independent TEDx event is operated under license from TED.';
+export const LICENSE_LINE = 'This independent TEDxGUC event is operated under license from TED.';
 export const INSTAGRAM_URL = 'https://www.instagram.com/tedxguc__/';
 export const YOUTUBE_URL = 'https://www.youtube.com/results?search_query=TEDxGUC';
 export const ALLOWED_DOMAINS = ['student.guc.edu.eg', 'guc.edu.eg'];
