@@ -216,3 +216,24 @@ html.rd-quiet .rd-dot svg { animation: rd-spin 46s linear infinite !important; }
 .public-event-card__graphic { justify-content: flex-end; padding: 96px 24px 24px; }
 .public-event-card__graphic b { font-size: clamp(26px, 2.4vw, 34px); line-height: 1; font-stretch: 112%; overflow-wrap: break-word; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .public-event-card__graphic span { display: none; }
+
+/* ---------- One row of events, scrolling left and right ---------- */
+.event-rail { position: relative; display: grid; gap: 16px; }
+.event-rail__nav { display: flex; justify-content: flex-end; gap: 8px; }
+.event-rail__btn { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; border: 1.5px solid var(--ink); background: var(--bg); color: var(--ink); cursor: pointer; transition: background .25s, color .25s, opacity .25s; }
+.event-rail__btn:hover:not(:disabled) { background: var(--ink); color: var(--bg); }
+.event-rail__btn:disabled { opacity: .3; cursor: default; }
+.event-rail__btn svg { width: 20px; height: 20px; }
+.event-rail__track { display: flex; gap: 24px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; padding: 4px 4px 12px; margin: -4px -4px 0; scrollbar-width: none; overscroll-behavior-x: contain; }
+.event-rail__track::-webkit-scrollbar { display: none; }
+.event-rail__track:focus-visible { outline: 2px solid var(--focus); outline-offset: 4px; }
+.event-rail__item { flex: 0 0 calc((100% - 48px) / 3); min-width: 0; scroll-snap-align: start; }
+@media (max-width: 1099px) { .event-rail__item { flex-basis: calc((100% - 24px) / 2); } }
+@media (max-width: 699px) { .event-rail__item { flex-basis: 85%; } }
+@media (prefers-reduced-motion: reduce) { .event-rail__track { scroll-behavior: auto; } }
+
+/* Header: links sit on the left next to the logo; one Portal pill on the right. */
+.public-header { justify-content: flex-start; }
+.public-desktop-nav { margin-left: 40px; gap: 28px; }
+.public-header__actions { margin-left: auto; }
+.public-portal-pill { gap: 8px; }

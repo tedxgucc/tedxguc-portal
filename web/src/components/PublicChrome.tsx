@@ -5,7 +5,6 @@ import { createPortal } from 'react-dom';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { INSTAGRAM_URL, LICENSE_LINE } from '@/lib/env';
-import { api } from '@/lib/api';
 import { Lockup } from './Brand';
 import { ThemeToggle } from './ThemeToggle';
 
@@ -23,9 +22,6 @@ export function PublicHeader() {
   const path = usePathname();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  // The ticket button goes straight to the next main event when there is one.
-  const [ticket, setTicket] = useState('/events');
-  useEffect(() => { api.listEvents('upcoming').then((ev) => { const e = ev.find((x) => x.type === 'main_event' && x.slug) ?? ev.find((x) => x.type !== 'workshop' && x.slug); if (e) setTicket('/event?s=' + encodeURIComponent(e.slug!)); }).catch(() => {}); }, []);
   const menu = useRef<HTMLDivElement>(null);
   const toggle = useRef<HTMLButtonElement>(null);
   const current = path.replace(/\/+$/, '') || '/';
@@ -61,8 +57,7 @@ export function PublicHeader() {
       </nav>
       <div className="public-header__actions">
         <ThemeToggle />
-        <Link href="/login" className="public-portal-link"><LogIn size={16} aria-hidden="true" /><span>Portal</span></Link>
-        <Link href={ticket} className="tx-btn tx-btn--primary tx-btn--sm public-ticket-link">{ticket === '/events' ? 'Events' : 'Get your ticket'}<ArrowUpRight size={16} aria-hidden="true" /></Link>
+        <Link href="/login" className="tx-btn tx-btn--primary tx-btn--sm public-portal-pill"><LogIn size={16} aria-hidden="true" />Portal</Link>
         <button ref={toggle} className="tx-iconbtn public-menu-toggle" aria-label="Open menu" aria-expanded={open} aria-controls="public-menu" type="button" onClick={() => setOpen(true)}><Menu aria-hidden="true" /></button>
       </div>
     </header>

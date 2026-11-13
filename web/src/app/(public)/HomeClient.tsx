@@ -6,9 +6,8 @@ import { useEffect, useRef } from 'react';
 import { HomeArchive } from '@/components/public/HomeArchive';
 import { SectionHeading, TxLabel } from '@/components/Brand';
 import { DataNotice } from '@/components/public/DataNotice';
-import { GlassCarousel } from '@/components/public/GlassCarousel';
+import { EventRail, GlassCarousel } from '@/components/public/GlassCarousel';
 import { INSTAGRAM_URL } from '@/lib/env';
-import { EventCard } from '@/components/EventCard';
 import { SpeakerCard } from '@/components/SpeakerCard';
 import { api } from '@/lib/api';
 import { usePublicData } from '@/lib/usePublicData';
@@ -24,7 +23,7 @@ export default function HomeClient({ initial }: { initial?: HomeData }) {
   const isNext = !!featured && upcoming.some((e) => e.id === featured.id);
   const talks = allSpeakers.filter((x) => x.talk_title);
   const years = new Date().getFullYear() - 2013;
-  const heroWords = featured && isNext ? featured.title.split(/s+/) : ['Ideas', 'Worth', 'Spreading'];
+  const heroWords = featured && isNext ? featured.title.split(' ').filter(Boolean) : ['Ideas', 'Worth', 'Spreading'];
   const heroRef = useRef<HTMLElement>(null), dotRef = useRef<HTMLDivElement>(null), h1Ref = useRef<HTMLHeadingElement>(null);
   // The red dot drifts with the pointer and grows on scroll; the headline turns white where the dot sits behind it.
   useEffect(() => {
@@ -109,7 +108,7 @@ export default function HomeClient({ initial }: { initial?: HomeData }) {
       {!isNext && past.length > 0 && <GlassCarousel events={past.slice(0, 8)} />}
     </div>
     <div id="discover" className="public-container public-home-sections">
-      {!!upcoming.length && <section aria-labelledby="upcoming" className="public-section tx-reveal"><div className="public-section-heading"><div><TxLabel>Save the date</TxLabel><SectionHeading><span id="upcoming">Coming up</span></SectionHeading></div><Link href="/events" className="public-text-link">All experiences<ArrowUpRight size={18} aria-hidden="true" /></Link></div><div className="public-event-grid">{upcoming.slice(0, 3).map((e) => <EventCard key={e.id} event={e} />)}</div></section>}
+      {!!upcoming.length && <section aria-labelledby="upcoming" className="public-section tx-reveal"><div className="public-section-heading"><div><TxLabel>Save the date</TxLabel><SectionHeading><span id="upcoming">Coming up</span></SectionHeading></div><Link href="/events" className="public-text-link">All experiences<ArrowUpRight size={18} aria-hidden="true" /></Link></div><EventRail events={upcoming} label="Upcoming events" /></section>}
       {isNext && <HomeArchive events={past} speakers={allSpeakers} />}
       <section className="rd-nums" ref={numsRef} aria-labelledby="about-title">
         <div className="rd-nums__grid">
