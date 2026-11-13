@@ -8,7 +8,7 @@ import { SectionHeading, TxLabel } from '@/components/Brand';
 import { DataNotice } from '@/components/public/DataNotice';
 import { GlassCarousel } from '@/components/public/GlassCarousel';
 import { INSTAGRAM_URL } from '@/lib/env';
-import { EventRow } from '@/components/EventCard';
+import { EventCard } from '@/components/EventCard';
 import { SpeakerCard } from '@/components/SpeakerCard';
 import { api } from '@/lib/api';
 import { usePublicData } from '@/lib/usePublicData';
@@ -109,7 +109,7 @@ export default function HomeClient({ initial }: { initial?: HomeData }) {
       {!isNext && past.length > 0 && <GlassCarousel events={past.slice(0, 8)} />}
     </div>
     <div id="discover" className="public-container public-home-sections">
-      {!!upcoming.length && <section aria-labelledby="upcoming" className="public-section tx-reveal"><div className="public-section-heading"><div><TxLabel>Save the date</TxLabel><SectionHeading><span id="upcoming">Coming up</span></SectionHeading></div><Link href="/events" className="public-text-link">All experiences<ArrowUpRight size={18} aria-hidden="true" /></Link></div><div className="rd-rows">{upcoming.slice(0, 4).map((e) => <EventRow key={e.id} event={e} />)}</div></section>}
+      {!!upcoming.length && <section aria-labelledby="upcoming" className="public-section tx-reveal"><div className="public-section-heading"><div><TxLabel>Save the date</TxLabel><SectionHeading><span id="upcoming">Coming up</span></SectionHeading></div><Link href="/events" className="public-text-link">All experiences<ArrowUpRight size={18} aria-hidden="true" /></Link></div><div className="public-event-grid">{upcoming.slice(0, 3).map((e) => <EventCard key={e.id} event={e} />)}</div></section>}
       {isNext && <HomeArchive events={past} speakers={allSpeakers} />}
       <section className="rd-nums" ref={numsRef} aria-labelledby="about-title">
         <div className="rd-nums__grid">
