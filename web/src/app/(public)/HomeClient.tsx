@@ -29,17 +29,25 @@ export default function HomeClient({ initial }: { initial?: HomeData }) {
     const hero = heroRef.current, dot = dotRef.current, h1 = h1Ref.current; if (!hero || !dot || !h1) return;
     const white = h1.querySelector<HTMLElement>('.rd-h1-white'); if (!white) return;
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let px = 0, py = 0, tx = 0, ty = 0, sc = 1, raf = 0, alive = true;
+    let px = 0, py = 0, tx = 0, ty = 0, sc = 1, raf = 0, visible = true;
     const sync = () => { const d = dot.getBoundingClientRect(), h = h1.getBoundingClientRect();
       white.style.setProperty('--cr', d.width / 2 + 'px'); white.style.setProperty('--cx', (d.left + d.width / 2 - h.left) + 'px'); white.style.setProperty('--cy', (d.top + d.height / 2 - h.top) + 'px'); };
-    const frame = () => { if (!alive) return; px += (tx - px) * .08; py += (ty - py) * .08;
+    // Runs only while the dot is still moving towards its target, then stops (no always-on loop).
+    const frame = () => { raf = 0; px += (tx - px) * .12; py += (ty - py) * .12;
+      if (Math.abs(tx - px) < .3 && Math.abs(ty - py) < .3) { px = tx; py = ty; }
       dot.style.setProperty('--px', px.toFixed(1) + 'px'); dot.style.setProperty('--py', py.toFixed(1) + 'px'); dot.style.setProperty('--ds', sc.toFixed(3));
-      sync(); raf = requestAnimationFrame(frame); };
-    const move = (e: PointerEvent) => { tx = (e.clientX / innerWidth - .5) * 46; ty = (e.clientY / innerHeight - .5) * 34; };
-    const scroll = () => { const p = Math.min(1, scrollY / innerHeight); sc = 1 + p * .35; ty = p * 120; };
-    if (!reduce) { hero.addEventListener('pointermove', move); addEventListener('scroll', scroll, { passive: true }); frame(); }
-    else { sync(); addEventListener('resize', sync); }
-    return () => { alive = false; cancelAnimationFrame(raf); hero.removeEventListener('pointermove', move); removeEventListener('scroll', scroll); removeEventListener('resize', sync); };
+      sync(); if (px !== tx || py !== ty) raf = requestAnimationFrame(frame); };
+    const kick = () => { if (!raf && visible) raf = requestAnimationFrame(frame); };
+    const move = (e: PointerEvent) => { tx = (e.clientX / innerWidth - .5) * 46; ty = (e.clientY / innerHeight - .5) * 34; kick(); };
+    const scroll = () => { if (!visible) return; const p = Math.min(1, scrollY / innerHeight); sc = 1 + p * .35; ty = p * 120; kick(); };
+    const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; if (visible) kick(); });
+    io.observe(hero);
+    // The opening animation scales the dot for ~1.6s: keep the white headline in step during it.
+    const t0 = performance.now(); const opening = () => { sync(); if (performance.now() - t0 < 1800) requestAnimationFrame(opening); };
+    if (!reduce) { hero.addEventListener('pointermove', move); addEventListener('scroll', scroll, { passive: true }); opening(); }
+    else sync();
+    addEventListener('resize', sync);
+    return () => { cancelAnimationFrame(raf); io.disconnect(); hero.removeEventListener('pointermove', move); removeEventListener('scroll', scroll); removeEventListener('resize', sync); };
   }, [heroWords.join(' ')]); // eslint-disable-line react-hooks/exhaustive-deps
   const numsRef = useRef<HTMLElement>(null), circlesRef = useRef<HTMLDivElement>(null);
   // The black band opens like an iris as it scrolls in; the numbers count up once.
@@ -47,16 +55,18 @@ export default function HomeClient({ initial }: { initial?: HomeData }) {
     const nums = numsRef.current, circles = circlesRef.current; if (!nums || !circles) return;
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reduce || !('IntersectionObserver' in window)) { circles.classList.add('is-in'); return; }
-    let raf = 0, alive = true;
-    const iris = () => { if (!alive) return; const r = nums.getBoundingClientRect(), k = Math.max(0, Math.min(1, (innerHeight - r.top) / (innerHeight * .8)));
-      nums.style.setProperty('--iris', (6 + k * k * 120) + '%'); raf = requestAnimationFrame(iris); };
-    iris();
+    let raf = 0, alive = true, open = false;
+    // Iris: recalculated on scroll only (throttled to one frame), and only until it has fully opened.
+    const iris = () => { raf = 0; const r = nums.getBoundingClientRect(), k = Math.max(0, Math.min(1, (innerHeight - r.top) / (innerHeight * .8)));
+      nums.style.setProperty('--iris', (6 + k * k * 120) + '%'); if (k >= 1) { open = true; nums.style.setProperty('--iris', '150%'); removeEventListener('scroll', onScroll); } };
+    const onScroll = () => { if (!raf && !open) raf = requestAnimationFrame(iris); };
+    addEventListener('scroll', onScroll, { passive: true }); iris();
     const io = new IntersectionObserver((es) => es.forEach((e) => { if (!e.isIntersecting) return; io.disconnect(); circles.classList.add('is-in');
       circles.querySelectorAll<HTMLElement>('[data-n]').forEach((b) => { const n = Number(b.dataset.n), t0 = performance.now();
         const tick = (t: number) => { const k = Math.min(1, (t - t0) / 1400); b.textContent = String(Math.round(n * (1 - Math.pow(1 - k, 3)))); if (k < 1 && alive) requestAnimationFrame(tick); }; requestAnimationFrame(tick); });
     }), { threshold: .15 });
     io.observe(circles);
-    return () => { alive = false; cancelAnimationFrame(raf); io.disconnect(); };
+    return () => { alive = false; cancelAnimationFrame(raf); io.disconnect(); removeEventListener('scroll', onScroll); };
   }, [data]);
   const recentTalks = past.flatMap((e) => talks.filter((x) => x.event_id === e.id)).slice(0, 3);
   useEffect(() => {

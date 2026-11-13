@@ -321,3 +321,7 @@ html.rd-quiet .rd-dot svg { animation: rd-spin 46s linear infinite !important; }
 .public-site .tx-label { gap: 10px; }
 .public-label-num { background: none !important; color: var(--accent-ink) !important; padding: 0 !important; min-width: 0 !important; border-radius: 0 !important; font-weight: 700; }
 .public-label-num::after { content: ""; display: inline-block; width: 22px; height: 1.5px; margin-left: 10px; vertical-align: middle; background: var(--line-strong); }
+
+/* Scrolling performance: a solid header (no live blur) and composited decorative rings. */
+.public-header { background: var(--bg); backdrop-filter: none; }
+.public-footer__lead::before, .public-footer__lead::after, .rd-dot svg { will-change: transform; }
