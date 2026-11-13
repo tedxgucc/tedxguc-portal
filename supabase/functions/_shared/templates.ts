@@ -13,7 +13,7 @@ export type TicketDetails = {
   ticket_no?: string | null;
 };
 
-const DISCLAIMER = 'This independent TEDx event is operated under license from TED.';
+const DISCLAIMER = 'This independent TEDxGUC event is operated under license from TED.';
 
 export function formatCairo(iso: string): string {
   return new Intl.DateTimeFormat('en-GB', {
