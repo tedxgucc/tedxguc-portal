@@ -6,9 +6,8 @@ import { useEffect, useRef } from 'react';
 import { HomeArchive } from '@/components/public/HomeArchive';
 import { SectionHeading, TxLabel } from '@/components/Brand';
 import { DataNotice } from '@/components/public/DataNotice';
-import { EventRail, GlassCarousel } from '@/components/public/GlassCarousel';
+import { EventRail, GlassCarousel, SpeakerRail } from '@/components/public/GlassCarousel';
 import { INSTAGRAM_URL } from '@/lib/env';
-import { SpeakerCard } from '@/components/SpeakerCard';
 import { api } from '@/lib/api';
 import { usePublicData } from '@/lib/usePublicData';
 import { fmtDate, fmtTime, hasKnownTime } from '@/lib/format';
@@ -113,20 +112,20 @@ export default function HomeClient({ initial }: { initial?: HomeData }) {
       <section className="rd-nums" ref={numsRef} aria-labelledby="about-title">
         <div className="rd-nums__grid">
           <div className="rd-circles" ref={circlesRef}>
-            <div className="rd-c rd-c1"><b data-n={talks.length || past.length}>{talks.length || past.length}</b><span>{talks.length ? 'talks' : 'events'}</span></div>
+            <div className="rd-c rd-c1"><b data-n={allSpeakers.length || past.length}>{allSpeakers.length || past.length}</b><span>{allSpeakers.length ? 'talks' : 'events'}</span></div>
             <div className="rd-c rd-c2"><b data-n={past.length}>{past.length}</b><span>events</span></div>
             <div className="rd-c rd-c3"><b data-n={years}>{years}</b><span>years</span></div>
           </div>
           <div>
             <TxLabel>Who we are</TxLabel>
-            <h2 id="about-title" className="sr-only">{years} years, {past.length} events, {talks.length} talks</h2>
+            <h2 id="about-title" className="sr-only">{years} years, {past.length} events, {allSpeakers.length} talks</h2>
             <p className="rd-nums__lead">We’re a student team at GUC. Every year we pick a theme, find speakers, and put on one main event plus a few salons. Tickets are free.</p>
             {recentTalks.length > 0 && <ul className="rd-talks">{recentTalks.map((t) => <li key={t.id}><b>“{t.talk_title}”</b><span>{t.name}</span></li>)}</ul>}
             <Link href="/about" className="rd-more rd-more--light">More about the team<span><ArrowRight size={16} aria-hidden="true" /></span></Link>
           </div>
         </div>
       </section>
-      {!!speakers.length && <section className="public-section tx-reveal" aria-labelledby="speakers"><div className="public-section-heading"><div><TxLabel>{featured?.title ?? 'Speakers'}</TxLabel><SectionHeading><span id="speakers">{isNext ? 'Who’s speaking' : 'Who spoke'}</span></SectionHeading></div><Link href="/talks" className="public-text-link">All talks<ArrowUpRight size={18} aria-hidden="true" /></Link></div><div className="public-speaker-grid">{speakers.slice(0, 4).map((s) => <SpeakerCard key={s.id} speaker={s} preview />)}</div></section>}
+      {!!speakers.length && <section className="public-section tx-reveal" aria-labelledby="speakers"><div className="public-section-heading"><div><TxLabel>{featured?.title ?? 'Speakers'}</TxLabel><SectionHeading><span id="speakers">{isNext ? 'Who’s speaking' : 'Who spoke'}</span></SectionHeading></div><Link href="/talks" className="public-text-link">All talks<ArrowUpRight size={18} aria-hidden="true" /></Link></div><SpeakerRail speakers={speakers} /></section>}
       <section className="public-paths" aria-label="Explore TEDxGUC">{[{ n: '01', title: 'The experience', text: 'Discover the next talk or salon.', href: '/events', action: 'Find an event' }, { n: '02', title: 'The people', text: 'Meet the board bringing the season to life.', href: '/board', action: 'Meet the board' }, { n: '03', title: 'Your chapter', text: 'Put your ideas into action with the team.', href: '/join', action: 'Explore open roles' }].map((p) => <Link href={p.href} key={p.n} className="public-path"><span className="public-path__number">{p.n}</span><ArrowUpRight className="public-path__arrow" size={26} aria-hidden="true" /><h3>{p.title}</h3><p>{p.text}</p><span className="public-text-link">{p.action}<ArrowRight size={16} aria-hidden="true" /></span></Link>)}</section>
       <section className="public-faq-section" aria-labelledby="quick-questions"><div><TxLabel>A little clarity</TxLabel><h2 id="quick-questions">Before you<br />come along.</h2><Link href="/contact" className="public-text-link">More questions?<ArrowUpRight size={18} aria-hidden="true" /></Link></div><div className="public-faq"><details><summary>Are tickets free?<Plus size={20} aria-hidden="true" /></summary><p>Yes. TEDxGUC event tickets are free. Seats are limited, so register through the event page when registration opens.</p></details><details><summary>How do I get my ticket?<Plus size={20} aria-hidden="true" /></summary><p>Register on the event page. Your ticket or waitlist confirmation is sent to the email address you provide. Keep your private ticket link for event day.</p></details><details><summary>Can I join the organizing team?<Plus size={20} aria-hidden="true" /></summary><p>We recruit across eight teams at the start of each season. <Link href="/join" className="tx-link">See open roles and apply.</Link></p></details></div></section>
     </div>

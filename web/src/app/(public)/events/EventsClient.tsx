@@ -6,7 +6,7 @@ import { ArrowRight, ArrowUpRight, CalendarDays, Instagram, MapPin, PlayCircle, 
 import Link from 'next/link';
 import { useState } from 'react';
 import { PageTitle, SectionHeading, TxLabel } from '@/components/Brand';
-import { EventCard, eventKind } from '@/components/EventCard';
+import { EventCard, EventCover, eventKind } from '@/components/EventCard';
 import { DataNotice } from '@/components/public/DataNotice';
 import { Button, EmptyState, Skeleton } from '@/components/ui';
 import { api } from '@/lib/api';
@@ -64,7 +64,7 @@ export default function EventsClient({ initial }: { initial?: { upcoming: TxEven
 function Featured({ event: e }: { event: TxEvent }) {
   return <section className="ev-feature" aria-labelledby="ev-feature-title">
     <Link href={eventHref(e)} className="ev-feature__media" tabIndex={-1} aria-hidden="true">
-      {e.cover_url ? <img src={e.cover_url} alt="" /> : <span className="ev-feature__fallback">{e.title}</span>}
+      {e.cover_url ? <img src={e.cover_url} alt="" /> : <EventCover title={e.title} big />}
       <span className="ev-feature__badge"><b>{new Intl.DateTimeFormat('en-GB', { day: '2-digit', timeZone: 'Africa/Cairo' }).format(new Date(e.starts_at))}</b>{new Intl.DateTimeFormat('en-GB', { month: 'short', timeZone: 'Africa/Cairo' }).format(new Date(e.starts_at))}</span>
     </Link>
     <div className="ev-feature__body">

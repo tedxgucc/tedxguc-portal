@@ -85,5 +85,4 @@
 .about-division-panel__intro h3, .about-value h3 { font-stretch: 110%; letter-spacing: -0.02em; }
 .about-value__num { font: 600 12px/1 var(--font-sans); color: var(--ink-3); -webkit-text-stroke: 0; }
 .about-division-tabs__number, .about-division-panel__teams li > span { font-family: var(--font-sans); }
-.about-hero__x { display: none; }
 .about-value h3::after { border-radius: 999px; }

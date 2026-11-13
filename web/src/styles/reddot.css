@@ -60,3 +60,4 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; font-stretch: 1
 /* Portal headings set with Tailwind utilities */
 .font-display { font-weight: 800; font-stretch: 118%; letter-spacing: -0.04em; }
 .font-display.uppercase, .uppercase .font-display { text-transform: none; }
+.tx-label::before { display: none !important; }

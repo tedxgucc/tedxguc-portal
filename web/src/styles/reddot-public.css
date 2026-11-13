@@ -277,3 +277,47 @@ html.rd-quiet .rd-dot svg { animation: rd-spin 46s linear infinite !important; }
   .ev-soon__cta { grid-column: 1 / -1; justify-content: flex-start; }
 }
 @media (prefers-reduced-motion: reduce) { .ev-soon__dot { animation: none; } .ev-feature__media img { transition: none; } }
+
+/* ---------- Labels in the brand font (not monospace) ---------- */
+.public-site .tx-label { font-family: var(--font-sans); font-weight: 600; font-stretch: 110%; letter-spacing: .14em; }
+.rd-nums__lead, .rd-talks { font-family: var(--font-sans); }
+.rd-nums__lead { font-weight: 600; font-stretch: 108%; letter-spacing: -.02em; font-size: clamp(20px, 1.9vw, 26px); }
+.rd-talks b { font-weight: 700; font-stretch: 106%; }
+
+/* ---------- Cover for events without a photo ---------- */
+.ev-cover { position: absolute; inset: 0; overflow: hidden; background: var(--surface-2); display: flex; flex-direction: column; justify-content: flex-end; padding: 22px; isolation: isolate; }
+.ev-cover__dot { position: absolute; z-index: -1; width: 78%; aspect-ratio: 1; right: -22%; top: -30%; border-radius: 50%; background: var(--accent); transition: transform .7s var(--ease-out); }
+.ev-cover__ring { position: absolute; z-index: -1; width: 112%; aspect-ratio: 1; right: -39%; top: -47%; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--accent); opacity: .35; }
+.ev-cover__title { position: relative; max-width: 80%; color: var(--ink); font: 800 clamp(24px, 2.3vw, 32px)/.95 var(--font-display); font-stretch: 118%; letter-spacing: -.04em; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.ev-cover__brand { position: absolute; right: 18px; bottom: 18px; font: 800 13px/1 var(--font-sans); letter-spacing: -.01em; color: var(--accent); }
+.ev-cover__brand i { font-style: normal; font-weight: 400; color: var(--ink); }
+.public-event-card:hover .ev-cover__dot, .ev-feature:hover .ev-cover__dot { transform: scale(1.08); }
+.ev-cover--big { padding: clamp(24px, 4vw, 44px); }
+.ev-cover--big .ev-cover__title { font-size: clamp(40px, 5vw, 76px); }
+.ev-feature__media:has(.ev-cover) { background: var(--surface-2); }
+@media (prefers-reduced-motion: reduce) { .ev-cover__dot { transition: none; } }
+
+/* ---------- Who spoke: one scrolling row of round portraits ---------- */
+.speaker-rail__item { flex-basis: calc((100% - 72px) / 4); }
+@media (max-width: 1099px) { .speaker-rail__item { flex-basis: calc((100% - 48px) / 3); } }
+@media (max-width: 699px) { .speaker-rail__item { flex-basis: 62%; } }
+
+/* ---------- Calmer sizes below the speakers ---------- */
+.public-path { padding: clamp(14px, 1.6vw, 20px) 0; gap: clamp(12px, 2vw, 24px); }
+.public-path h3 { font-size: clamp(26px, 3.4vw, 46px); }
+.public-path::before { width: 12px; }
+.public-path:hover::before { transform: scale(2); }
+.public-faq-section h2 { font-size: clamp(30px, 3.4vw, 48px); line-height: 1; }
+.public-faq summary { font-size: clamp(17px, 1.4vw, 20px); padding-block: 18px; }
+.public-footer { padding-top: clamp(48px, 6vw, 88px); }
+.public-footer__lead { width: min(1100px, 110vw); padding: 7% 14% 3%; gap: 16px; }
+.public-footer__lead h2 { font-size: clamp(36px, 5.6vw, 84px); }
+.public-footer__lead .public-arrow-link { height: 50px; font-size: 16px; }
+.public-home-sections { gap: clamp(56px, 7vw, 96px); }
+@media (max-width: 860px) { .public-footer__lead { width: 150vw; aspect-ratio: 1.4; padding: 16% 24% 6%; } }
+
+/* Labels: no dot in front; numbered labels show the number in red, no badge. */
+.public-site .tx-label::before, .public-site .rd-eyebrow::before { display: none !important; }
+.public-site .tx-label { gap: 10px; }
+.public-label-num { background: none !important; color: var(--accent-ink) !important; padding: 0 !important; min-width: 0 !important; border-radius: 0 !important; font-weight: 700; }
+.public-label-num::after { content: ""; display: inline-block; width: 22px; height: 1.5px; margin-left: 10px; vertical-align: middle; background: var(--line-strong); }

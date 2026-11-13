@@ -5,9 +5,10 @@ import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { EventCard } from '@/components/EventCard';
 import { SectionHeading, TxLabel } from '@/components/Brand';
-import type { TxEvent } from '@/lib/types';
+import type { Speaker, TxEvent } from '@/lib/types';
+import { SpeakerCard } from '@/components/SpeakerCard';
 
-export function EventRail({ events, past = false, label }: { events: TxEvent[]; past?: boolean; label: string }) {
+function Rail({ label, count, children }: { label: string; count: number; children: React.ReactNode }) {
   const track = useRef<HTMLDivElement>(null);
   const [edge, setEdge] = useState({ start: true, end: false });
   useEffect(() => {
@@ -15,7 +16,7 @@ export function EventRail({ events, past = false, label }: { events: TxEvent[]; 
     const update = () => setEdge({ start: el.scrollLeft < 8, end: el.scrollLeft + el.clientWidth > el.scrollWidth - 8 });
     update(); el.addEventListener('scroll', update, { passive: true }); addEventListener('resize', update);
     return () => { el.removeEventListener('scroll', update); removeEventListener('resize', update); };
-  }, [events]);
+  }, [count]);
   const move = (dir: 1 | -1) => {
     const el = track.current; if (!el) return;
     const card = el.firstElementChild as HTMLElement | null;
@@ -27,9 +28,17 @@ export function EventRail({ events, past = false, label }: { events: TxEvent[]; 
       <button type="button" className="event-rail__btn" onClick={() => move(1)} disabled={edge.end} aria-label={`Scroll ${label} right`}><ChevronRight aria-hidden="true" /></button>
     </div>
     <div className="event-rail__track" ref={track} tabIndex={0} role="region" aria-label={label}>
-      {events.map((e) => <div className="event-rail__item" key={e.id}><EventCard event={e} past={past} /></div>)}
+      {children}
     </div>
   </div>;
+}
+
+export function EventRail({ events, past = false, label }: { events: TxEvent[]; past?: boolean; label: string }) {
+  return <Rail label={label} count={events.length}>{events.map((e) => <div className="event-rail__item" key={e.id}><EventCard event={e} past={past} /></div>)}</Rail>;
+}
+
+export function SpeakerRail({ speakers }: { speakers: Speaker[] }) {
+  return <Rail label="Speakers" count={speakers.length}>{speakers.map((s) => <div className="event-rail__item speaker-rail__item" key={s.id}><SpeakerCard speaker={s} preview /></div>)}</Rail>;
 }
 
 export function GlassCarousel({ events }: { events: TxEvent[] }) {

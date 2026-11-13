@@ -13,7 +13,7 @@ export function EventCard({ event, past = false }: { event: TxEvent; past?: bool
   const href = event.slug ? '/event?s=' + encodeURIComponent(event.slug) : '/events';
   return <Link href={href} className={'public-event-card' + (past ? ' is-past' : '')}>
     <div className="public-event-card__visual">
-      {event.cover_url ? <img src={event.cover_url} alt="" width={960} height={540} loading="lazy" decoding="async" /> : <div className="public-event-card__graphic" aria-hidden="true"><span>{eventKind(event)}</span><b>{event.title}</b></div>}
+      {event.cover_url ? <img src={event.cover_url} alt="" width={960} height={540} loading="lazy" decoding="async" /> : <EventCover title={event.title} />}
       <div className="public-event-card__date" aria-hidden="true"><b>{day}</b><span>{month}</span><span>{year}</span></div>
       <div className="public-event-card__preview" aria-hidden="true">
         <span className="tx-label">{past ? 'From the archive' : eventKind(event)}</span>
@@ -46,4 +46,13 @@ export function EventRow({ event, past = false }: { event: TxEvent; past?: boole
     <span className="rd-row__meta">{fmtDate(event.starts_at)}{hasKnownTime(event.starts_at) ? ` · ${fmtTime(event.starts_at)}` : ''}{event.venue ? <><br />{event.venue}</> : null}</span>
     <span className="rd-row__go" aria-hidden="true"><ArrowRight size={18} /></span>
   </Link>;
+}
+
+// Cover for events without a photo: a big red dot rising from the corner, the title in the brand font.
+export function EventCover({ title, big = false }: { title: string; big?: boolean }) {
+  return <div className={'ev-cover' + (big ? ' ev-cover--big' : '')} aria-hidden="true">
+    <span className="ev-cover__dot" /><span className="ev-cover__ring" />
+    <b className="ev-cover__title">{title}</b>
+    <span className="ev-cover__brand">TEDx<i>GUC</i></span>
+  </div>;
 }
