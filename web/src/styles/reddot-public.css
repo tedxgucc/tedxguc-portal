@@ -348,3 +348,6 @@ html.rd-quiet .rd-dot svg { animation: rd-spin 46s linear infinite; }
 @media (max-width: 860px) {
   .public-footer__lead { width: 140%; margin-left: -20%; aspect-ratio: 1.5 / 1; padding: 14% 24% 5%; }
 }
+
+/* Speaker photos stay round while they grow on hover (clip, not just rounded corners). */
+.public-speaker__photo { clip-path: circle(50% at 50% 50%); -webkit-mask-image: -webkit-radial-gradient(white, black); isolation: isolate; }

@@ -20,7 +20,6 @@ export default function HomeClient({ initial }: { initial?: HomeData }) {
   }, [], initial);
   const { upcoming, past, speakers, allSpeakers, featured } = data ?? { upcoming: [], past: [], next: null, featured: null, speakers: [], allSpeakers: [] };
   const isNext = !!featured && upcoming.some((e) => e.id === featured.id);
-  const talks = allSpeakers.filter((x) => x.talk_title);
   const years = new Date().getFullYear() - 2013;
   const heroWords = featured && isNext ? featured.title.split(' ').filter(Boolean) : ['Ideas', 'Worth', 'Spreading'];
   const heroRef = useRef<HTMLElement>(null), dotRef = useRef<HTMLDivElement>(null), h1Ref = useRef<HTMLHeadingElement>(null);
@@ -68,7 +67,6 @@ export default function HomeClient({ initial }: { initial?: HomeData }) {
     io.observe(circles);
     return () => { alive = false; cancelAnimationFrame(raf); io.disconnect(); removeEventListener('scroll', onScroll); };
   }, [data]);
-  const recentTalks = past.flatMap((e) => talks.filter((x) => x.event_id === e.id)).slice(0, 3);
   useEffect(() => {
     const preference = matchMedia('(prefers-reduced-motion: reduce)');
     if (!('IntersectionObserver' in window)) return;
@@ -130,7 +128,6 @@ export default function HomeClient({ initial }: { initial?: HomeData }) {
             <TxLabel>Who we are</TxLabel>
             <h2 id="about-title" className="sr-only">{years} years, {past.length} events, {allSpeakers.length} talks</h2>
             <p className="rd-nums__lead">We’re a student team at GUC. Every year we pick a theme, find speakers, and put on one main event plus a few salons. Tickets are free.</p>
-            {recentTalks.length > 0 && <ul className="rd-talks">{recentTalks.map((t) => <li key={t.id}><b>“{t.talk_title}”</b><span>{t.name}</span></li>)}</ul>}
             <Link href="/about" className="rd-more rd-more--light">More about the team<span><ArrowRight size={16} aria-hidden="true" /></span></Link>
           </div>
         </div>
