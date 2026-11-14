@@ -70,30 +70,32 @@ export function Ticket({ eventTitle, eventKind, guestName, guestType, startsAt, 
   }, []);
 
   const ringId = `tk-ring-${ticketNo.replace(/\W/g, '')}`;
+  // Colours are also set on the elements, so "Save ticket PNG" keeps them (the image copier drops stylesheet colours on SVG).
+  const C = vip ? { paper: '#0c0c0c', ink: '#ffffff', seat: '#3b3a39', rule: '#2e2d2c', foot: '#e62b1e' } : { paper: '#ffffff', ink: '#0c0c0c', seat: '#d3cfc9', rule: '#dedbd6', foot: '#0c0c0c' };
   return (
-    <div className={'tk tk--play' + (vip ? ' tk--vip' : '')} id="ticket" ref={el}>
+    <div className={'tk tk--play' + (vip ? ' tk--vip' : '')} id="ticket" ref={el} style={{ background: C.paper, color: C.ink }}>
       <div className="tk__stage">
         <svg viewBox="0 0 340 340" aria-hidden="true">
           {plan.rings.map((ring, ri) => <g key={ri} className="tk__ring" style={{ ['--r' as string]: ri }}>
-            {ring.map((s, i) => <circle key={i} className="tk__seat" cx={s.x.toFixed(1)} cy={s.y.toFixed(1)} r="2.3" />)}
+            {ring.map((s, i) => <circle key={i} className="tk__seat" cx={s.x.toFixed(1)} cy={s.y.toFixed(1)} r="2.3" fill={C.seat} />)}
           </g>)}
-          <circle className="tk__dot" cx={CX} cy={CY} r={R} />
+          <circle className="tk__dot" cx={CX} cy={CY} r={R} fill="#e62b1e" />
           <defs><path id={ringId} d={`M${CX} ${CY} m-${ringR} 0 a${ringR} ${ringR} 0 1 1 ${2 * ringR} 0 a${ringR} ${ringR} 0 1 1 -${2 * ringR} 0`} /></defs>
-          <g className="tk__spin"><text className="tk__ringtext"><textPath href={`#${ringId}`} textLength={(2 * Math.PI * ringR - 6).toFixed(0)}>{ringText}</textPath></text></g>
-          <circle className="tk__you-ring" cx={plan.you.x.toFixed(1)} cy={plan.you.y.toFixed(1)} r="9" />
-          <circle className="tk__pad" cx={plan.you.x.toFixed(1)} cy={plan.you.y.toFixed(1)} r="10.5" />
-          <polygon className="tk__x" points={plan.xPoints} />
+          <g className="tk__spin"><text className="tk__ringtext" fill="#ffffff" fontSize="8.6" fontWeight="600" letterSpacing="2"><textPath href={`#${ringId}`} textLength={(2 * Math.PI * ringR - 6).toFixed(0)}>{ringText}</textPath></text></g>
+          <circle className="tk__you-ring" cx={plan.you.x.toFixed(1)} cy={plan.you.y.toFixed(1)} r="9" fill="none" stroke="#e62b1e" strokeWidth="1.4" />
+          <circle className="tk__pad" cx={plan.you.x.toFixed(1)} cy={plan.you.y.toFixed(1)} r="10.5" fill={C.paper} />
+          <polygon className="tk__x" points={plan.xPoints} fill="#e62b1e" />
         </svg>
-        <img className="tk__lock" src={`${BASE_PATH}/brand/tedxguc-lockup-${vip ? 'white' : 'black'}.png`} alt="TEDxGUC" />
-        <span className="tk__tier">{tier}</span>
+        <img className="tk__lock" style={{ background: C.paper, boxShadow: `0 0 0 7px ${C.paper}` }} src={`${BASE_PATH}/brand/tedxguc-lockup-${vip ? 'white' : 'black'}.png`} alt="TEDxGUC" />
+        <span className="tk__tier" style={{ background: C.ink, color: C.paper, boxShadow: `0 0 0 6px ${C.paper}` }}>{tier}</span>
         <div className="tk__on">
           <div className="tk__kind">{eventKind}</div>
           <div className="tk__title" style={{ fontSize: titleSize }}>{eventTitle}</div>
           <div className="tk__when">{date} · doors {doors}</div>
         </div>
-        <span className="tk__youlab" style={{ left: `${((plan.you.x / 340) * 100).toFixed(2)}%`, top: `${((plan.you.y / 340) * 100).toFixed(2)}%` }}>You</span>
+        <span className="tk__youlab" style={{ color: C.ink, background: C.paper, left: `${((plan.you.x / 340) * 100).toFixed(2)}%`, top: `${((plan.you.y / 340) * 100).toFixed(2)}%` }}>You</span>
       </div>
-      <div className="tk__perf" />
+      <div className="tk__perf" style={{ borderTopColor: C.rule }} />
       <div className="tk__body">
         <div><div className="tk__k">Admit one</div><div className="tk__name">{guestName}</div></div>
         <div className="tk__grid">
@@ -112,7 +114,7 @@ export function Ticket({ eventTitle, eventKind, guestName, guestType, startsAt, 
           <div className="tk__logos">{partners.map((p, i) => <img key={i} src={assetUrl(p.logo_url)} alt={p.name} crossOrigin="anonymous" />)}</div>
         </section>}
       </div>
-      <div className="tk__foot"><span>Ideas worth spreading</span><span>{tier}</span></div>
+      <div className="tk__foot" style={{ background: C.foot, color: '#ffffff' }}><span>Ideas worth spreading</span><span>{tier}</span></div>
       <div className="tk__foil" aria-hidden="true" />
     </div>
   );
