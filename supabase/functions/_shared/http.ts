@@ -1,6 +1,7 @@
 // Small HTTP helpers shared by the server functions.
 
-const allowedOrigin = Deno.env.get('SITE_URL') ?? '*';
+// Browsers send only the origin (scheme + host), so drop any path such as /tedxguc-portal.
+const allowedOrigin = (() => { const site = Deno.env.get('SITE_URL'); if (!site) return '*'; try { return new URL(site).origin; } catch { return '*'; } })();
 
 export const corsHeaders = {
   'Access-Control-Allow-Origin': allowedOrigin,
