@@ -77,7 +77,7 @@ export function PublicFooter() {
     <div className="public-footer__grid">
       <div className="grid gap-s4 content-start"><Lockup height={24} /><p className="text-ink-2 text-body-sm max-w-[300px]">Ideas worth spreading at the German University in Cairo, since 2013.</p><a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="public-social"><Instagram size={18} aria-hidden="true" />Follow the next chapter<ArrowUpRight size={16} aria-hidden="true" /></a></div>
       <nav aria-label="Explore"><h3 className="tx-label mb-s4">Explore</h3><ul className="grid gap-s3">{links.filter((l) => l.href !== '/join').map((l) => <li key={l.href}><Link href={l.href}>{l.label}</Link></li>)}</ul></nav>
-      <nav aria-label="Get involved"><h3 className="tx-label mb-s4">Get involved</h3><ul className="grid gap-s3"><li><Link href="/join">Join the team</Link></li><li><Link href="/contact">Contact &amp; FAQ</Link></li><li><Link href="/login">Member portal</Link></li><li><Link href="/privacy">Privacy notice</Link></li></ul></nav>
+      <nav aria-label="Get involved"><h3 className="tx-label mb-s4">Get involved</h3><ul className="grid gap-s3"><li><Link href="/join">Join the team</Link></li><li><Link href="/contact">Contact &amp; FAQ</Link></li><li><Link href="/login">Member portal</Link></li></ul></nav>
     </div>
     <div className="public-footer__legal"><p className="tx-legal">{LICENSE_LINE}</p><span className="text-caption text-ink-3">© {new Date().getFullYear()} TEDxGUC · German University in Cairo</span></div>
     </div>
