@@ -25,9 +25,9 @@ export async function downloadTicketPng(ticket: HTMLElement, ticketNumber: strin
   ]);
   // Capture the complete branded card, with readable text and a sharp QR.
   // Hold the entrance animation still so the image never catches a half-faded frame.
-  ticket.classList.add('tx-ticket--still');
+  ticket.classList.add('tk--still');
   let blob: Blob | null;
-  try { blob = await toBlob(ticket, { pixelRatio: 3, backgroundColor: '#ffffff' }); } finally { ticket.classList.remove('tx-ticket--still'); }
+  try { blob = await toBlob(ticket, { pixelRatio: 3, backgroundColor: '#ffffff' }); } finally { ticket.classList.remove('tk--still'); }
   if (!blob) throw new Error('Ticket image could not be created.');
   const url = URL.createObjectURL(blob);
   const download = document.createElement('a');

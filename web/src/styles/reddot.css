@@ -91,3 +91,72 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; font-stretch: 1
 /* Top bar: the logo never shrinks. */
 .tx-top > a, .tx-top > span, .tx-top .inline-flex:has(> img) { flex: none; }
 .tx-top img { width: auto; flex: none; }
+
+/* ================= Ticket: "Your place around the dot" ================= */
+.tk { --paper: #ffffff; --tink: #0c0c0c; --tink2: #5f5c58; --seat: #d3cfc9; --rule: #dedbd6; --foot: #0c0c0c;
+  position: relative; width: 340px; max-width: 100%; border-radius: 24px; background: var(--paper); color: var(--tink); overflow: hidden; font-family: var(--font-sans);
+  box-shadow: 0 1px 0 rgba(0,0,0,.06), 0 30px 60px -28px rgba(0,0,0,.45); transform: perspective(1400px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .5s var(--ease-out); }
+.tk.is-live { transition: transform .08s linear; }
+.tk--vip { --paper: #0c0c0c; --tink: #ffffff; --tink2: #a9a5a0; --seat: #3b3a39; --rule: #2e2d2c; --foot: #e62b1e; }
+.tk__stage { position: relative; aspect-ratio: 1; }
+.tk__stage svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.tk__seat { fill: var(--seat); }
+.tk__ring { transform-origin: 170px 176px; }
+.tk__dot { fill: #e62b1e; transform-origin: 170px 176px; }
+.tk__ringtext { font: 600 8.6px var(--font-sans); letter-spacing: .24em; fill: #fff; }
+.tk__you-ring { fill: none; stroke: #e62b1e; stroke-width: 1.4; transform-box: fill-box; transform-origin: center; }
+.tk__x { fill: #e62b1e; transform-box: fill-box; transform-origin: center; }
+.tk__pad { fill: var(--paper); }
+.tk__lock { position: absolute; left: 18px; top: 18px; height: 19px; width: auto; background: var(--paper); box-shadow: 0 0 0 7px var(--paper); border-radius: 2px; }
+.tk__tier { position: absolute; right: 16px; top: 14px; display: inline-flex; align-items: center; gap: 7px; height: 28px; padding: 0 12px; border-radius: 999px; background: var(--tink); color: var(--paper); font: 700 12px/1 var(--font-sans); font-stretch: 110%; letter-spacing: .12em; text-transform: uppercase; box-shadow: 0 0 0 6px var(--paper); }
+.tk__tier::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #e62b1e; }
+.tk__on { position: absolute; left: 50%; top: 51.8%; width: 46%; translate: -50% -50%; text-align: center; color: #fff; }
+.tk__kind { font: 600 9.5px/1 var(--font-sans); letter-spacing: .18em; text-transform: uppercase; opacity: .9; }
+.tk__title { margin: 7px 0 6px; font: 800 30px/.9 var(--font-display); font-stretch: 116%; letter-spacing: -.035em; overflow-wrap: anywhere; }
+.tk__when { font: 600 11.5px/1.2 var(--font-sans); }
+.tk__youlab { position: absolute; font: 700 9px/1 var(--font-sans); letter-spacing: .14em; text-transform: uppercase; color: var(--tink); background: var(--paper); padding: 3px 5px; border-radius: 3px; translate: -50% 13px; white-space: nowrap; }
+.tk__perf { position: relative; height: 0; margin: 0 22px; border-top: 2px dashed var(--rule); }
+.tk__perf::before, .tk__perf::after { content: ""; position: absolute; top: -13px; width: 24px; height: 24px; border-radius: 50%; background: var(--bg); }
+.tk__perf::before { left: -34px; } .tk__perf::after { right: -34px; }
+.tk__body { display: grid; gap: 16px; padding: 20px 20px 18px; }
+.tk__k { font: 600 9.5px/1 var(--font-sans); letter-spacing: .16em; text-transform: uppercase; color: var(--tink2); margin-bottom: 5px; }
+.tk__name { font: 800 27px/1 var(--font-display); font-stretch: 112%; letter-spacing: -.03em; overflow-wrap: anywhere; }
+.tk__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 10px; }
+.tk__v { font: 600 14.5px/1.25 var(--font-sans); }
+.tk__scan { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; align-items: center; padding-top: 16px; border-top: 1px solid var(--rule); }
+.tx-ticket__qr.tk__qr { width: 132px; height: 132px; padding: 8px; border-radius: 14px; background: #fff; box-shadow: 0 0 0 1px var(--rule); justify-self: start; }
+.tk__qr svg { display: block; width: 100%; height: 100%; }
+.tk__no { font: 500 15px/1 var(--font-mono); letter-spacing: .06em; }
+.tk__legend { display: grid; gap: 7px; margin-top: 12px; font: 500 11px/1.25 var(--font-sans); color: var(--tink2); }
+.tk__legend span { display: grid; grid-template-columns: 14px minmax(0, 1fr); gap: 7px; align-items: center; }
+.tk__legend i { justify-self: center; } .tk__legend .ld { width: 10px; height: 10px; border-radius: 50%; background: #e62b1e; }
+.tk__legend .lx { width: 11px; aspect-ratio: 176 / 170; background: #e62b1e; clip-path: polygon(1.14% 0%, 33.52% 48.82%, 0% 100%, 35.80% 100%, 50% 75.29%, 64.20% 100%, 100% 100%, 66.48% 48.82%, 98.86% 0%, 63.07% 0%, 50% 22.94%, 36.93% 0%); }
+.tk__partners { padding-top: 16px; border-top: 1px solid var(--rule); text-align: center; }
+.tk__logos { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 18px; margin-top: 10px; }
+.tk__logos img { width: 104px; height: 52px; object-fit: contain; }
+.tk__foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 11px 20px; background: var(--foot); color: #fff; font: 600 9.5px/1 var(--font-sans); letter-spacing: .18em; text-transform: uppercase; }
+/* VIP foil: on screen only */
+.tk__foil { position: absolute; inset: 0; pointer-events: none; opacity: 0; mix-blend-mode: screen; transition: opacity .4s;
+  background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,.16) 44%, rgba(255,120,100,.2) 50%, rgba(255,255,255,.14) 56%, transparent 70%) var(--fx, 50%) 0 / 260% 100% no-repeat; }
+.tk--vip.is-live .tk__foil { opacity: 1; }
+
+/* Entrance: the ticket prints in, the dot lands, the audience fills ring by ring, then the x takes its seat.
+   Seats animate as 7 ring groups (not hundreds of dots), and everything is transform/opacity, so it stays smooth. */
+.tk--play { animation: tk-print .9s var(--ease-out) both; }
+@keyframes tk-print { from { clip-path: inset(0 0 100% 0 round 24px); translate: 0 -24px; } to { clip-path: inset(0 0 0 0 round 24px); translate: 0 0; } }
+.tk--play .tk__dot { animation: tk-dot .8s .35s var(--ease-spring) both; }
+@keyframes tk-dot { from { transform: scale(0); } }
+.tk--play .tk__ring { animation: tk-ring .5s calc(.75s + var(--r) * .13s) var(--ease-out) both; }
+@keyframes tk-ring { from { opacity: 0; transform: scale(.82); } }
+.tk--play .tk__on, .tk--play .tk__ringtext { animation: tk-fade .6s .9s both; }
+@keyframes tk-fade { from { opacity: 0; } }
+.tk--play .tk__x { animation: tk-x .5s 1.75s var(--ease-spring) both; }
+@keyframes tk-x { from { opacity: 0; transform: scale(3.4) rotate(-20deg); } }
+.tk--play .tk__youlab { animation: tk-fade .4s 2.1s both; }
+.tk__you-ring { animation: tk-pulse 2.4s 2.2s ease-out infinite both; }
+@keyframes tk-pulse { from { transform: scale(.6); opacity: .9; } to { transform: scale(2.6); opacity: 0; } }
+.tk__spin { transform-origin: 170px 176px; animation: tk-spin 60s linear infinite; }
+@keyframes tk-spin { to { transform: rotate(360deg); } }
+.tk--still, .tk--still * { animation: none !important; transition: none !important; }
+.tk--still .tk__foil { display: none; }
+@media (prefers-reduced-motion: reduce) { .tk, .tk * { animation: none !important; transition: none !important; } .tk__you-ring { opacity: 0; } }
