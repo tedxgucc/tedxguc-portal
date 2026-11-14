@@ -61,3 +61,31 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; font-stretch: 1
 .font-display { font-weight: 800; font-stretch: 118%; letter-spacing: -0.04em; }
 .font-display.uppercase, .uppercase .font-display { text-transform: none; }
 .tx-label::before { display: none !important; }
+
+/* ---------- QR ticket, Red Dot: white paper, the red dot rising behind the event name ---------- */
+.tx-ticket { max-width: 360px; border-radius: 22px; overflow: hidden; background: #fff; color: #0c0c0c; box-shadow: 0 24px 60px -28px rgba(12, 12, 12, .45), 0 0 0 1px rgba(12, 12, 12, .06); }
+.tx-ticket__top { position: relative; overflow: hidden; isolation: isolate; background: #fff; color: #0c0c0c; padding: 22px 22px 26px; min-height: 196px; display: flex; flex-direction: column; justify-content: space-between; }
+.tx-ticket__dot { position: absolute; z-index: -1; width: 250px; height: 250px; right: -70px; top: -96px; border-radius: 50%; background: #e62b1e; }
+.tx-ticket__top .tx-ticket__event { position: relative; margin-top: 34px; max-width: 88%; color: #0c0c0c; font: 800 34px/.92 var(--font-display); font-stretch: 118%; letter-spacing: -.04em; text-transform: none; }
+.tx-ticket__kind { position: relative; margin-top: 10px; font: 600 11px/1 var(--font-sans); letter-spacing: .14em; text-transform: uppercase; color: #5e5e5e; }
+.tx-ticket__perf { border-top: 2px dashed #d9d5d0; margin: 0 18px; }
+.tx-ticket__perf::before, .tx-ticket__perf::after { width: 26px; height: 26px; top: -14px; background: var(--bg); }
+.tx-ticket__perf::before { left: -32px; } .tx-ticket__perf::after { right: -32px; }
+.tx-ticket__body { padding: 20px 22px 24px; gap: 16px; }
+.tx-ticket__k { font: 600 10px/14px var(--font-sans); letter-spacing: .14em; color: #6b6762; }
+.tx-ticket__v { font: 700 15px/20px var(--font-sans); }
+.tx-ticket__qr { width: 176px; height: 176px; padding: 6px; border-radius: 14px; box-shadow: inset 0 0 0 1.5px #ece9e5; }
+.tx-ticket__code { font: 600 13px/18px var(--font-mono); letter-spacing: .1em; color: #0c0c0c; }
+
+/* Entrance: the ticket slides up, the dot grows in, the details follow. Transform and opacity only. */
+@keyframes tx-ticket-in { from { opacity: 0; transform: translateY(28px) scale(.96); } }
+@keyframes tx-ticket-dot { from { transform: scale(.2); } }
+@keyframes tx-ticket-fade { from { opacity: 0; transform: translateY(8px); } }
+.tx-ticket { animation: tx-ticket-in .7s cubic-bezier(.2, .8, .2, 1) both; }
+.tx-ticket__dot { animation: tx-ticket-dot .9s .15s cubic-bezier(.34, 1.4, .64, 1) both; transform-origin: 70% 30%; }
+.tx-ticket__event, .tx-ticket__kind { animation: tx-ticket-fade .5s .35s ease-out both; }
+.tx-ticket__body { animation: tx-ticket-fade .5s .5s ease-out both; }
+@media (prefers-reduced-motion: reduce) { .tx-ticket, .tx-ticket__dot, .tx-ticket__event, .tx-ticket__kind, .tx-ticket__body { animation: none; } }
+.tx-ticket--still, .tx-ticket--still * { animation: none !important; }
+.tx-ticket__dot { width: 210px; height: 210px; right: -80px; top: -70px; }
+.tx-ticket__dot { width: 200px; height: 200px; right: -64px; top: auto; bottom: -96px; transform-origin: 70% 70%; }

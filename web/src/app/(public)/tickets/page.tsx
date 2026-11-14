@@ -87,7 +87,7 @@ function TicketPageInner() {
             <Button variant="secondary" onClick={saveImage} loading={saving}><Download aria-hidden="true" />Save ticket PNG</Button>
             <a className="tx-btn tx-btn--secondary" href={calendarLink(t)} target="_blank" rel="noopener noreferrer"><CalendarPlus aria-hidden="true" />Calendar</a>
             <a className="tx-btn tx-btn--secondary" target="_blank" rel="noopener noreferrer"
-              href={`https://wa.me/?text=${encodeURIComponent(`My TEDxGUC ticket for ${t.event.title}: ${typeof window !== 'undefined' ? window.location.href.split('?')[0] : ''}`)}`}>
+              href={`https://wa.me/?text=${encodeURIComponent(`My TEDxGUC ticket for ${t.event.title}, ${fmtDate(t.event.starts_at)}: ${typeof window !== 'undefined' ? `${window.location.origin}${window.location.pathname}?t=${encodeURIComponent(token)}` : ''}`)}`}>
               <MessageCircle aria-hidden="true" />WhatsApp
             </a>
           </div>

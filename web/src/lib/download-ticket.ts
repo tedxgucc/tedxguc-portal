@@ -24,7 +24,10 @@ export async function downloadTicketPng(ticket: HTMLElement, ticketNumber: strin
     ...Array.from(ticket.querySelectorAll('img')).map((image) => image.decode()),
   ]);
   // Capture the complete branded card, with readable text and a sharp QR.
-  const blob = await toBlob(ticket, { pixelRatio: 3, backgroundColor: '#ffffff' });
+  // Hold the entrance animation still so the image never catches a half-faded frame.
+  ticket.classList.add('tx-ticket--still');
+  let blob: Blob | null;
+  try { blob = await toBlob(ticket, { pixelRatio: 3, backgroundColor: '#ffffff' }); } finally { ticket.classList.remove('tx-ticket--still'); }
   if (!blob) throw new Error('Ticket image could not be created.');
   const url = URL.createObjectURL(blob);
   const download = document.createElement('a');

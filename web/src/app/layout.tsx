@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   title: { default: 'TEDxGUC', template: '%s · TEDxGUC' },
   description: SITE_DESCRIPTION,
   ...(SITE_URL ? { metadataBase: new URL(SITE_URL + '/') } : {}),
-  openGraph: { type: 'website', locale: 'en_GB', siteName: 'TEDxGUC', title: 'TEDxGUC · German University in Cairo', description: SITE_DESCRIPTION, ...(SITE_URL ? { images: [{ url: SITE_URL + '/brand/og-image.jpg', width: 1200, height: 630, alt: 'TEDxGUC: Loose Ends' }] } : {}) },
+  openGraph: { type: 'website', locale: 'en_GB', siteName: 'TEDxGUC', title: 'TEDxGUC · German University in Cairo', description: SITE_DESCRIPTION, ...(SITE_URL ? { images: [{ url: SITE_URL + '/brand/og-image.jpg', width: 1200, height: 630, alt: 'TEDxGUC: Ideas Worth Spreading' }] } : {}) },
   twitter: { card: 'summary_large_image', title: 'TEDxGUC · German University in Cairo', description: SITE_DESCRIPTION, ...(SITE_URL ? { images: [SITE_URL + '/brand/og-image.jpg'] } : {}) },
   robots: { index: !DEMO, follow: !DEMO },
   referrer: 'strict-origin-when-cross-origin',

@@ -5,9 +5,8 @@
 import QRCode from 'qrcode';
 import { useEffect, useState } from 'react';
 import { fmtDate, fmtTime } from '@/lib/format';
-import { LockupWhite } from './Brand';
 import type { TicketPartner } from '@/lib/types';
-import { assetUrl } from '@/lib/env';
+import { assetUrl, BASE_PATH } from '@/lib/env';
 import { ticketTier } from '@/lib/event-registration';
 
 export function QR({ value, label, className = 'tx-ticket__qr' }: { value: string; label: string; className?: string }) {
@@ -26,9 +25,10 @@ export function Ticket({ eventTitle, eventKind, guestName, guestType, startsAt, 
   return (
     <div className="tx-ticket" id="ticket">
       <div className="tx-ticket__top">
-        <LockupWhite height={18} />
+        <span className="tx-ticket__dot" aria-hidden="true" />
+        <img src={`${BASE_PATH}/brand/tedxguc-lockup-black.png`} alt="TEDxGUC" height={18} style={{ height: 18, width: 'auto', position: 'relative' }} /> {/* eslint-disable-line @next/next/no-img-element */}
         <div className="tx-ticket__event">{eventTitle}</div>
-        <div className="caption" style={{ color: '#b8b8b8' }}>{eventKind}</div>
+        <div className="tx-ticket__kind">{eventKind} · Admit one</div>
       </div>
       <div className="tx-ticket__perf" />
       <div className="tx-ticket__body">
@@ -49,7 +49,6 @@ export function Ticket({ eventTitle, eventKind, guestName, guestType, startsAt, 
           </div>
         </section>}
       </div>
-      <div className="tx-ticket__bar" />
     </div>
   );
 }
