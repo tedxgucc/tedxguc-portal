@@ -176,3 +176,11 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; font-stretch: 1
 @keyframes door-in { from { opacity: 0; } }
 @keyframes door-pop { from { transform: scale(.8); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .door-result, .door-result__card { animation: none; } }
+/* The old check-in stamp animation, now inside the popup: the stamp slams down and tilts, the word sweeps in. */
+.door-result__card { animation: none; }
+.door-result__icon { border-radius: 10px; background: #fff; box-shadow: 0 18px 40px rgba(0, 0, 0, .25); animation: tx-stamp var(--dur-4) var(--ease-spring) both; }
+.door-result--ok .door-result__icon { color: #137a43; }
+.door-result--again .door-result__icon { color: #7a4f00; }
+.door-result--bad .door-result__icon { color: #c21b10; }
+.door-result__title { animation: tx-sweep var(--dur-3) var(--ease-out) var(--dur-3) both; }
+@media (prefers-reduced-motion: reduce) { .door-result__icon, .door-result__title { animation: none; } }
