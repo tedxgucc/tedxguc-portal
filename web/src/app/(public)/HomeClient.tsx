@@ -84,6 +84,7 @@ export default function HomeClient({ initial }: { initial?: HomeData }) {
   }, [data]);
   return <>
     <div className="hm public-home-hero rd-home">
+      <OrientationNotice />
       <section className="rd-hero" ref={heroRef} aria-labelledby="home-title">
         <div className="rd-dot" ref={dotRef}>
           <svg viewBox="0 0 500 500" aria-hidden="true"><defs><path id="rd-ring" d="M250 250 m-226 0 a226 226 0 1 1 452 0 a226 226 0 1 1 -452 0" /></defs>
@@ -116,7 +117,6 @@ export default function HomeClient({ initial }: { initial?: HomeData }) {
       {!isNext && past.length > 0 && <GlassCarousel events={past.slice(0, 8)} />}
     </div>
     <div id="discover" className="public-container public-home-sections">
-      <OrientationNotice />
       {!!upcoming.length && <section aria-labelledby="upcoming" className="public-section tx-reveal"><div className="public-section-heading"><div><TxLabel>Save the date</TxLabel><SectionHeading><span id="upcoming">Coming up</span></SectionHeading></div><Link href="/events" className="public-text-link">All experiences<ArrowUpRight size={18} aria-hidden="true" /></Link></div><EventRail events={upcoming} label="Upcoming events" /></section>}
       {isNext && <HomeArchive events={past} speakers={allSpeakers} />}
       <section className="rd-nums" ref={numsRef} aria-labelledby="about-title">

@@ -11,7 +11,7 @@ export function OrientationNotice() {
   useEffect(() => { orientationApi.upcoming().then((u) => setDays(u ? u.days.filter((d) => Date.parse(d.ends_at) >= Date.now()).map((d) => d.starts_at) : null)).catch(() => {}); }, []);
   if (!days?.length) return null;
   return (
-    <section className="public-section" aria-label="Announcement">
+    <section className="home-orient-wrap" aria-label="Announcement">
       <Link href="/orientation" className="home-orient">
         <span className="home-orient__tag">Announcement</span>
         <span className="grid gap-[2px]">

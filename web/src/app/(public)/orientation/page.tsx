@@ -2,12 +2,12 @@
 // Orientation before associates recruitment. Not an event: it never shows
 // with the events. GUC students pick one of the days and the team they're
 // most curious about, with their GUC student email as proof they're GUCians.
-import { CheckCircle2, Instagram, Send } from 'lucide-react';
+import { Instagram, Send } from 'lucide-react';
 import { useState } from 'react';
 import { PageTitle, SectionHeading, TxLabel } from '@/components/Brand';
 import { Turnstile } from '@/components/Turnstile';
 import { DataNotice } from '@/components/public/DataNotice';
-import { Button, Check2, Modal, TextInput } from '@/components/ui';
+import { Button, Check2, TextInput } from '@/components/ui';
 import { api } from '@/lib/api';
 import { GUC_EMAIL_RE, GUC_ID_RE, orientationApi, type OrientationDay } from '@/lib/api/orientation';
 import { INSTAGRAM_URL } from '@/lib/env';
@@ -179,14 +179,20 @@ function SignupForm({ days, full, teams, divisions }: { days: OrientationDay[]; 
       </form>
 
       {done && (
-        <Modal open title="You’re signed up" onClose={() => setDone(null)} actions={<Button onClick={() => setDone(null)}>Done</Button>}>
-          <div className="grid gap-s3 justify-items-center text-center">
-            <CheckCircle2 size={56} className="text-red" aria-hidden="true" style={{ color: '#e62b1e' }} />
-            <p className="body-lg">See you there, {done.name}.</p>
-            <p className="text-ink-2"><b>{fmtDate(done.day.starts_at)}</b>, {fmtTime(done.day.starts_at)}–{fmtTime(done.day.ends_at)}{done.day.location ? <> · <b>{done.day.location}</b></> : null}</p>
-            <p className="text-body-sm text-ink-3">Interested in {done.team}. Bring your GUC ID. We also sent the details to your GUC email.</p>
+        <div className="orient-pop" role="dialog" aria-modal="true" aria-labelledby="orient-pop-t" onClick={() => setDone(null)}>
+          <div className="orient-pop__card" onClick={(e) => e.stopPropagation()}>
+            <div className="orient-pop__dot" aria-hidden="true"><svg viewBox="0 0 24 24" width="44" height="44"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg></div>
+            <p className="orient-pop__k">Orientation · {done.team}</p>
+            <h2 id="orient-pop-t" className="orient-pop__t">You’re in, {done.name}</h2>
+            <div className="orient-pop__when">
+              <div><span>Day</span><b>{fmtDate(done.day.starts_at)}</b></div>
+              <div><span>Time</span><b>{fmtTime(done.day.starts_at)}–{fmtTime(done.day.ends_at)}</b></div>
+              {done.day.location && <div><span>Place</span><b>{done.day.location}</b></div>}
+            </div>
+            <p className="orient-pop__note">Bring your GUC ID. See you there.</p>
+            <button type="button" className="orient-pop__btn" onClick={() => setDone(null)} autoFocus>Done</button>
           </div>
-        </Modal>
+        </div>
       )}
     </>
   );
