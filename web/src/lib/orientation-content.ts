@@ -5,7 +5,7 @@ export const TEDX_FAQ: { q: string; a: string }[] = [
   { q: 'What is TEDx?', a: 'TED is a non-profit devoted to ideas worth spreading, usually as short talks. TEDx events are organised independently by local communities under a free licence from TED. TEDxGUC is the GUC community’s event.' },
   { q: 'What does TEDxGUC do?', a: 'Each season we find speakers, coach their talks, and put on the main event plus smaller salons and workshops. Students run all of it.' },
   { q: 'What is an associate?', a: 'Associates are the members of each team. You join one team, work with its Executive on real tasks, and learn by doing: no experience needed.' },
-  { q: 'What happens at orientation?', a: 'We introduce TEDx and the club, every team explains its work, and you can ask anything. It helps you pick the right team before applications open.' },
+  { q: 'What happens at orientation?', a: 'We introduce TEDx and the club, every team explains its work, and you can ask anything.' },
   { q: 'Do I have to come both days?', a: 'No. Both days are the same, so pick the one that suits you.' },
 ];
 

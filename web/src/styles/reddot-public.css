@@ -366,3 +366,15 @@ html.rd-quiet .rd-dot svg { animation: rd-spin 46s linear infinite; }
 .orient-faq summary::-webkit-details-marker { display: none; }
 .orient-faq summary::after { content: '+'; color: #e62b1e; font-weight: 700; }
 .orient-faq[open] summary::after { content: '–'; }
+.orient-form { max-width: 760px; padding: clamp(20px, 4vw, 36px); }
+.orient-step { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-weight: 700; font-size: 15px; }
+.orient-step span { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: #e62b1e; color: #fff; font-size: 12px; }
+label.orient-team { display: flex; align-items: center; border-radius: 12px; padding: 12px 14px; cursor: pointer; }
+label.orient-team:has(input:focus-visible) { outline: 2px solid #e62b1e; outline-offset: 2px; }
+.home-orient { display: grid; gap: 12px; align-items: center; padding: 18px 22px; border-radius: 18px; background: var(--ink, #0c0c0c); color: var(--bg, #fff); text-decoration: none; }
+@media (min-width: 768px) { .home-orient { grid-template-columns: auto minmax(0, 1fr) auto; gap: 20px; } }
+.home-orient__tag { justify-self: start; padding: 4px 10px; border-radius: 999px; background: #e62b1e; color: #fff; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.home-orient__t { font-weight: 700; font-size: clamp(17px, 2vw, 21px); }
+.home-orient__s { opacity: .75; font-size: 14px; }
+.home-orient__go { justify-self: start; display: inline-flex; gap: 6px; align-items: center; padding: 10px 18px; border-radius: 999px; background: #e62b1e; color: #fff; font-weight: 700; font-size: 14px; transition: transform .15s; }
+.home-orient:hover .home-orient__go { transform: translateX(3px); }

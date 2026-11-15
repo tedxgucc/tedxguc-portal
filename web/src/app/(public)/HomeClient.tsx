@@ -1,5 +1,6 @@
 'use client';
 /* eslint-disable @next/next/no-img-element */
+import { OrientationNotice } from '@/components/public/OrientationNotice';
 import { ArrowDown, ArrowRight, ArrowUpRight, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useRef } from 'react';
@@ -115,6 +116,7 @@ export default function HomeClient({ initial }: { initial?: HomeData }) {
       {!isNext && past.length > 0 && <GlassCarousel events={past.slice(0, 8)} />}
     </div>
     <div id="discover" className="public-container public-home-sections">
+      <OrientationNotice />
       {!!upcoming.length && <section aria-labelledby="upcoming" className="public-section tx-reveal"><div className="public-section-heading"><div><TxLabel>Save the date</TxLabel><SectionHeading><span id="upcoming">Coming up</span></SectionHeading></div><Link href="/events" className="public-text-link">All experiences<ArrowUpRight size={18} aria-hidden="true" /></Link></div><EventRail events={upcoming} label="Upcoming events" /></section>}
       {isNext && <HomeArchive events={past} speakers={allSpeakers} />}
       <section className="rd-nums" ref={numsRef} aria-labelledby="about-title">
