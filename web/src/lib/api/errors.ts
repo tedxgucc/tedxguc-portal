@@ -3,6 +3,13 @@ import { ApiError } from './types';
 // Database error codes → microcopy in the design system's voice
 // (short, no exclamation marks, says how to fix it).
 const messages: Record<string, string> = {
+  orientation_not_found: 'We could not find that orientation day.',
+  orientation_over: 'That orientation day has already passed.',
+  invalid_guc_id: 'Enter your GUC ID, like 58-12345.',
+  not_gucian: 'Orientation is for GUC students. Use your GUC student email (…@student.guc.edu.eg).',
+  invalid_orientation_teams: 'Pick one to three teams.',
+  already_signed_up: 'This GUC ID or email is already signed up for orientation.',
+  orientation_full: 'That day is full. Pick the other day.',
   round_has_records: 'This round has applications or board plans and cannot be deleted. Close the round by editing its closing date instead.',
   event_not_open: 'Registration for this event is closed.',
   already_registered: 'This email already has a ticket. Use "Lost your ticket?" to get it again.',

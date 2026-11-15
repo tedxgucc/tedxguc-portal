@@ -7,6 +7,8 @@ import { PageLoading } from '@/lib/useLoad';
 import { usePublicData } from '@/lib/usePublicData';
 import { DataNotice } from '@/components/public/DataNotice';
 import { recruitmentApi } from '@/lib/api/phase2b';
+import { orientationApi } from '@/lib/api/orientation';
+import Link from 'next/link';
 import { INSTAGRAM_URL } from '@/lib/env';
 import { fmtDate } from '@/lib/format';
 import { ApplyForm } from './ApplyForm';
@@ -15,16 +17,16 @@ import { ApplyForm } from './ApplyForm';
 // FR-1.6, FR-4.1, FR-4.2: open roles per team, the form, the deadline.
 export default function JoinPage() {
   const { data: d, error, loading, reload } = usePublicData(async () => {
-    const [divisions, teams, cycles] = await Promise.all([api.listDivisions(), api.listTeams(), recruitmentApi.listCycles()]);
+    const [divisions, teams, cycles, orientation] = await Promise.all([api.listDivisions(), api.listTeams(), recruitmentApi.listCycles(), orientationApi.upcoming().catch(() => null)]);
     const now = Date.now();
     const open = cycles.find((c) => c.kind === 'associates' && new Date(c.opens_at).getTime() <= now && new Date(c.closes_at).getTime() >= now) ?? null;
     const positions = open ? (await recruitmentApi.listPositions(open.id)).filter((p) => p.is_open) : [];
     const fill = open ? await recruitmentApi.positionFill(open.id).catch(() => []) : [];
-    return { divisions, teams, cycles, now, open, positions, fill };
+    return { divisions, teams, cycles, now, open, positions, fill, orientation };
   });
   if (!d && error) return <div className="public-container pt-s7"><DataNotice message={error} retry={reload} loading={loading} /></div>;
   if (!d) return <PageLoading />;
-  const { divisions, teams, cycles, now, open, positions, fill } = d;
+  const { divisions, teams, open, positions, fill, orientation } = d;
   const full = new Set(fill.filter((x) => x.is_full).map((x) => x.team_id));
   const recruiting = new Set(positions.map((p) => p.team_id));
 
@@ -34,6 +36,17 @@ export default function JoinPage() {
       <p className="body-lg text-ink-2 max-w-[640px] -mt-s4">
         GUC students run TEDxGUC across four divisions and eight teams. {open ? 'Pick one or two teams and tell us why.' : 'We recruit associates at the start of each season.'}
       </p>
+
+      {orientation && (
+        <div className="tx-card tx-card--outline grid gap-s3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+          <div>
+            <div className="tx-label">Before you apply · {orientation.days.map((x) => fmtDate(x.starts_at)).join(' or ')}</div>
+            <h2 className="h3 uppercase">Come to orientation</h2>
+            <p className="text-ink-2">Meet the club, hear what every team does, and pick your team with confidence. For GUC students.</p>
+          </div>
+          <Link href="/orientation" className="tx-btn tx-btn--primary">Save my spot</Link>
+        </div>
+      )}
 
       {open ? (
         <div className="tx-card tx-card--red grid gap-s3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">

@@ -9,6 +9,8 @@
 //   POST { action: 'upload_url', kind: 'cv', cycle_id, turnstile_token } | { action: 'upload_url', kind: 'proof', status_token, ext }
 //   Recruitment (FR-4)
 //   POST { action: 'apply', cycle_id, name, email, phone?, team_ids, answers?, cv_path?, consent: true, turnstile_token }
+//   Orientation (before an associates round; GUC student emails only)
+//   POST { action: 'orientation', day_id, name, guc_id, email, team_ids, consent: true, turnstile_token }
 //   Packages (FR-16)
 //   POST { action: 'submit_proof', status_token, proof_path?, reference? }
 //   POST { action: 'cancel_order', status_token }
@@ -165,6 +167,29 @@ Deno.serve(handle(async (req) => {
       if (error) throw fromDbError(error);
       await sendApplicationNotice({ ...data, stage: 'applied' }, data.status_token);
       return json({ ok: true, status_token: data.status_token });
+    }
+
+    case 'orientation': {
+      requireConsent(body);
+      await verifyTurnstile(str(body.turnstile_token, 2048), ip);
+      const email = str(body.email, 254).toLowerCase();
+      await limit(`orientation:${email}`, 5, 3600);
+      const teamIds = Array.isArray(body.team_ids) ? body.team_ids.map((t) => str(t, 64)).filter((t) => uuidRe.test(t)) : [];
+      const name = str(body.name, 120);
+      const { data, error } = await admin.rpc('sign_up_for_orientation', {
+        p_day_id: str(body.day_id, 64), p_name: name, p_guc_id: str(body.guc_id, 20), p_email: email, p_team_ids: teamIds,
+      });
+      if (error) throw fromDbError(error);
+      const when = new Date(data.starts_at).toLocaleString('en-GB', { timeZone: 'Africa/Cairo', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
+      await sendPlain(email, 'Your TEDxGUC orientation day', `Hi ${name},
+
+You're signed up for the TEDxGUC orientation on ${when}${data.location ? ' at ' + data.location : ''}.
+
+We'll introduce TEDx, the club and every team, so you can choose where to apply when associates recruitment opens. Bring your GUC ID.
+
+See you there,
+TEDxGUC`).catch((e) => console.error('orientation email', e));
+      return json({ ok: true, ...data });
     }
 
     // Sign-ups (packages, trips) are member-only now: members call

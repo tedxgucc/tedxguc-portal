@@ -24,6 +24,13 @@ export class HttpError extends Error {
 
 // Database errors raised as `raise exception 'code'` → friendly HTTP errors.
 const dbErrors: Record<string, [number, string]> = {
+  orientation_not_found: [404, 'We could not find that orientation day.'],
+  orientation_over: [400, 'That orientation day has already passed.'],
+  invalid_guc_id: [400, 'Enter your GUC ID, like 58-12345.'],
+  not_gucian: [400, 'Orientation is for GUC students. Use your GUC student email (…@student.guc.edu.eg).'],
+  invalid_orientation_teams: [400, 'Pick one to three teams.'],
+  already_signed_up: [409, 'This GUC ID or email is already signed up for orientation.'],
+  orientation_full: [409, 'That day is full. Pick the other day.'],
   invalid_registration_answers: [400, 'Some form answers are too long or invalid.'],
   missing_gucian: [400, 'Choose whether you are a GUCian.'],
   missing_guc_id: [400, 'Enter your GUC ID.'],

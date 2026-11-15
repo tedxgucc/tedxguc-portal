@@ -351,3 +351,18 @@ html.rd-quiet .rd-dot svg { animation: rd-spin 46s linear infinite; }
 
 /* Speaker photos stay round while they grow on hover (clip, not just rounded corners). */
 .public-speaker__photo { clip-path: circle(50% at 50% 50%); -webkit-mask-image: -webkit-radial-gradient(white, black); isolation: isolate; }
+
+/* Orientation sign-up: day cards and team toggles */
+.orient-day { display: grid; gap: 2px; padding: 14px 16px; border: 1.5px solid var(--line, #dedbd6); border-radius: 14px; cursor: pointer; transition: border-color .15s, background-color .15s; }
+.orient-day:hover { border-color: var(--ink, #0c0c0c); }
+.orient-day.is-on { border-color: #e62b1e; background: rgba(230, 43, 30, .06); }
+.orient-day.is-full { opacity: .5; cursor: not-allowed; }
+.orient-day:has(input:focus-visible) { outline: 2px solid #e62b1e; outline-offset: 2px; }
+.orient-team { padding: 8px 14px; border: 1.5px solid var(--line, #dedbd6); border-radius: 999px; font-size: 14px; font-weight: 600; background: transparent; color: inherit; transition: border-color .15s, background-color .15s, color .15s; }
+.orient-team:hover:not(:disabled) { border-color: var(--ink, #0c0c0c); }
+.orient-team.is-on { background: #e62b1e; border-color: #e62b1e; color: #fff; }
+.orient-team:disabled { opacity: .4; cursor: not-allowed; }
+.orient-faq summary { list-style: none; display: flex; justify-content: space-between; gap: 12px; }
+.orient-faq summary::-webkit-details-marker { display: none; }
+.orient-faq summary::after { content: '+'; color: #e62b1e; font-weight: 700; }
+.orient-faq[open] summary::after { content: '–'; }
