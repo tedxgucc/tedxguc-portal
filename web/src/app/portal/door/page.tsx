@@ -167,12 +167,16 @@ function DoorInner() {
           <div className="tx-card grid gap-s4" aria-live="assertive">
             <QrScanner active={camera} onCode={handleCode} />
             {shown && (
-              <div className="tx-checkin py-s4">
-                <div className={`tx-checkin__stamp ${shown.kind === 'bad' ? 'is-bad' : shown.kind === 'again' ? 'is-warn' : ''}`}>
-                  {shown.kind === 'ok' ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg> : <X aria-hidden="true" />}
+              // Full-screen result over the camera, so the door team sees it at a glance. Tap to close early.
+              <div className={'door-result door-result--' + shown.kind} role="status" onClick={() => setShown(null)}>
+                <div className="door-result__card">
+                  <div className="door-result__icon" aria-hidden="true">
+                    {shown.kind === 'ok' ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M20 6 9 17l-5-5" /></svg> : <X />}
+                  </div>
+                  <div className="door-result__title">{shown.title}</div>
+                  {shown.detail && <p className="door-result__detail">{shown.detail}</p>}
+                  <span className="door-result__hint">Tap to keep scanning</span>
                 </div>
-                <div className="tx-checkin__t">{shown.title}</div>
-                <p className="text-ink-2">{shown.detail}</p>
               </div>
             )}
             {!camera && !shown && (
