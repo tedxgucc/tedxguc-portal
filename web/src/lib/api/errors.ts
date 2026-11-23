@@ -3,6 +3,8 @@ import { ApiError } from './types';
 // Database error codes → microcopy in the design system's voice
 // (short, no exclamation marks, says how to fix it).
 const messages: Record<string, string> = {
+  cannot_reset_yourself: 'Change your own password from your profile.',
+  no_invite: 'This member has no active invite, so they can’t set a new password from the login page. Invite them again first.',
   orientation_not_found: 'We could not find that orientation day.',
   orientation_over: 'That orientation day has already passed.',
   invalid_guc_id: 'Enter your GUC ID, like 58-12345.',

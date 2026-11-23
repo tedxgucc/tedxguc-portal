@@ -366,6 +366,11 @@ export const demoApi: Api = {
     if (member!.team_id === teamId) Object.assign(member!, { team_id: null, team: null });
     save();
   },
+  async resetMemberLogin(userId) {
+    const actor = requireMe();
+    if (actor.role !== 'chairman') fail('not_allowed');
+    if (userId === actor.id) fail('cannot_reset_yourself');
+  },
   async deleteMember(userId) {
     const actor = requireMe();
     if (actor.role !== 'chairman') fail('not_allowed');

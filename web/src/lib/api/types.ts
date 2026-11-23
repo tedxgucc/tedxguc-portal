@@ -115,6 +115,8 @@ export interface Api {
   addTeamMember(teamId: string, userId: string): Promise<void>;
   removeTeamMember(teamId: string, userId: string): Promise<void>;
   deleteMember(userId: string): Promise<void>;
+  /** Chairman: clear the password so the member uses "Set your password" again. */
+  resetMemberLogin(userId: string): Promise<void>;
   listInvites(): Promise<Invite[]>;
   createInvite(input: { email: string; role: Role; team_id?: string | null; division_id?: string | null }): Promise<void>;
   revokeInvite(id: string): Promise<void>;

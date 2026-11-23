@@ -17,6 +17,9 @@ create table auth.users (
   encrypted_password text
 );
 
+create table auth.sessions (id uuid primary key default gen_random_uuid(), user_id uuid);
+create table auth.refresh_tokens (id bigserial primary key, user_id text);
+
 create table auth.identities (
   id       uuid primary key default gen_random_uuid(),
   user_id  uuid not null references auth.users (id) on delete cascade,

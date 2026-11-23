@@ -1,7 +1,7 @@
 'use client';
 // Team (FR-3.5 org chart, member directory, FR-2.3 invites).
 // Phone numbers never show here; they live in a separate, locked table.
-import { Search, Trash2, UserCog, UserPlus, UserX, X } from 'lucide-react';
+import { KeyRound, Search, Trash2, UserCog, UserPlus, UserX, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { PageTitle, SectionHeading } from '@/components/Brand';
 import { RequestChangeModal } from '@/components/portal/admin/PeopleTabs';
@@ -27,9 +27,11 @@ export default function TeamPage() {
   const [removeError, setRemoveError] = useState<string | null>(null);
   const [removed, setRemoved] = useState(false);
   const [deleting, setDeleting] = useState<Member | null>(null);
+  const [resetting, setResetting] = useState<Member | null>(null);
+  const [resetBusy, setResetBusy] = useState(false);
   const [deleteBusy, setDeleteBusy] = useState(false);
   const canDelete = (m: Member) => me.role === 'chairman' && m.user_id !== me.id;
-  const delBtn = (m: Member) => canDelete(m) && <button type="button" className="tx-iconbtn shrink-0" title={`Delete ${m.name} from the club`} aria-label={`Delete ${m.name} from the club`} onClick={() => setDeleting(m)}><UserX size={16} aria-hidden="true" /></button>;
+  const delBtn = (m: Member) => canDelete(m) && <><button type="button" className="tx-iconbtn shrink-0" title={`Reset ${m.name}'s login`} aria-label={`Reset ${m.name}'s login`} onClick={() => setResetting(m)}><KeyRound size={16} aria-hidden="true" /></button><button type="button" className="tx-iconbtn shrink-0" title={`Delete ${m.name} from the club`} aria-label={`Delete ${m.name} from the club`} onClick={() => setDeleting(m)}><UserX size={16} aria-hidden="true" /></button></>;
   // Curators ask the Chairman to promote, move or remove people in their division (FR-3.6).
   const canRequest = (m: Member) => me.role === 'curator' && ['executive', 'associate'].includes(m.role) && m.division_id === me.division_id && m.user_id !== me.id;
   const canInvite = me.role === 'chairman' || me.role === 'curator';
@@ -159,6 +161,15 @@ export default function TeamPage() {
           catch (e) { toast('bad', 'Couldn’t delete.', (e as Error).message); } finally { setDeleteBusy(false); }
         }}>Delete member</Button></>}>
         <p><b>{deleting?.name}</b> will lose access to the portal and be taken off every team and open task. Their past work (files, tasks, money records) stays. You can invite them again later.</p>
+      </Modal>
+      <Modal open={!!resetting} onClose={() => { if (!resetBusy) setResetting(null); }} title={`Reset ${resetting?.name ?? 'member'}'s login?`}
+        actions={<><Button variant="secondary" disabled={resetBusy} onClick={() => setResetting(null)}>Cancel</Button><Button loading={resetBusy} onClick={async () => {
+          if (!resetting) return;
+          setResetBusy(true);
+          try { await api.resetMemberLogin(resetting.user_id); toast('ok', 'Login reset.', `Tell ${resetting.name} to open the portal login, tap “Set your password” and use their email.`); setResetting(null); }
+          catch (e) { toast('bad', 'Couldn’t reset.', (e as Error).message); } finally { setResetBusy(false); }
+        }}>Reset login</Button></>}>
+        <p>Their current password stops working and they're signed out everywhere. They then choose a new one with <b>Set your password</b> on the login page. Their role, teams and work stay as they are.</p>
       </Modal>
       {canInvite && <InviteModal open={inviting} onClose={() => setInviting(false)} onSent={() => { setInviting(false); loadInvites(); }} />}
     </>

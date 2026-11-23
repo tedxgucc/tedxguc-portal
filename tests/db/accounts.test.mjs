@@ -180,3 +180,13 @@ test('an invited account opened once by link but with no password can still be c
   await db.q(`insert into auth.identities(user_id,provider) values ($1,'google')`, [id]);
   assert.equal(await claim(), null);
 });
+
+test('only the Chairman can reset a member login, which makes it claimable again', async () => {
+  const id = await db.member('associate', 'partnerships');
+  const email = (await db.one(`select email from auth.users where id=$1`, [id])).email;
+  await db.q(`update auth.users set encrypted_password='hash' where id=$1`, [id]);
+  await rejects(db.as(coachingExec, ({ q }) => q(`select reset_member_login($1)`, [id])), /not_allowed/);
+  await db.as(chairman, ({ q }) => q(`select reset_member_login($1)`, [id]));
+  const r = await db.as('service', ({ one }) => one(`select invited_account_to_claim($1) as id`, [email]));
+  assert.equal(r.id, id);
+});

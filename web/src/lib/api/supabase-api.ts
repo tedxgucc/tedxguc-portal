@@ -219,6 +219,9 @@ export const supabaseApi: Api = {
   async removeTeamMember(teamId, userId) {
     await run(db().rpc('remove_team_member', { p_team_id: teamId, p_user_id: userId }));
   },
+  async resetMemberLogin(userId) {
+    await run(db().rpc('reset_member_login', { p_user_id: userId }));
+  },
   async deleteMember(userId) {
     await run(db().rpc('delete_member', { p_user_id: userId }));
   },
