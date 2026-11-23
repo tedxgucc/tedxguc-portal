@@ -11,6 +11,8 @@
 //   POST { action: 'apply', cycle_id, name, email, phone?, team_ids, answers?, cv_path?, consent: true, turnstile_token }
 //   Orientation (before an associates round; GUC student emails only)
 //   POST { action: 'orientation', day_id, name, guc_id, email, team_ids, consent: true, turnstile_token }
+//   Portal access: first password for an invited account made before the member set one
+//   POST { action: 'claim_invite', email, password }
 //   Packages (FR-16)
 //   POST { action: 'submit_proof', status_token, proof_path?, reference? }
 //   POST { action: 'cancel_order', status_token }
@@ -167,6 +169,19 @@ Deno.serve(handle(async (req) => {
       if (error) throw fromDbError(error);
       await sendApplicationNotice({ ...data, stage: 'applied' }, data.status_token);
       return json({ ok: true, status_token: data.status_token });
+    }
+
+    case 'claim_invite': {
+      const email = str(body.email, 254).toLowerCase();
+      const password = typeof body.password === 'string' ? body.password : '';
+      await limit(`claim:${email}`, 5, 3600);
+      if (password.length < 8 || password.length > 72) throw new HttpError(400, 'weak_password', 'Use 8 to 72 characters.');
+      const { data: id, error } = await admin.rpc('invited_account_to_claim', { p_email: email });
+      if (error) throw fromDbError(error);
+      if (!id) throw new HttpError(409, 'account_exists', 'This email already has a password. Sign in, or use "Forgot password".');
+      const { error: upd } = await admin.auth.admin.updateUserById(id, { password, email_confirm: true });
+      if (upd) throw new HttpError(502, 'claim_failed', 'Could not set your password. Please try again.');
+      return json({ ok: true });
     }
 
     case 'orientation': {

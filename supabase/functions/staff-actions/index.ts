@@ -46,8 +46,12 @@ async function sendInvite(db: Db, inviteId: string, applicantName?: string) {
     return { existing_member: true };
   }
   if (!applicantName) {
-    const { error } = await admin.auth.admin.inviteUserByEmail(invite.email, { redirectTo: `${siteUrl}/auth/callback` });
-    if (error) throw new HttpError(502, 'invite_email_failed', 'The invite is saved, but the email could not be sent. Try again later.');
+    // No login account yet: the member creates it with "Set your password"
+    // on the login page, and the invite applies their role then.
+    await sendPlain(invite.email, 'You are invited to the TEDxGUC portal',
+      `You have been added to this season's TEDxGUC team.
+
+Open ${siteUrl}/login, tap "Set your password" and use this email address. The invite works for 7 days.`).catch((e) => console.error('invite email', e));
     return { existing_member: false };
   }
   // Creating the invitation account runs handle_new_auth_user, which adds

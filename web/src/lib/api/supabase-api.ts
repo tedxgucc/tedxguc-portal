@@ -141,6 +141,13 @@ export const supabaseApi: Api = {
   },
   async signUpWithEmail(email, password) {
     const { data, error } = await db().auth.signUp({ email, password, options: { emailRedirectTo: `${window.location.origin}${BASE_PATH}/auth/callback` } });
+    if (error && /already registered/i.test(error.message)) {
+      // Invited before setting a password: the account exists without one.
+      await invoke('public-forms', { action: 'claim_invite', email, password });
+      const { error: signInError } = await db().auth.signInWithPassword({ email, password });
+      if (signInError) throw new ApiError('login_failed', 'Your password is set. Sign in with it now.');
+      return true;
+    }
     if (error) throw toApiError(error);
     return !!data.session;
   },

@@ -160,3 +160,13 @@ test('season rollover: old members become alumni; history stays readable', async
   const seen = await fresh.as(oldChair, ({ q }) => q(`select * from memberships`));
   assert.ok(seen.length >= 3);
 });
+
+test('an invited account with no password and no sign-in can be claimed once', async () => {
+  const id = await db.member('associate', 'media_design');
+  const email = (await db.one(`select email from auth.users where id=$1`, [id])).email;
+  const claim = () => db.as('service', ({ one }) => one(`select invited_account_to_claim($1) as id`, [email])).then((r) => r.id);
+  assert.equal(await claim(), id);
+  await db.q(`update auth.users set encrypted_password='hash' where id=$1`, [id]);
+  assert.equal(await claim(), null);
+  await rejects(db.as('anon', ({ one }) => one(`select invited_account_to_claim($1)`, [email])), /permission denied/);
+});
