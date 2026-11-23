@@ -170,3 +170,13 @@ test('an invited account with no password and no sign-in can be claimed once', a
   assert.equal(await claim(), null);
   await rejects(db.as('anon', ({ one }) => one(`select invited_account_to_claim($1)`, [email])), /permission denied/);
 });
+
+test('an invited account opened once by link but with no password can still be claimed; Google accounts cannot', async () => {
+  const id = await db.member('associate', 'coaching');
+  const email = (await db.one(`select email from auth.users where id=$1`, [id])).email;
+  const claim = () => db.as('service', ({ one }) => one(`select invited_account_to_claim($1) as id`, [email])).then((r) => r.id);
+  await db.q(`update auth.users set last_sign_in_at=now() where id=$1`, [id]);
+  assert.equal(await claim(), id);
+  await db.q(`insert into auth.identities(user_id,provider) values ($1,'google')`, [id]);
+  assert.equal(await claim(), null);
+});

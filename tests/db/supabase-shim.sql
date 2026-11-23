@@ -17,6 +17,12 @@ create table auth.users (
   encrypted_password text
 );
 
+create table auth.identities (
+  id       uuid primary key default gen_random_uuid(),
+  user_id  uuid not null references auth.users (id) on delete cascade,
+  provider text not null
+);
+
 create function auth.uid() returns uuid language sql stable as $$
   select nullif(
     coalesce(
