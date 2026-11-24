@@ -159,3 +159,33 @@ a { color: inherit; }
 .tx-tabbar a.is-on { position: relative; color: var(--ink); box-shadow: none; }
 .tx-tabbar a.is-on::before { content: ""; position: absolute; top: 4px; left: 50%; width: 6px; height: 6px; margin-left: -3px; border-radius: 50%; background: var(--accent); }
 
+
+/* Month grid: entries stay inside their day and cut off with "…" instead of spilling into the next day. */
+.tx-month > div { grid-template-columns: minmax(0, 1fr); overflow: hidden; }
+.tx-month .tx-pill { min-width: 0; max-width: 100%; }
+.tx-month .tx-pill > .truncate { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Money tiles size their numbers to the tile, so big totals never run out of the card. */
+.tx-kpi { container-type: inline-size; min-width: 0; }
+.tx-kpi .money { font-size: clamp(16px, 9cqi, 24px); line-height: 1.2; }
+/* Long section titles wrap inside their heading instead of running over what sits next to them. */
+.tx-heading > span { min-width: 0; overflow-wrap: anywhere; }
+/* Portal: a plain one-column grid never grows wider than the screen because of long
+   content (names, chips, buttons). Layouts that set their own columns keep them. */
+:where(.tx-shell main .grid:not(.tx-board):not(.tx-seg)) { grid-template-columns: minmax(0, 1fr); }
+
+/* Tab bars: labels stay on one line; on narrow screens the bar scrolls sideways instead of squeezing. */
+.tx-seg { grid-auto-columns: minmax(max-content, 1fr); overflow-x: auto; scrollbar-width: none; max-width: 100%; }
+.tx-seg::-webkit-scrollbar { display: none; }
+.tx-seg button { white-space: nowrap; padding: 0 14px; }
+@media (max-width: 640px) { .tx-seg button { font-size: 12px; letter-spacing: .04em; padding: 0 12px; } }
+
+/* Buttons and chips never wrap their label. */
+.tx-btn, .tx-chip, .tx-tag { white-space: nowrap; }
+
+/* Tables (always inside a sideways scroller): give columns room instead of crushing text into 5-line cells. */
+.tx-table th { white-space: nowrap; }
+.tx-table td { min-width: 7rem; }
+.tx-table td.tx-strong, .tx-table td:first-child { min-width: 14rem; }
+.tx-table td.tx-amt, .tx-table td:has(> input[type=checkbox]), .tx-table td:has(> .tx-iconbtn), .tx-table td:has(> button:only-child) { min-width: 0; }
+.overflow-x-auto:has(.tx-seg) { scrollbar-width: none; }
+.overflow-x-auto:has(.tx-seg)::-webkit-scrollbar { display: none; }

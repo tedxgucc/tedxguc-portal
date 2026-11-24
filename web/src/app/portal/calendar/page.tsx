@@ -143,7 +143,7 @@ function FeedLinkButton() {
         actions={<><Button variant="secondary" onClick={() => setOpen(false)}>Close</Button>
           <Button onClick={() => { navigator.clipboard?.writeText(link ?? ''); toast('ok', 'Link copied.'); }}>Copy link</Button></>}>
         <p className="text-ink-2 mb-s3">In Google Calendar choose “From URL”; on iPhone go to Settings → Calendar → Accounts → Add subscribed calendar. Keep this link private: anyone with it sees your calendar.</p>
-        <p className="code break-all bg-surface-2 p-s3">{link}</p>
+        <p className="code [overflow-wrap:anywhere] bg-surface-2 p-s3">{link}</p>
         <p className="text-caption text-ink-3 mt-s2">Making a new link turns the old one off.</p>
       </Modal>
     </>

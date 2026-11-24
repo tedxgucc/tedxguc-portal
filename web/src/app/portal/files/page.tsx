@@ -82,7 +82,7 @@ function Library() {
         <div className="grid gap-s5">
           {groups.map(([k, list]) => (
             <section key={k} className="grid gap-s2" aria-label={k}>
-              <h2 className="tx-label flex items-center gap-s1"><FolderOpen size={14} aria-hidden="true" />{k} <b>({String(list.length).padStart(2, '0')})</b></h2>
+              <h2 className="tx-label flex items-start gap-s1"><FolderOpen size={14} aria-hidden="true" className="shrink-0 mt-[1px]" /><span className="min-w-0 flex-1">{k} <b>({String(list.length).padStart(2, '0')})</b></span></h2>
               <ul className="grid gap-s1">
                 {list.map((f) => {
                   const writable = canWrite(me, teams, f);

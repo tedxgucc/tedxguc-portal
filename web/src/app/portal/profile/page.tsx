@@ -92,7 +92,7 @@ export default function ProfilePage() {
               <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(e) => { pickPhoto(e.target.files?.[0]); e.target.value = ''; }} />
             </div>
             <div className="min-w-0">
-              <div className="font-semibold break-all">{me.email}</div>
+              <div className="font-semibold [overflow-wrap:anywhere]">{me.email}</div>
               <div className="flex flex-wrap gap-s2 mt-s1">
                 {me.role && <span className="tx-chip tx-chip--soft">{roleLabel[me.role]}</span>}
                 {(me.team_name || me.division_name) && <DivTag kind={me.division_kind}>{me.team_name ?? me.division_name}</DivTag>}

@@ -64,7 +64,7 @@ export default function InboxPage() {
               </div>
               <p className="whitespace-pre-line">{r.message}</p>
               <div className="flex flex-wrap items-center gap-x-s4 gap-y-s1 text-body-sm">
-                <a href={`mailto:${r.email}?subject=${subject(r)}`} className="inline-flex items-center gap-s1 break-all"><Mail size={16} aria-hidden="true" />{r.email}</a>
+                <a href={`mailto:${r.email}?subject=${subject(r)}`} className="inline-flex items-center gap-s1 [overflow-wrap:anywhere]"><Mail size={16} aria-hidden="true" />{r.email}</a>
                 {r.phone && <a href={`tel:${r.phone.replace(/\s+/g, '')}`} className="inline-flex items-center gap-s1"><Phone size={16} aria-hidden="true" />{r.phone}</a>}
               </div>
               <div className="flex flex-wrap items-center gap-s2">

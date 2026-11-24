@@ -207,7 +207,7 @@ function ApplicantSheet({ app, positions, decides, onClose, onChanged, onMove }:
       <div className="grid gap-s4">
         <div className="flex flex-wrap items-center gap-s2">{stageChip(app.stage)}{app.accepted_team_id && <span className="tx-chip tx-chip--soft">{team(app.accepted_team_id)?.name}</span>}</div>
         <dl className="grid grid-cols-[90px_minmax(0,1fr)] gap-x-s3 gap-y-s1 text-body-sm">
-          <dt className="tx-label pt-[2px]">Email</dt><dd className="break-all">{app.applicant_email}</dd>
+          <dt className="tx-label pt-[2px]">Email</dt><dd className="[overflow-wrap:anywhere]">{app.applicant_email}</dd>
           {app.applicant_phone && <><dt className="tx-label pt-[2px]">Phone</dt><dd>{app.applicant_phone}</dd></>}
           {app.answers.guc_id && <><dt className="tx-label pt-[2px]">GUC ID</dt><dd>{app.answers.guc_id}</dd></>}
           {app.answers.major && <><dt className="tx-label pt-[2px]">Major</dt><dd>{app.answers.major}</dd></>}
@@ -220,7 +220,7 @@ function ApplicantSheet({ app, positions, decides, onClose, onChanged, onMove }:
             <div key={q.id} className="grid gap-s1">
               <div className="tx-label">{q.label}</div>
               {app.answers[q.id]
-                ? (q.kind === 'url' ? <a href={app.answers[q.id]} target="_blank" rel="noopener noreferrer" className="tx-link inline-flex items-center gap-s1 break-all"><ExternalLink size={14} aria-hidden="true" />{app.answers[q.id]}</a>
+                ? (q.kind === 'url' ? <a href={app.answers[q.id]} target="_blank" rel="noopener noreferrer" className="tx-link inline-flex items-center gap-s1 [overflow-wrap:anywhere]"><ExternalLink size={14} aria-hidden="true" />{app.answers[q.id]}</a>
                   : <p className="text-ink-2 whitespace-pre-line">{app.answers[q.id]}</p>)
                 : <p className="text-ink-3">No answer</p>}
             </div>

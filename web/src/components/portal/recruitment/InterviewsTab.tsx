@@ -104,7 +104,7 @@ export function InterviewsTab() {
                   <dt className="tx-label pt-[2px]">Name</dt><dd className="font-semibold">{a.applicant_name}</dd>
                   {a.answers.guc_id && <><dt className="tx-label pt-[2px]">GUC ID</dt><dd>{a.answers.guc_id}</dd></>}
                   {a.answers.major && <><dt className="tx-label pt-[2px]">Major</dt><dd>{a.answers.major}</dd></>}
-                  <dt className="tx-label pt-[2px]">Email</dt><dd className="break-all">{a.applicant_email}</dd>
+                  <dt className="tx-label pt-[2px]">Email</dt><dd className="[overflow-wrap:anywhere]">{a.applicant_email}</dd>
                   {a.applicant_phone && <><dt className="tx-label pt-[2px]">Phone</dt><dd>{a.applicant_phone}</dd></>}
                   <dt className="tx-label pt-[2px]">1st choice</dt><dd>{team(a.team_choices[0])?.name}</dd>
                   <dt className="tx-label pt-[2px]">2nd</dt><dd>{a.team_choices[1] ? team(a.team_choices[1])?.name : 'None'}</dd>

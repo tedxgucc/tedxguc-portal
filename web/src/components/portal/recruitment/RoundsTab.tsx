@@ -40,12 +40,12 @@ export function RoundsTab() {
       {cycles === null ? <Skeleton h={160} /> : cycles.length === 0 ? <EmptyState title="No rounds yet." /> : (
         <ul className="grid gap-s2">
           {cycles.map((c) => (
-            <li key={c.id} className="tx-card grid grid-cols-[minmax(0,1fr)_auto] gap-s3 items-center" style={{ padding: '12px 16px' }}>
+            <li key={c.id} className="tx-card grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] gap-s3 items-center" style={{ padding: '12px 16px' }}>
               <span className="grid grid-cols-1 min-w-0">
                 <span className="font-semibold truncate">{c.name}</span>
                 <span className="text-caption text-ink-3">{c.kind === 'board' ? 'Board' : 'Associates'} · {fmtDate(c.opens_at)} – {fmtDate(c.closes_at)}{c.rejections_released_at ? ' · rejections sent' : ''}</span>
               </span>
-              <span className="flex items-center gap-s2">{state(c)}<button className="tx-iconbtn" aria-label={`Edit ${c.name}`} onClick={() => setEditing(c)}><Pencil size={18} /></button><Button small variant="danger" aria-label={'Delete ' + c.name} onClick={() => { setDeleteError(null); setDeleting(c); }}><Trash2 size={16} aria-hidden="true" />Delete</Button></span>
+              <span className="flex flex-wrap items-center gap-s2">{state(c)}<button className="tx-iconbtn" aria-label={`Edit ${c.name}`} onClick={() => setEditing(c)}><Pencil size={18} /></button><Button small variant="danger" aria-label={'Delete ' + c.name} onClick={() => { setDeleteError(null); setDeleting(c); }}><Trash2 size={16} aria-hidden="true" />Delete</Button></span>
             </li>
           ))}
         </ul>

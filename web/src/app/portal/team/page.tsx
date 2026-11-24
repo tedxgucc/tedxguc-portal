@@ -72,8 +72,8 @@ export default function TeamPage() {
           return (
             <section key={d.id} className="grid gap-s4" aria-labelledby={`dv-${d.id}`}>
               <div className="flex items-center gap-s3 flex-wrap">
-                <SectionHeading as="h3" className="flex-1"><span id={`dv-${d.id}`}>{d.name}</span></SectionHeading>
-                {curator && <span className="flex items-center gap-s2 text-body-sm"><Avatar name={curator.name} photo={curator.photo_url} small />{curator.name} · Curator{delBtn(curator)}</span>}
+                <SectionHeading as="h3" className="basis-full sm:basis-0 flex-1"><span id={`dv-${d.id}`}>{d.name}</span></SectionHeading>
+                {curator && <span className="flex items-center gap-s2 text-body-sm min-w-0 max-w-full"><Avatar name={curator.name} photo={curator.photo_url} small /><span className="truncate min-w-0">{curator.name} · Curator</span><span className="flex items-center shrink-0">{delBtn(curator)}</span></span>}
               </div>
               <div className="grid gap-s4 md:grid-cols-2">
                 {dTeams.map((t) => {
@@ -89,13 +89,14 @@ export default function TeamPage() {
                       {!people.length && <p className="text-body-sm text-ink-3">{q.trim() ? 'No members match your search.' : 'No members yet. Add an existing club member to this team.'}</p>}
                       <ul className="grid gap-s2">
                         {people.map((m) => (
-                          <li key={m.user_id} className="flex items-center gap-s3">
+                          <li key={m.user_id} className="flex items-center gap-s2">
                             <Avatar name={m.name} small photo={m.photo_url} />
-                            <span className="flex-1 min-w-0 break-words">{m.name}</span>
-                            <span className="text-caption text-ink-3">{roleLabel[m.role]}</span>
+                            <span className="grid flex-1 min-w-0 leading-tight"><span className="truncate font-medium">{m.name}</span><span className="text-caption text-ink-3 truncate">{roleLabel[m.role]}</span></span>
+                            <span className="flex items-center shrink-0">
                             {canRequest(m) && <button type="button" className="tx-iconbtn" aria-label={`Request a role change for ${m.name}`} onClick={() => setChanging(m)}><UserCog size={16} /></button>}
                             {canManageTeamMember(me, t, m, 'remove', teams) && <button type="button" className="tx-iconbtn shrink-0" title={`Remove ${m.name} from ${t.name}`} aria-label={`Remove ${m.name} from ${t.name}`} onClick={() => { setRemoveError(null); setRemoved(false); setRemoving({ member: m, team: t }); }}><Trash2 size={16} aria-hidden="true" /></button>}
                             {delBtn(m)}
+                            </span>
                           </li>
                         ))}
                       </ul>
@@ -123,7 +124,7 @@ export default function TeamPage() {
             <tbody>
               {openInvites.map((i) => (
                 <tr key={i.id}>
-                  <td className="tx-strong break-all">{i.email}<div className="sm:hidden text-caption text-ink-3">{roleLabel[i.role]} · expires {fmtShortDate(i.expires_at)}</div></td>
+                  <td className="tx-strong [overflow-wrap:anywhere]">{i.email}<div className="sm:hidden text-caption text-ink-3">{roleLabel[i.role]} · expires {fmtShortDate(i.expires_at)}</div></td>
                   <td className="hidden sm:table-cell">{roleLabel[i.role]}{i.team_id ? ` · ${teams.find((t) => t.id === i.team_id)?.name}` : ''}</td>
                   <td className="hidden sm:table-cell">{fmtShortDate(i.expires_at)}</td>
                   <td className="text-right">
