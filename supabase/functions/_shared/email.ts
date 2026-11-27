@@ -3,7 +3,7 @@
 // local development.
 import QRCode from 'npm:qrcode@1.5.4';
 import {
-  applicationEmail, escapeHtml, orderConfirmedEmail, orderPlacedEmail, orderRejectedEmail,
+  applicationEmail, noticeEmail, orderConfirmedEmail, orderPlacedEmail, orderRejectedEmail,
   statusLinkEmail, ticketEmail, waitlistEmail,
   type ApplicationNotice, type OrderDetails, type TicketDetails,
 } from './templates.ts';
@@ -78,6 +78,23 @@ export async function sendOrderRejected(o: OrderDetails) {
   await send(o.buyer_email, mail.subject, mail.html, mail.text);
 }
 
-export async function sendPlain(to: string, subject: string, text: string) {
-  await send(to, subject, `<pre style="font-family:inherit;white-space:pre-wrap">${escapeHtml(text)}</pre>`, text);
+// Short notices (invites, orientation, contact messages) in the branded layout.
+// Paragraphs are separated by blank lines; a paragraph ending in a link becomes
+// the red button, so the wording at the call sites stays plain text.
+export function plainToNotice(subject: string, text: string, kicker = 'TEDxGUC') {
+  const paragraphs = text.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
+  let button: { label: string; url: string } | undefined;
+  const linkAt = paragraphs.findIndex((p) => /https?:\/\/\S+\s*$/.test(p));
+  if (linkAt >= 0) {
+    const m = paragraphs[linkAt].match(/^([\s\S]*?)(https?:\/\/\S+)\s*$/)!;
+    const lead = m[1].replace(/[:\s]+$/, '').trim();
+    button = { label: /portal|log in|login|set up/i.test(lead + ' ' + m[2]) ? 'Open the portal' : 'Open link', url: m[2] };
+    if (lead.length > 30) paragraphs[linkAt] = lead + '.'; else paragraphs.splice(linkAt, 1);
+  }
+  return noticeEmail({ kicker, title: subject, paragraphs: paragraphs.map((p) => p.replace(/\n/g, ' ')), button });
+}
+
+export async function sendPlain(to: string, subject: string, text: string, kicker = 'TEDxGUC') {
+  const mail = plainToNotice(subject, text, kicker);
+  await send(to, subject, mail.html, mail.text);
 }

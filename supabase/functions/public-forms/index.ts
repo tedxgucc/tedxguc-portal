@@ -118,7 +118,7 @@ Deno.serve(handle(async (req) => {
       const inbox = Deno.env.get('INQUIRY_INBOX');
       if (inbox) {
         await sendPlain(inbox, `New ${kind} message from ${row.name}`,
-          `${row.name} <${row.email}>${row.company ? ` · ${row.company}` : ''}\n\n${row.message}`);
+          `${row.name} <${row.email}>${row.company ? ` · ${row.company}` : ''}\n\n${row.message}`, kind === 'partner' ? 'Partnership message' : 'Website message');
       }
       return json({ ok: true });
     }
@@ -203,7 +203,7 @@ You're signed up for the TEDxGUC orientation on ${when}${data.location ? ' at ' 
 We'll introduce TEDx, the club and every team, so you can choose where to apply when associates recruitment opens. Bring your GUC ID.
 
 See you there,
-TEDxGUC`).catch((e) => console.error('orientation email', e));
+TEDxGUC`, 'Orientation').catch((e) => console.error('orientation email', e));
       return json({ ok: true, ...data });
     }
 

@@ -38,11 +38,13 @@ async function sendInvite(db: Db, inviteId: string, applicantName?: string) {
       });
       if (error) throw new HttpError(502, 'access_link_failed', 'The Associate is already on the team, but their access link could not be generated. Retry to resend it.');
       await sendPlain(invite.email, 'Welcome to the TEDxGUC team',
-        `Your team membership is active. Open your portal here:\n${data.properties.action_link}`);
+        `Your team membership is active. Open your portal here:\n${data.properties.action_link}`, 'Welcome');
       return { existing_member: true };
     }
     await sendPlain(invite.email, 'You have a new role in TEDxGUC',
-      `You have been added to this season's team. Log in at ${siteUrl}/login to see your dashboard.`);
+      `You have been added to this season's team.
+
+Log in to see your dashboard: ${siteUrl}/login`, 'New role');
     return { existing_member: true };
   }
   if (!applicantName) {
@@ -51,7 +53,9 @@ async function sendInvite(db: Db, inviteId: string, applicantName?: string) {
     await sendPlain(invite.email, 'You are invited to the TEDxGUC portal',
       `You have been added to this season's TEDxGUC team.
 
-Open ${siteUrl}/login, tap "Set your password" and use this email address. The invite works for 7 days.`).catch((e) => console.error('invite email', e));
+On the login page, tap "Set your password" and use this email address. The invite works for 7 days.
+
+Log in here: ${siteUrl}/login`, 'Portal invite').catch((e) => console.error('invite email', e));
     return { existing_member: false };
   }
   // Creating the invitation account runs handle_new_auth_user, which adds
@@ -65,7 +69,7 @@ Open ${siteUrl}/login, tap "Set your password" and use this email address. The i
     throw new HttpError(502, 'member_creation_failed', 'The acceptance is saved, but the team account could not be created. Retry acceptance to finish adding the Associate.');
   }
   await sendPlain(invite.email, 'Welcome to the TEDxGUC team',
-    `You have been added to this season's team. Set up your portal access here:\n${account.properties.action_link}`);
+    `You have been added to this season's team. Set up your portal access here:\n${account.properties.action_link}`, 'Welcome');
   return { existing_member: false };
 }
 
