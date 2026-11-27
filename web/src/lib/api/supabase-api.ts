@@ -1,5 +1,6 @@
 // The real API: Supabase tables (under row-level security), database
 // functions (rpc) and server functions (functions.invoke).
+import { shrinkImage } from '../shrink-image';
 import { db } from '../supabase';
 import { ALLOWED_DOMAINS, BASE_PATH } from '../env';
 import type {
@@ -177,7 +178,8 @@ export const supabaseApi: Api = {
     if (Object.keys(rest).length) await run(db().from('users').update(rest).eq('id', id));
     if (phone !== undefined) await run(db().from('user_private').update({ phone }).eq('user_id', id));
   },
-  async uploadAvatar(file) {
+  async uploadAvatar(original) {
+    const file = await shrinkImage(original, 600);
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) throw new ApiError('invalid_image', 'Use a JPG, PNG or WebP photo.');
     if (file.size > 2 * 1024 * 1024) throw new ApiError('invalid_image', 'Keep your photo under 2 MB.');
     const path = `${await uid()}/${crypto.randomUUID()}.${file.type.split('/')[1].replace('jpeg', 'jpg')}`;

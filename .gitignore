@@ -9,3 +9,4 @@ web/.env.local
 .claude/
 .pages-preview/
 web/out/
+backups/

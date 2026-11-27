@@ -1,6 +1,7 @@
 // Admin API: Chairman settings, structure, season rollover, role changes,
 // audit log (FR-3, FR-14); site sections (FR-1.4); inquiries (FR-1.6);
 // event questions, door staff and run of show (FR-5).
+import { shrinkImage } from '../shrink-image';
 import { DEMO } from '../env';
 import { db } from '../supabase';
 import type { DivisionKind, EventField, Role, Speaker, TeamKind } from '../types';
@@ -184,7 +185,9 @@ const liveAdmin: AdminApi = {
   async deleteRunItem(id) {
     await run(db().from('run_of_show').delete().eq('id', id));
   },
-  async uploadImage(file, folder) {
+  async uploadImage(original, folder) {
+    // Shrink first, so big phone and camera photos are accepted and served small.
+    const file = await shrinkImage(original, folder.includes('speaker') || folder.includes('board') ? 900 : 1600);
     checkImage(file);
     const path = `${folder}/${crypto.randomUUID()}.${file.type.split('/')[1].replace('jpeg', 'jpg')}`;
     const { error } = await db().storage.from('site').upload(path, file, { contentType: file.type });
