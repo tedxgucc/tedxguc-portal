@@ -25,21 +25,21 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#ffffff',
+  themeColor: '#000000',
   width: 'device-width',
   initialScale: 1,
 };
 
 // Runs before paint so the page never flashes the wrong theme
 // (design system: "10 · Tokens as code → Theme switching").
-const themeScript = `(function(){try{var s=localStorage.getItem('tx-theme');var t=s==='dark'?'dark':s==='auto'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):'light';document.documentElement.dataset.theme=t;document.querySelector('meta[name="theme-color"]')?.setAttribute('content',t==='light'?'#ffffff':'#000000');if(localStorage.getItem('tx-nav')==='closed')document.documentElement.dataset.nav='closed';}catch(e){document.documentElement.dataset.theme='light';}})();`;
+const themeScript = `(function(){try{var s=localStorage.getItem('tx-theme');var t=s==='light'?'light':s==='auto'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):'dark';document.documentElement.dataset.theme=t;document.querySelector('meta[name="theme-color"]')?.setAttribute('content',t==='light'?'#ffffff':'#000000');if(localStorage.getItem('tx-nav')==='closed')document.documentElement.dataset.nav='closed';}catch(e){document.documentElement.dataset.theme='dark';}})();`;
 
 // Decide the homepage intro before paint; returning visits and reduced motion skip it.
 const introScript = `(function(){try{var base=${JSON.stringify(BASE_PATH)};var path=location.pathname.slice(base.length).replace(/\\/+$/, '')||'/';var portal=path==='/login'||path==='/portal'||path.indexOf('/portal/')===0;var mode=portal?'portal':'';if(path==='/'){if(sessionStorage.getItem('tx-intro-seen'))document.documentElement.classList.add('rd-quiet');else sessionStorage.setItem('tx-intro-seen','1');}var key=portal?'tx-portal-intro-seen':'tx-intro-seen';if(mode&&!sessionStorage.getItem(key)&&!matchMedia('(prefers-reduced-motion: reduce)').matches){document.documentElement.dataset.introMode=mode;document.documentElement.dataset.introStarted=String(performance.now());document.documentElement.classList.add('intro-playing');}else{document.documentElement.classList.add('intro-done');}}catch(e){}})();`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" data-theme="light" className={`${archivo.variable} ${mono.variable}`} suppressHydrationWarning>
+    <html lang="en" data-theme="dark" className={`${archivo.variable} ${mono.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <script dangerouslySetInnerHTML={{ __html: introScript }} />
