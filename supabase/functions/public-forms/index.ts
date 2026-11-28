@@ -118,7 +118,7 @@ Deno.serve(handle(async (req) => {
       const inbox = Deno.env.get('INQUIRY_INBOX');
       if (inbox) {
         await sendPlain(inbox, `New ${kind} message from ${row.name}`,
-          `${row.name} <${row.email}>${row.company ? ` · ${row.company}` : ''}\n\n${row.message}`, kind === 'partner' ? 'Partnership message' : 'Website message');
+          `${row.name} <${row.email}>${row.company ? ` · ${row.company}` : ''}\n\n${row.message}`, kind === 'partner' ? 'Partnership message' : 'Website message', row.email);
       }
       return json({ ok: true });
     }

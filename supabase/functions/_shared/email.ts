@@ -11,12 +11,16 @@ import {
   type ApplicationNotice, type OrderDetails, type TicketDetails,
 } from './templates.ts';
 
-const from = Deno.env.get('EMAIL_FROM') ?? 'TEDxGUC <tickets@example.com>';
+// Tickets come from EMAIL_FROM (tickets@…); everything else from no-reply@ on the same domain.
+const ticketsFrom = Deno.env.get('EMAIL_FROM') ?? 'TEDxGUC <tickets@example.com>';
+const noReplyFrom = ticketsFrom.replace(/<[^@>]+@/, '<no-reply@');
+type SendOpts = { tickets?: boolean; replyTo?: string };
 const siteUrl = Deno.env.get('SITE_URL') ?? 'http://localhost:3000';
 
 type Attachment = { filename: string; content: string; content_id?: string };
 
-async function send(to: string, subject: string, html: string, text: string, attachments: Attachment[] = []) {
+async function send(to: string, subject: string, html: string, text: string, attachments: Attachment[] = [], opts: SendOpts = {}) {
+  const from = opts.tickets ? ticketsFrom : noReplyFrom;
   const key = Deno.env.get('RESEND_API_KEY');
   if (!key) {
     console.log(`[email not sent: no RESEND_API_KEY] to=${to} subject=${subject}\n${text}`);
@@ -25,7 +29,7 @@ async function send(to: string, subject: string, html: string, text: string, att
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from, to, subject, html, text, attachments }),
+    body: JSON.stringify({ from, to, subject, html, text, attachments, ...(opts.replyTo ? { reply_to: opts.replyTo } : {}) }),
   });
   if (!res.ok) {
     // The record is already saved; the person can ask for the link again.
@@ -86,19 +90,19 @@ async function ticketAttachments(t: TicketDetails, code: string): Promise<{ art:
 export async function sendTicket(t: TicketDetails & { ticket_code: string }, token?: string) {
   const { art, files } = await ticketAttachments(t, t.ticket_code);
   const mail = ticketEmail(t, token ? statusUrl(token) : undefined, art);
-  await send(t.guest_email, mail.subject, mail.html, mail.text, files);
+  await send(t.guest_email, mail.subject, mail.html, mail.text, files, { tickets: true });
 }
 
 export async function sendWaitlisted(t: TicketDetails & { waitlist_position: number }, token: string) {
   const mail = waitlistEmail(t, statusUrl(token));
-  await send(t.guest_email, mail.subject, mail.html, mail.text);
+  await send(t.guest_email, mail.subject, mail.html, mail.text, [], { tickets: true });
 }
 
 export async function sendStatusLink(t: TicketDetails & { ticket_code?: string | null; status: string }, token: string) {
   const withTicket = t.status === 'registered' && !!t.ticket_code;
   const { art, files } = withTicket ? await ticketAttachments(t, t.ticket_code!) : { art: false, files: [] };
   const mail = statusLinkEmail(t, statusUrl(token), art);
-  await send(t.guest_email, mail.subject, mail.html, mail.text, files);
+  await send(t.guest_email, mail.subject, mail.html, mail.text, files, { tickets: true });
 }
 
 // Recruitment
@@ -139,7 +143,7 @@ export function plainToNotice(subject: string, text: string, kicker = 'TEDxGUC')
   return noticeEmail({ kicker, title: subject, paragraphs: paragraphs.map((p) => p.replace(/\n/g, ' ')), button });
 }
 
-export async function sendPlain(to: string, subject: string, text: string, kicker = 'TEDxGUC') {
+export async function sendPlain(to: string, subject: string, text: string, kicker = 'TEDxGUC', replyTo?: string) {
   const mail = plainToNotice(subject, text, kicker);
-  await send(to, subject, mail.html, mail.text);
+  await send(to, subject, mail.html, mail.text, [], { replyTo });
 }
