@@ -189,3 +189,7 @@ a { color: inherit; }
 .tx-table td.tx-amt, .tx-table td:has(> input[type=checkbox]), .tx-table td:has(> .tx-iconbtn), .tx-table td:has(> button:only-child) { min-width: 0; }
 .overflow-x-auto:has(.tx-seg) { scrollbar-width: none; }
 .overflow-x-auto:has(.tx-seg)::-webkit-scrollbar { display: none; }
+
+/* Compact segmented switch for tight spots (account menu): equal columns, never scrolls. */
+.tx-seg.tx-seg--fit { grid-auto-columns: minmax(0, 1fr); overflow: visible; }
+.tx-seg.tx-seg--fit button { display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-height: 34px; min-width: 0; padding: 0 6px; font-size: 11px; letter-spacing: .06em; overflow: hidden; text-overflow: ellipsis; }

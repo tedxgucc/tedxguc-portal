@@ -1,7 +1,7 @@
 'use client';
 // Account menu, top right: photo, name and role; opens a panel with the
 // profile link, appearance (light / dark / auto), password and sign out.
-import { ChevronRight, ChevronsUpDown, CircleUser, CreditCard, Globe, KeyRound, LogOut, Moon } from 'lucide-react';
+import { ChevronRight, ChevronsUpDown, CircleUser, CreditCard, Globe, KeyRound, LogOut, Monitor, Moon, Sun } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -95,12 +95,15 @@ export function AccountMenu({ placement = 'top' }: { placement?: 'top' | 'sideba
           </Link>
           <div className="grid gap-s2 px-s4 py-s3 border-y border-line">
             <span className="flex items-center gap-s3 font-medium"><Moon size={18} aria-hidden="true" />Appearance</span>
-            <div className="tx-seg" role="radiogroup" aria-label="Appearance">
-              {(['light', 'dark', 'auto'] as Mode[]).map((m) => (
-                <button key={m} type="button" role="radio" aria-checked={mode === m} className={mode === m ? 'is-on' : ''} onClick={() => pick(m)} style={{ minHeight: 34 }}>
-                  {m[0].toUpperCase() + m.slice(1)}
-                </button>
-              ))}
+            <div className="tx-seg tx-seg--fit" role="radiogroup" aria-label="Appearance">
+              {(['light', 'dark', 'auto'] as Mode[]).map((m) => {
+                const Icon = m === 'light' ? Sun : m === 'dark' ? Moon : Monitor;
+                return (
+                  <button key={m} type="button" role="radio" aria-checked={mode === m} className={mode === m ? 'is-on' : ''} onClick={() => pick(m)}>
+                    <Icon size={14} aria-hidden="true" />{m[0].toUpperCase() + m.slice(1)}
+                  </button>
+                );
+              })}
             </div>
           </div>
           <Link role="menuitem" href="/portal/profile#password" className={`${item} text-ink`} onClick={() => setOpen(false)}>
