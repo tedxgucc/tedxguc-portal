@@ -202,7 +202,7 @@ export const supabaseApi: Api = {
     return { factorId: data.id, qr: data.totp.qr_code, secret: data.totp.secret };
   },
   async confirmTwoStep(factorId, code) {
-    const { error } = await db().auth.mfa.challengeAndVerify({ factorId, code: code.replace(/D/g, '') });
+    const { error } = await db().auth.mfa.challengeAndVerify({ factorId, code: code.replace(/\D/g, '') });
     if (error) throw new ApiError('bad_code', 'That code didn’t work. Check the 6 digits in your app and try again.');
   },
   async removeTwoStep(factorId) {

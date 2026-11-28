@@ -176,7 +176,7 @@ Deno.serve(handle(async (req) => {
     case 'password_reset': {
       // Same answer whether or not the email has an account, so nobody can test which emails exist.
       const email = str(body.email, 254).toLowerCase();
-      if (!/^[^@s]+@[^@s]+.[^@s]+$/.test(email)) throw new HttpError(400, 'invalid_email', 'Enter a valid email address.');
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new HttpError(400, 'invalid_email', 'Enter a valid email address.');
       await limit(`reset:${email}`, 4, 3600);
       const { data: id } = await admin.rpc('account_id_for_email', { p_email: email });
       if (id) {
