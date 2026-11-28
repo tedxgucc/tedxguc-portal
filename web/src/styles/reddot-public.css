@@ -236,7 +236,9 @@ html.rd-quiet .rd-dot svg { animation: rd-spin 46s linear infinite; }
 .public-header { justify-content: flex-start; }
 .public-desktop-nav { margin-left: 40px; gap: 28px; }
 .public-header__actions { margin-left: auto; }
-.public-portal-pill { gap: 8px; }
+.public-portal-pill { gap: 6px; --h: 36px; min-height: 36px; padding: 0 14px; font-size: 14px; }
+.public-portal-pill svg { width: 14px; height: 14px; }
+@media (max-width: 599px) { .public-portal-pill { --h: 32px; min-height: 32px; padding: 0 11px; font-size: 13px; gap: 5px; } .public-portal-pill svg { width: 13px; height: 13px; } }
 
 /* ---------- Events page: featured next event, then the archive ---------- */
 .ev-section { display: grid; gap: 24px; margin-top: clamp(48px, 7vw, 88px); }
