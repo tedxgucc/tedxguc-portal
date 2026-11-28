@@ -46,9 +46,21 @@ const messages: Record<string, string> = {
   network: "That didn't send. Check your connection and try again.",
 };
 
+// Database check rules (by constraint name) in plain words.
+const checks: Record<string, string> = {
+  events_check: 'The end time is before the start time. Check the dates: an event that runs past midnight ends on the next day.',
+  events_check1: 'Registration must close after it opens.',
+  events_check2: 'Main Events and Salons need a TEDx license before they can be public.',
+  events_capacity_check: 'Capacity must be more than 0, or empty for no limit.',
+  events_slug_check: 'The web address can only use lowercase letters, numbers and dashes.',
+  events_ticket_prefix_check: 'The ticket prefix can only use capital letters and numbers (up to 10).',
+};
+
 export function toApiError(err: unknown): ApiError {
   if (err instanceof ApiError) return err;
   const raw = (err as { message?: string; code?: string })?.message ?? '';
+  const constraint = raw.match(/violates check constraint "([^"]+)"/)?.[1];
+  if (constraint) return new ApiError('invalid_value', checks[constraint] ?? 'One of the values is not allowed. Check the dates and numbers and try again.');
   const code = raw.startsWith('missing_field') ? 'missing_field'
     : raw.includes('row-level security') || (err as { code?: string })?.code === '42501' ? 'not_allowed'
     : raw.includes('Failed to fetch') || raw.includes('NetworkError') ? 'network'

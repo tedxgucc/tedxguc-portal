@@ -69,6 +69,8 @@ export function EventForm({ open, onClose, onSaved, event }: { open: boolean; on
       setError('A public TEDx event needs its license before publishing. Keep it as a draft, or make it internal.');
       return;
     }
+    if (f.ends_at && f.ends_at <= f.starts_at) { setError('The end time is before the start time. Check the dates: an event that runs past midnight ends on the next day.'); return; }
+    if (f.is_public && f.registration_opens_at && f.registration_closes_at && f.registration_closes_at <= f.registration_opens_at) { setError('Registration must close after it opens.'); return; }
     if (speakers.some((s) => !s.name.trim())) { setError('Every speaker needs a name.'); return; }
     if (speakers.some((s) => s.talk_url?.trim() && !safeExternalUrl(s.talk_url.trim()))) { setError('Enter a valid HTTP or HTTPS talk link for each speaker, or leave it empty.'); return; }
     if (ticketPartners.some(p => !p.name.trim() || !p.logo_url)) { setError('Add a name and logo for each ticket partner, or remove the empty partner.'); return; }
@@ -159,8 +161,8 @@ export function EventForm({ open, onClose, onSaved, event }: { open: boolean; on
 
         {section('When and where', (
           <div className="grid gap-s4 grid-cols-1 sm:grid-cols-2">
-            <TextInput label="Starts" type="datetime-local" value={f.starts_at} onChange={(e) => set('starts_at', e.target.value)} />
-            <TextInput label="Ends" type="datetime-local" value={f.ends_at} onChange={(e) => set('ends_at', e.target.value)} />
+            <TextInput label="Starts" type="datetime-local" value={f.starts_at} onChange={(e) => { const v = e.target.value; set('starts_at', v); if (f.ends_at && v && f.ends_at <= v) set('ends_at', ''); }} />
+            <TextInput label="Ends" type="datetime-local" value={f.ends_at} min={f.starts_at || undefined} onChange={(e) => set('ends_at', e.target.value)} help={f.ends_at && f.starts_at && f.ends_at <= f.starts_at ? 'Must be after the start.' : undefined} />
             <TextInput label="Venue" value={f.venue} onChange={(e) => set('venue', e.target.value)} />
             <TextInput label="Capacity" type="number" min={1} value={f.capacity} onChange={(e) => set('capacity', e.target.value)} help="Empty = no limit. When full, guests join the waitlist." />
           </div>
