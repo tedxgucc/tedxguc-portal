@@ -1,4 +1,4 @@
-Paste each file into Supabase → Authentication → Emails → Templates (project qqgnvrjqrxafskkwxsvc).
+Paste each file into Supabase → Authentication → Emails → Templates (project tedx_portal).
 Set the subject shown next to it.
 
 reset-password.html  →  subject: Reset your TEDxGUC portal password
