@@ -2,7 +2,7 @@
 import { ChevronLeft, ChevronRight, Play, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PageTitle } from '@/components/Brand';
-import { Avatar, Button, Skeleton } from '@/components/ui';
+import { Button, Skeleton } from '@/components/ui';
 import { api } from '@/lib/api';
 import type { BoardMember, Division, Team } from '@/lib/types';
 import './board.css';
@@ -51,38 +51,63 @@ export default function BoardPage() {
       </p>
       {people.length > 0 && <Button onClick={() => setOpen(0)}><Play size={16} aria-hidden="true" />Meet the board</Button>}
     </div>
-    {error ? <div className="grid gap-s3 justify-items-start"><p role="alert">{error}</p><Button variant="secondary" onClick={load}>Try again</Button></div> : !data ? <Skeleton h={440} /> : <>
-      <p className="text-caption text-ink-3 mb-s3 xl:hidden">Swipe sideways to see all four divisions.</p>
-      <div className="board-scroll" tabIndex={0} role="region" aria-label="Board hierarchy: the Chairman, the Curators, then their Executives">
-        <div className="board-tree">
-          <div className="board-chair"><BoardCard role="Chairman" members={data.members.filter((m) => m.role === 'chairman')} onPick={(m) => setOpen(indexOf(m))} /></div>
-          <ul className="board-divisions">
-            {divisions.map((d, di) => <li key={d.id} className="board-branch" style={{ ['--d' as string]: `${120 + di * 90}ms` }}>
-              <div className="board-curator"><BoardCard role="Curator" unit={d.name} members={data.members.filter((m) => m.role === 'curator' && m.division === d.name)} onPick={(m) => setOpen(indexOf(m))} /></div>
-              <ul className="board-executives">
-                {teamsOf(d).map((t) => <li key={t.id}><BoardCard role="Executive" unit={t.name} members={data.members.filter((m) => m.role === 'executive' && m.team === t.name)} onPick={(m) => setOpen(indexOf(m))} /></li>)}
-              </ul>
-            </li>)}
-          </ul>
-        </div>
-      </div>
-    </>}
+    {error ? <div className="grid gap-s3 justify-items-start"><p role="alert">{error}</p><Button variant="secondary" onClick={load}>Try again</Button></div> : !data ? <Skeleton h={440} /> : <div className="bd">
+      {data.members.filter((m) => m.role === 'chairman').map((m) => (
+        <button key={m.name} type="button" className="bd-chair" onClick={() => setOpen(indexOf(m))} aria-label={`Meet ${m.name}, Chairman`}>
+          <span className="bd-chair__photo"><Portrait m={m} big /></span>
+          <span className="bd-chair__text">
+            <span className="tx-label">Chairman · TEDxGUC</span>
+            <span className="bd-chair__name">{m.name}</span>
+            <span className="bd-chair__bio">{m.bio?.trim() || 'Leads TEDxGUC this season, bringing ideas worth spreading to campus.'}</span>
+            <span className="bd-chair__go"><Play size={14} aria-hidden="true" />Meet {m.name.split(' ')[0]}</span>
+          </span>
+        </button>
+      ))}
+      {divisions.map((d, di) => {
+        const curators = data.members.filter((m) => m.role === 'curator' && m.division === d.name);
+        return (
+          <section key={d.id} className="bd-div" aria-labelledby={`bd-${d.id}`}>
+            <div className="bd-div__head"><span className="bd-div__no">{String(di + 1).padStart(2, '0')}</span><h2 id={`bd-${d.id}`}>{d.name}</h2></div>
+            <ul className="bd-grid">
+              {curators.length ? curators.map((m) => <li key={m.name}><PersonCard m={m} role="Curator" unit={d.name} lead onPick={() => setOpen(indexOf(m))} /></li>)
+                : <li><Vacant role="Curator" unit={d.name} /></li>}
+              {teamsOf(d).map((t) => {
+                const execs = data.members.filter((m) => m.role === 'executive' && m.team === t.name);
+                return execs.length ? execs.map((m) => <li key={t.id + m.name}><PersonCard m={m} role="Executive" unit={t.name} onPick={() => setOpen(indexOf(m))} /></li>)
+                  : <li key={t.id}><Vacant role="Executive" unit={t.name} /></li>;
+              })}
+            </ul>
+          </section>
+        );
+      })}
+    </div>}
     {open !== null && people[open] && <Intro people={people} at={open} onMove={setOpen} onClose={() => setOpen(null)} />}
   </div>;
 }
 
-function BoardCard({ role, unit, members, onPick }: { role: string; unit?: string; members: BoardMember[]; onPick: (m: BoardMember) => void }) {
-  return <div className={'board-card' + (role === 'Chairman' ? ' board-card--chair' : '') + (members.length > 1 ? ' board-card--pair' : '')}>
-    <div className="tx-label">{members.length > 1 ? `${role}s` : role}</div>
-    {unit && <h2 className="board-unit">{unit}</h2>}
-    {members.length ? <div className="board-people">
-      {members.map((m) => <button key={m.name} type="button" className="board-person" onClick={() => onPick(m)} aria-label={`Meet ${m.name}, ${unit ? unit + ' ' : ''}${role}`}>
-        <span className="board-person__ring"><Avatar name={m.name} photo={m.photo_url} size={role === 'Chairman' ? 72 : 56} /></span>
-        <span className="font-semibold text-body-sm">{m.name}</span>
-        <span className="board-person__more">Meet {m.name.split(' ')[0]}</span>
-      </button>)}
-    </div> : <p className="text-body-sm text-ink-3">To be announced</p>}
-  </div>;
+const initials = (name: string) => name.split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
+
+function Portrait({ m, big = false }: { m: BoardMember; big?: boolean }) {
+  return m.photo_url
+    ? <img src={m.photo_url} alt="" loading="lazy" decoding="async" />
+    : <span className={'bd-initials' + (big ? ' bd-initials--big' : '')} aria-hidden="true"><span>{initials(m.name)}</span></span>;
+}
+
+function PersonCard({ m, role, unit, lead = false, onPick }: { m: BoardMember; role: string; unit: string; lead?: boolean; onPick: () => void }) {
+  return (
+    <button type="button" className={'bd-card' + (lead ? ' bd-card--lead' : '')} onClick={onPick} aria-label={`Meet ${m.name}, ${unit} ${role}`}>
+      <span className="bd-card__photo"><Portrait m={m} /></span>
+      <span className="bd-card__info">
+        <span className="bd-card__role">{role}</span>
+        <span className="bd-card__name">{m.name}</span>
+        <span className="bd-card__unit">{unit}</span>
+      </span>
+    </button>
+  );
+}
+
+function Vacant({ role, unit }: { role: string; unit: string }) {
+  return <div className="bd-card bd-card--vacant"><span className="bd-card__info"><span className="bd-card__role">{role}</span><span className="bd-card__name">To be announced</span><span className="bd-card__unit">{unit}</span></span></div>;
 }
 
 // A spotlight card introducing one person, with arrows (and arrow keys) to step through the board.
