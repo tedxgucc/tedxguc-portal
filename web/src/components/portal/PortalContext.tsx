@@ -6,7 +6,8 @@ import { createContext, Fragment, useCallback, useContext, useEffect, useLayoutE
 import { api } from '@/lib/api';
 import { adminApi } from '@/lib/api/admin';
 import { packagesApi } from '@/lib/api/phase2b';
-import { BASE_PATH } from '@/lib/env';
+import { BASE_PATH, DEMO } from '@/lib/env';
+import { needsTwoStep } from '@/lib/two-step';
 import { clearCache, readCache, writeCache } from '@/lib/cache';
 import { cairoDay } from '@/lib/format';
 import type { Division, Me, Member, Team, TxEvent } from '@/lib/types';
@@ -90,6 +91,11 @@ export function PortalProvider({ children, fallback }: { children: React.ReactNo
         packagesApi.canScanPickups().catch(() => false),
       ]);
       if (!me) { clearCache(); router.replace(`/login?next=${encodeURIComponent(window.location.pathname.slice(BASE_PATH.length) + window.location.search)}`); return; }
+      // Board accounts must pass two-step sign-in before the portal opens.
+      if (!DEMO && needsTwoStep(me.role)) {
+        const two = await api.twoStep().catch(() => null);
+        if (two && !two.verified) { router.replace(`/auth/two-step?next=${encodeURIComponent(window.location.pathname.slice(BASE_PATH.length) + window.location.search)}`); return; }
+      }
       const today = cairoDay(new Date());
       const eventsToday = allEvents.filter((e) => e.status !== 'cancelled' && e.status !== 'draft' && cairoDay(e.starts_at) === today).map((e) => e.id);
       const next = { me, teams, divisions, members, doorEvents, eventsToday, pickupScanner };

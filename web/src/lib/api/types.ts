@@ -75,6 +75,9 @@ export type EventInput = Omit<TxEvent, 'id'> & { id?: string };
 
 export type OfflineScan = { ticket_code: string; scanned_at: string; device_id: string };
 
+export type EmailLinkType = 'invite' | 'recovery' | 'email_change' | 'signup' | 'magiclink' | 'email';
+export type TwoStepState = { enrolled: boolean; verified: boolean; factorId: string | null };
+
 export interface Api {
   // ----- Public site -----
   listEvents(scope: 'upcoming' | 'past' | 'all'): Promise<TxEvent[]>;
@@ -95,7 +98,6 @@ export interface Api {
   getMe(): Promise<Me | null>;
   signInWithGoogle(): Promise<void>;
   /** Invited people set their own password the first time. Returns false if Supabase still wants an email confirmation. */
-  signUpWithEmail(email: string, password: string): Promise<boolean>;
   signInWithEmail(email: string, password: string): Promise<void>;
   sendPasswordReset(email: string): Promise<void>;
   signOut(everywhere?: boolean): Promise<void>;
@@ -106,6 +108,15 @@ export interface Api {
   uploadAvatar(file: File): Promise<string>;
   /** Change my password while logged in (no email needed). */
   changePassword(password: string): Promise<void>;
+  /** Sends a confirmation to the new address; the email changes once it's confirmed. */
+  changeEmail(email: string): Promise<void>;
+  /** Finishes an emailed account link (invite, password, email change) after the person taps Continue. */
+  verifyEmailLink(tokenHash: string, type: EmailLinkType): Promise<void>;
+  /** Two-step sign-in (authenticator app). */
+  twoStep(): Promise<TwoStepState>;
+  startTwoStepSetup(): Promise<{ factorId: string; qr: string; secret: string }>;
+  confirmTwoStep(factorId: string, code: string): Promise<void>;
+  removeTwoStep(factorId: string): Promise<void>;
   rotateCalendarToken(): Promise<string>;
 
   // ----- Structure -----

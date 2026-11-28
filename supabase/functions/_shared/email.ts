@@ -6,7 +6,7 @@ import { initWasm, Resvg } from 'npm:@resvg/resvg-wasm@2.6.2';
 import { ticketSvg } from './ticket-svg.ts';
 import { ticketTier } from './event-registration.ts';
 import {
-  applicationEmail, noticeEmail, orderConfirmedEmail, orderPlacedEmail, orderRejectedEmail,
+  applicationEmail, layout, noticeEmail, orderConfirmedEmail, orderPlacedEmail, orderRejectedEmail,
   statusLinkEmail, ticketEmail, waitlistEmail,
   type ApplicationNotice, type OrderDetails, type TicketDetails,
 } from './templates.ts';
@@ -146,4 +146,10 @@ export function plainToNotice(subject: string, text: string, kicker = 'TEDxGUC')
 export async function sendPlain(to: string, subject: string, text: string, kicker = 'TEDxGUC', replyTo?: string) {
   const mail = plainToNotice(subject, text, kicker);
   await send(to, subject, mail.html, mail.text, [], { replyTo });
+}
+
+// A short notice with an explicit button (account emails: invites, password links).
+export async function sendNotice(to: string, subject: string, n: { kicker: string; title: string; paragraphs: string[]; button?: { label: string; url: string }; after?: string[] }) {
+  const mail = layout({ kicker: n.kicker, title: n.title, intro: n.paragraphs, button: n.button, after: n.after });
+  await send(to, subject, mail.html, mail.text);
 }

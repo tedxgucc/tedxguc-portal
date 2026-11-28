@@ -7,7 +7,11 @@ import { writeFileSync } from 'node:fs';
 
 const out = process.argv[2];
 const SITE = 'https://tedxguc.org';
-const URL = '{{ .ConfirmationURL }}';
+// Links carry a one-time token hash and land on the site's /auth/confirm page, so
+// they work from any email app (Supabase's default links only work in the browser
+// that asked for them).
+const TYPE: Record<string, string> = { 'reset-password': 'recovery', 'invite-user': 'invite', 'magic-link': 'magiclink', 'confirm-signup': 'signup', 'change-email': 'email_change' };
+const linkFor = (name: string) => `${SITE}/auth/confirm?token_hash={{ .TokenHash }}&type=${TYPE[name]}`;
 const RED = '#e62b1e', INK = '#0c0c0c', GREY = '#3a3835', MUTED = '#8a8580', LINE = '#dedbd6', PAGE = '#eeece8';
 const F = "'Helvetica Neue',Helvetica,Arial,sans-serif";
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
@@ -22,7 +26,7 @@ const TEMPLATES: Record<string, T> = {
   'reauthentication': { subject: 'Your TEDxGUC confirmation code', kicker: 'Confirmation code', title: 'Your code.', intro: 'Enter this code to confirm it’s you.', code: true, after: "Didn't ask for it? Ignore this email." },
 };
 
-export function card(name: string, t: T, url = URL, token = '{{ .Token }}') {
+export function card(name: string, t: T, url = linkFor(name), token = '{{ .Token }}') {
   const button = t.button
     ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:22px 0 0"><tr><td align="center" bgcolor="${RED}" style="border-radius:999px"><a href="${url}" style="display:inline-block;padding:15px 28px;font:700 16px/1.25 ${F};color:#ffffff;text-decoration:none;border-radius:999px">${esc(t.button)}&nbsp;&rarr;</a></td></tr></table>`
     : '';

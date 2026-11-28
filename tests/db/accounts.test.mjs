@@ -77,22 +77,23 @@ test('members edit their own profile only, and cannot change their email', async
   await rejects(db.as(coachingAssoc, ({ q }) => q(`update users set email = 'x@y.z' where id = auth.uid()`)), /permission denied/);
 });
 
-test('Curators invite only into their own division and only Executives/Associates', async () => {
+test('invite chain: Chairman adds Curators, Curators add Executives in their division, Executives add Associates in their team', async () => {
   const season = (await db.one(`select id from seasons where is_active`)).id;
   const coaching = await db.team('coaching');
   const partnerships = await db.team('partnerships');
-  await db.as(talksCurator, ({ q }) => q(
-    `insert into invites (email, season_id, role, team_id) values ('a1@student.guc.edu.eg', $1, 'associate', $2)`, [season, coaching]));
-  await rejects(db.as(talksCurator, ({ q }) => q(
-    `insert into invites (email, season_id, role, team_id) values ('a2@student.guc.edu.eg', $1, 'associate', $2)`, [season, partnerships])),
-    /row-level security/);
   const talks = await db.division('talks');
-  await rejects(db.as(talksCurator, ({ q }) => q(
-    `insert into invites (email, season_id, role, division_id) values ('a3@student.guc.edu.eg', $1, 'curator', $2)`, [season, talks])),
-    /row-level security/);
-  await rejects(db.as(coachingExec, ({ q }) => q(
-    `insert into invites (email, season_id, role, team_id) values ('a4@student.guc.edu.eg', $1, 'associate', $2)`, [season, coaching])),
-    /row-level security/);
+  const ins = (who, email, role, col, id) => db.as(who, ({ q }) => q(`insert into invites (email, season_id, role, ${col}) values ($1, $2, $3, $4)`, [email, season, role, id]));
+  await ins(chairman, 'c1@student.guc.edu.eg', 'curator', 'division_id', talks);
+  await ins(talksCurator, 'e1@student.guc.edu.eg', 'executive', 'team_id', coaching);
+  await rejects(ins(talksCurator, 'e2@student.guc.edu.eg', 'executive', 'team_id', partnerships), /row-level security/);
+  await rejects(ins(talksCurator, 'a1@student.guc.edu.eg', 'associate', 'team_id', coaching), /row-level security/);
+  await rejects(ins(talksCurator, 'c2@student.guc.edu.eg', 'curator', 'division_id', talks), /row-level security/);
+  await ins(coachingExec, 'a2@student.guc.edu.eg', 'associate', 'team_id', coaching);
+  await rejects(ins(coachingExec, 'a3@student.guc.edu.eg', 'associate', 'team_id', partnerships), /row-level security/);
+  await rejects(ins(coachingExec, 'e3@student.guc.edu.eg', 'executive', 'team_id', coaching), /row-level security/);
+  await rejects(ins(coachingAssoc, 'a4@student.guc.edu.eg', 'associate', 'team_id', coaching), /row-level security/);
+  const seen = await db.as(coachingExec, ({ q }) => q(`select email from invites where team_id = $1`, [coaching]));
+  assert.ok(seen.some((r) => r.email === 'a2@student.guc.edu.eg'));
 });
 
 test('only the Chairman changes roles; the change is in the audit log', async () => {
@@ -161,32 +162,23 @@ test('season rollover: old members become alumni; history stays readable', async
   assert.ok(seen.length >= 3);
 });
 
-test('an invited account with no password and no sign-in can be claimed once', async () => {
-  const id = await db.member('associate', 'media_design');
-  const email = (await db.one(`select email from auth.users where id=$1`, [id])).email;
-  const claim = () => db.as('service', ({ one }) => one(`select invited_account_to_claim($1) as id`, [email])).then((r) => r.id);
-  assert.equal(await claim(), id);
-  await db.q(`update auth.users set encrypted_password='hash' where id=$1`, [id]);
-  assert.equal(await claim(), null);
-  await rejects(db.as('anon', ({ one }) => one(`select invited_account_to_claim($1)`, [email])), /permission denied/);
-});
 
-test('an invited account opened once by link but with no password can still be claimed; Google accounts cannot', async () => {
-  const id = await db.member('associate', 'coaching');
-  const email = (await db.one(`select email from auth.users where id=$1`, [id])).email;
-  const claim = () => db.as('service', ({ one }) => one(`select invited_account_to_claim($1) as id`, [email])).then((r) => r.id);
-  await db.q(`update auth.users set last_sign_in_at=now() where id=$1`, [id]);
-  assert.equal(await claim(), id);
-  await db.q(`insert into auth.identities(user_id,provider) values ($1,'google')`, [id]);
-  assert.equal(await claim(), null);
-});
 
-test('only the Chairman can reset a member login, which makes it claimable again', async () => {
+test('only the Chairman can reset a member login, which clears the password', async () => {
   const id = await db.member('associate', 'partnerships');
   const email = (await db.one(`select email from auth.users where id=$1`, [id])).email;
   await db.q(`update auth.users set encrypted_password='hash' where id=$1`, [id]);
   await rejects(db.as(coachingExec, ({ q }) => q(`select reset_member_login($1)`, [id])), /not_allowed/);
   await db.as(chairman, ({ q }) => q(`select reset_member_login($1)`, [id]));
-  const r = await db.as('service', ({ one }) => one(`select invited_account_to_claim($1) as id`, [email]));
+  const u = await db.one(`select coalesce(encrypted_password, '') as pw from auth.users where id = $1`, [id]);
+  assert.equal(u.pw, '');
+  void email;
+});
+
+test('account lookup for password emails is server-only', async () => {
+  const id = await db.member('associate', 'media_design');
+  const email = (await db.one(`select email from auth.users where id=$1`, [id])).email;
+  const r = await db.as('service', ({ one }) => one(`select account_id_for_email($1) as id`, [email.toUpperCase()]));
   assert.equal(r.id, id);
+  await rejects(db.as('anon', ({ one }) => one(`select account_id_for_email($1)`, [email])), /permission denied/);
 });

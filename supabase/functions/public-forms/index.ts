@@ -11,8 +11,8 @@
 //   POST { action: 'apply', cycle_id, name, email, phone?, team_ids, answers?, cv_path?, consent: true, turnstile_token }
 //   Orientation (before an associates round; GUC student emails only)
 //   POST { action: 'orientation', day_id, name, guc_id, email, team_ids, consent: true, turnstile_token }
-//   Portal access: first password for an invited account made before the member set one
-//   POST { action: 'claim_invite', email, password }
+//   Portal access: email a "choose a new password" link (works from any email app)
+//   POST { action: 'password_reset', email }
 //   Packages (FR-16)
 //   POST { action: 'submit_proof', status_token, proof_path?, reference? }
 //   POST { action: 'cancel_order', status_token }
@@ -27,6 +27,8 @@ import { registrationErrors, cleanRegistrationAnswers, guestTypeFor } from '../_
 import {
   sendApplicationNotice, sendPlain, sendStatusLink, sendTicket, sendWaitlisted,
 } from '../_shared/email.ts';
+import { sendNotice } from '../_shared/email.ts';
+import { passwordLink } from '../_shared/auth-links.ts';
 
 const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
@@ -171,16 +173,21 @@ Deno.serve(handle(async (req) => {
       return json({ ok: true, status_token: data.status_token });
     }
 
-    case 'claim_invite': {
+    case 'password_reset': {
+      // Same answer whether or not the email has an account, so nobody can test which emails exist.
       const email = str(body.email, 254).toLowerCase();
-      const password = typeof body.password === 'string' ? body.password : '';
-      await limit(`claim:${email}`, 5, 3600);
-      if (password.length < 8 || password.length > 72) throw new HttpError(400, 'weak_password', 'Use 8 to 72 characters.');
-      const { data: id, error } = await admin.rpc('invited_account_to_claim', { p_email: email });
-      if (error) throw fromDbError(error);
-      if (!id) throw new HttpError(409, 'account_exists', 'This email already has a password. Sign in, or use "Forgot password".');
-      const { error: upd } = await admin.auth.admin.updateUserById(id, { password, email_confirm: true });
-      if (upd) throw new HttpError(502, 'claim_failed', 'Could not set your password. Please try again.');
+      if (!/^[^@s]+@[^@s]+.[^@s]+$/.test(email)) throw new HttpError(400, 'invalid_email', 'Enter a valid email address.');
+      await limit(`reset:${email}`, 4, 3600);
+      const { data: id } = await admin.rpc('account_id_for_email', { p_email: email });
+      if (id) {
+        const url = await passwordLink(email);
+        await sendNotice(email, 'Reset your TEDxGUC portal password', {
+          kicker: 'Password reset', title: 'Choose a new password.',
+          paragraphs: ['Someone asked to reset the password for your TEDxGUC portal account. If that was you, tap the button.'],
+          button: { label: 'Choose a new password', url },
+          after: ["Didn't ask for this? Ignore this email: your password stays the same.", 'The link works once and expires in an hour.'],
+        });
+      }
       return json({ ok: true });
     }
 

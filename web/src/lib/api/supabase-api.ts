@@ -140,25 +140,12 @@ export const supabaseApi: Api = {
     });
     if (error) throw toApiError(error);
   },
-  async signUpWithEmail(email, password) {
-    const { data, error } = await db().auth.signUp({ email, password, options: { emailRedirectTo: `${window.location.origin}${BASE_PATH}/auth/callback` } });
-    if (error && /already registered/i.test(error.message)) {
-      // Invited before setting a password: the account exists without one.
-      await invoke('public-forms', { action: 'claim_invite', email, password });
-      const { error: signInError } = await db().auth.signInWithPassword({ email, password });
-      if (signInError) throw new ApiError('login_failed', 'Your password is set. Sign in with it now.');
-      return true;
-    }
-    if (error) throw toApiError(error);
-    return !!data.session;
-  },
   async signInWithEmail(email, password) {
     const { error } = await db().auth.signInWithPassword({ email, password });
     if (error) throw new ApiError('login_failed', 'That email and password don’t match.');
   },
   async sendPasswordReset(email) {
-    const { error } = await db().auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}${BASE_PATH}/auth/callback?next=/portal/profile` });
-    if (error) throw toApiError(error);
+    await invoke('public-forms', { action: 'password_reset', email: email.trim().toLowerCase() });
   },
   async signOut(everywhere) {
     clearCache();
@@ -192,6 +179,36 @@ export const supabaseApi: Api = {
     const { error } = await db().auth.updateUser({ password });
     if (error) throw toApiError(error);
   },
+  async changeEmail(email) {
+    const { error } = await db().auth.updateUser({ email: email.trim().toLowerCase() }, { emailRedirectTo: `${window.location.origin}${BASE_PATH}/auth/confirm` });
+    if (error) throw toApiError(error);
+  },
+  async verifyEmailLink(tokenHash, type) {
+    const { error } = await db().auth.verifyOtp({ token_hash: tokenHash, type });
+    if (error) throw new ApiError('link_used', 'This link was already used or is too old. Ask for a new one below.');
+  },
+  async twoStep() {
+    const { data, error } = await db().auth.mfa.listFactors();
+    if (error) throw toApiError(error);
+    const f = data.totp[0] ?? null;
+    const { data: aal } = await db().auth.mfa.getAuthenticatorAssuranceLevel();
+    return { enrolled: !!f, verified: aal?.currentLevel === 'aal2', factorId: f?.id ?? null };
+  },
+  async startTwoStepSetup() {
+    const { data: list } = await db().auth.mfa.listFactors();
+    for (const f of list?.all ?? []) if (f.factor_type === 'totp' && f.status !== 'verified') await db().auth.mfa.unenroll({ factorId: f.id });
+    const { data, error } = await db().auth.mfa.enroll({ factorType: 'totp', friendlyName: 'TEDxGUC portal' });
+    if (error) throw toApiError(error);
+    return { factorId: data.id, qr: data.totp.qr_code, secret: data.totp.secret };
+  },
+  async confirmTwoStep(factorId, code) {
+    const { error } = await db().auth.mfa.challengeAndVerify({ factorId, code: code.replace(/D/g, '') });
+    if (error) throw new ApiError('bad_code', 'That code didn’t work. Check the 6 digits in your app and try again.');
+  },
+  async removeTwoStep(factorId) {
+    const { error } = await db().auth.mfa.unenroll({ factorId });
+    if (error) throw toApiError(error);
+  },
   async rotateCalendarToken() {
     return run(db().rpc('rotate_calendar_feed_token'));
   },
@@ -222,7 +239,7 @@ export const supabaseApi: Api = {
     await run(db().rpc('remove_team_member', { p_team_id: teamId, p_user_id: userId }));
   },
   async resetMemberLogin(userId) {
-    await run(db().rpc('reset_member_login', { p_user_id: userId }));
+    await invoke('staff-actions', { action: 'reset_login', user_id: userId });
   },
   async deleteMember(userId) {
     await run(db().rpc('delete_member', { p_user_id: userId }));

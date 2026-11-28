@@ -1,6 +1,7 @@
 'use client';
 // Profile (FR-2.5) and session controls (FR-2.4).
 import { Camera, KeyRound, LogOut, MonitorSmartphone } from 'lucide-react';
+import { AccountSecurity } from '@/components/portal/AccountSecurity';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { PageTitle, SectionHeading } from '@/components/Brand';
@@ -119,6 +120,7 @@ export default function ProfilePage() {
           </div>
           <Button type="submit" variant="secondary" loading={busy === 'pw'} className="justify-self-start">Change password</Button>
         </form>
+        <AccountSecurity email={me.email} role={me.role} />
 
         <div className="grid gap-s4">
           <section className="tx-card grid gap-s3" aria-labelledby="look">

@@ -34,7 +34,8 @@ export default function TeamPage() {
   const delBtn = (m: Member) => canDelete(m) && <><button type="button" className="tx-iconbtn shrink-0" title={`Reset ${m.name}'s login`} aria-label={`Reset ${m.name}'s login`} onClick={() => setResetting(m)}><KeyRound size={16} aria-hidden="true" /></button><button type="button" className="tx-iconbtn shrink-0" title={`Delete ${m.name} from the club`} aria-label={`Delete ${m.name} from the club`} onClick={() => setDeleting(m)}><UserX size={16} aria-hidden="true" /></button></>;
   // Curators ask the Chairman to promote, move or remove people in their division (FR-3.6).
   const canRequest = (m: Member) => me.role === 'curator' && ['executive', 'associate'].includes(m.role) && m.division_id === me.division_id && m.user_id !== me.id;
-  const canInvite = me.role === 'chairman' || me.role === 'curator';
+  // Invite chain: Chairman → Curators, Curators → Executives, Executives → Associates.
+  const canInvite = me.role === 'chairman' || me.role === 'curator' || (me.role === 'executive' && !!me.team_id);
   const loadInvites = useCallback(() => { if (canInvite) api.listInvites().then(setInvites).catch(() => {}); }, [canInvite]);
   useEffect(() => { loadInvites(); }, [loadInvites]);
 
@@ -167,10 +168,10 @@ export default function TeamPage() {
         actions={<><Button variant="secondary" disabled={resetBusy} onClick={() => setResetting(null)}>Cancel</Button><Button loading={resetBusy} onClick={async () => {
           if (!resetting) return;
           setResetBusy(true);
-          try { await api.resetMemberLogin(resetting.user_id); toast('ok', 'Login reset.', `Tell ${resetting.name} to open the portal login, tap “Set your password” and use their email.`); setResetting(null); }
+          try { await api.resetMemberLogin(resetting.user_id); toast('ok', 'Login reset.', `${resetting.name} was signed out everywhere and got a “Choose a new password” email.`); setResetting(null); }
           catch (e) { toast('bad', 'Couldn’t reset.', (e as Error).message); } finally { setResetBusy(false); }
         }}>Reset login</Button></>}>
-        <p>Their current password stops working and they're signed out everywhere. They then choose a new one with <b>Set your password</b> on the login page. Their role, teams and work stay as they are.</p>
+        <p>Their password stops working, they're signed out everywhere and their two-step app is removed. They get an email with a link to choose a new password. Their role, teams and work stay as they are.</p>
       </Modal>
       {canInvite && <InviteModal open={inviting} onClose={() => setInviting(false)} onSent={() => { setInviting(false); loadInvites(); }} />}
     </>
@@ -219,10 +220,11 @@ function AddMemberModal({ team, onClose }: { team: Team; onClose: () => void }) 
 function InviteModal({ open, onClose, onSent }: { open: boolean; onClose: () => void; onSent: () => void }) {
   const { me, teams, divisions } = usePortal();
   const toast = useToast();
-  const roles: Role[] = me.role === 'chairman' ? ['associate', 'executive', 'curator', 'chairman'] : ['associate', 'executive'];
-  const myTeams = me.role === 'chairman' ? teams : teams.filter((t) => t.division_id === me.division_id);
+  // Each level adds the level below; the Chairman can fill any role as a backup.
+  const roles: Role[] = me.role === 'chairman' ? ['curator', 'executive', 'associate', 'chairman'] : me.role === 'curator' ? ['executive'] : ['associate'];
+  const myTeams = me.role === 'chairman' ? teams : me.role === 'curator' ? teams.filter((t) => t.division_id === me.division_id) : teams.filter((t) => t.id === me.team_id);
   const [email, setEmail] = useState('');
-  const [role, setRole] = useState<Role>('associate');
+  const [role, setRole] = useState<Role>(roles[0]);
   const [teamId, setTeamId] = useState(myTeams[0]?.id ?? '');
   const [divisionId, setDivisionId] = useState(divisions[0]?.id ?? '');
   const [busy, setBusy] = useState(false);
@@ -239,7 +241,7 @@ function InviteModal({ open, onClose, onSent }: { open: boolean; onClose: () => 
         team_id: role === 'executive' || role === 'associate' ? teamId : null,
         division_id: role === 'curator' ? divisionId : null,
       });
-      toast('ok', 'Invite added.', `Tell ${e} to open the portal login, tap “Set your password” and use this email. It works for 7 days.`);
+      toast('ok', 'Invite sent.', `${e} gets a “Set up my account” email. The invite works for 7 days.`);
       setEmail('');
       onSent();
     } catch (x) {

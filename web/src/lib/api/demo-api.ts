@@ -300,7 +300,6 @@ export const demoApi: Api = {
   async getMe() { return currentMe(); },
   async signInWithGoogle() { fail('demo_login'); },
   async signInWithEmail() { fail('demo_login'); },
-  async signUpWithEmail() { fail('demo_login'); return false; },
   async sendPasswordReset() { await wait(300); },
   async signOut() {
     clearCache();
@@ -337,6 +336,12 @@ export const demoApi: Api = {
     });
   },
   async changePassword() { fail('demo_login', 'Passwords don’t exist in demo mode.'); },
+  async changeEmail() { await wait(300); },
+  async verifyEmailLink() { await wait(300); },
+  async twoStep() { return { enrolled: false, verified: false, factorId: null }; },
+  async startTwoStepSetup() { fail('demo_login', 'Two-step sign-in is not available in demo mode.'); return { factorId: '', qr: '', secret: '' }; },
+  async confirmTwoStep() { await wait(200); },
+  async removeTwoStep() { await wait(200); },
   async rotateCalendarToken() { return 'demo' + Math.random().toString(16).slice(2).padEnd(60, '0'); },
 
   // ----- Structure -----
