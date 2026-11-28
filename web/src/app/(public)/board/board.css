@@ -82,3 +82,16 @@
   .board-card, .board-person__ring { transition: none; }
   .board-card:hover { transform: none; }
 }
+
+/* Chairman card: compact, and the photo never spills over the text. */
+.bd-chair { grid-template-columns: 260px minmax(0, 1fr); max-height: none; min-height: 0; }
+.bd-chair__photo { aspect-ratio: auto; width: 100%; height: 100%; min-height: 300px; max-height: 340px; }
+.bd-chair__text { min-width: 0; align-content: center; gap: 10px; padding: clamp(22px, 3vw, 40px); }
+.bd-chair__name { font-size: clamp(30px, 3.6vw, 52px); line-height: 1; letter-spacing: -.035em; overflow-wrap: anywhere; }
+.bd-chair__bio { font-size: 15px; line-height: 1.55; max-width: 60ch; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.bd-chair__go { height: 36px; font-size: 13px; }
+@media (max-width: 720px) {
+  .bd-chair { grid-template-columns: minmax(0, 1fr); }
+  .bd-chair__photo { height: 64vw; min-height: 0; max-height: 300px; }
+  .bd-chair__name { font-size: clamp(28px, 9vw, 40px); }
+}
