@@ -45,6 +45,9 @@
 @keyframes rd-spread { from { letter-spacing: -.16em; } to { letter-spacing: -.045em; } }
 @keyframes rd-word { from { transform: translateY(105%); } }
 @keyframes rd-rise { from { opacity: 0; transform: translateY(18px); } }
+/* Event name: sized by its longest word so it stays left of the dot's date and button. */
+.rd-h1--event { font-size: clamp(56px, calc(50vw / (var(--len, 8) * .62)), 196px); max-width: 52vw; }
+.rd-home .rd-hero:has(.rd-h1--event) .rd-dot__in { left: 36%; max-width: 44%; }
 .rd-h1-white { position: absolute; inset: 0; color: #fff; pointer-events: none; clip-path: circle(var(--cr, 0px) at var(--cx, 0px) var(--cy, 0px)); }
 .rd-hero__foot { display: flex; flex-direction: column; align-items: flex-start; gap: 22px; margin-top: clamp(8px, 2vh, 24px); }
 .rd-hero__foot p { margin: 0; max-width: 34ch; font-size: clamp(17px, 1.5vw, 21px); line-height: 1.4; color: var(--ink); animation: rd-rise .8s 1.6s var(--ease-out) both; }
@@ -160,6 +163,8 @@
   .rd-dot { right: auto; left: 50%; top: auto; bottom: -52vw; width: 124vw; translate: -50% 0; }
   .rd-dot__in { left: 50%; top: 17%; translate: -50% 0; width: 70%; max-width: 70%; justify-items: center; text-align: center; }
   .rd-h1 { font-size: clamp(56px, 18vw, 120px); } .rd-h1--long { font-size: clamp(44px, 13vw, 96px); }
+  .rd-h1--event { font-size: clamp(44px, calc(90vw / (var(--len, 8) * .62)), 120px); max-width: none; }
+  .rd-home .rd-hero:has(.rd-h1--event) .rd-dot__in { left: 50%; max-width: 70%; }
   .rd-row { grid-template-columns: minmax(0, 1fr) 44px; gap: 6px 14px; padding: 18px 8px 18px 2px; }
   .rd-row > :not(.rd-row__go) { grid-column: 1; } .rd-row__go { grid-column: 2; grid-row: 1 / span 4; }
   .rd-nums__grid { grid-template-columns: minmax(0, 1fr); }

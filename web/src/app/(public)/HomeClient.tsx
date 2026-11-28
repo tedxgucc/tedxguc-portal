@@ -99,7 +99,7 @@ export default function HomeClient({ initial }: { initial?: HomeData }) {
           </div>
         </div>
         <TxLabel>{isNext ? 'Next main event' : 'TEDxGUC · German University in Cairo'}</TxLabel>
-        <h1 id="home-title" ref={h1Ref} className={'rd-h1' + (heroWords.join(' ').length > 22 ? ' rd-h1--long' : '')}>
+        <h1 id="home-title" ref={h1Ref} className={'rd-h1' + (isNext ? ' rd-h1--event' : heroWords.join(' ').length > 22 ? ' rd-h1--long' : '')} style={isNext ? { ['--len' as string]: Math.max(4, ...heroWords.map((w) => w.length)) } : undefined}>
           {heroWords.map((w, i) => <span className="w" key={i}><i className={!isNext && i === heroWords.length - 1 ? 'spread' : ''}>{w}</i></span>)}
           <span className="rd-h1-white" aria-hidden="true">{heroWords.map((w, i) => <span className="w" key={i}><i className={!isNext && i === heroWords.length - 1 ? 'spread' : ''}>{w}</i></span>)}</span>
         </h1>
