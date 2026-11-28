@@ -18,6 +18,7 @@ export type TicketDetails = {
 const DISCLAIMER = 'This independent TEDxGUC event is operated under license from TED.';
 const SITE = 'https://tedxguc.org';
 const LOGO = `${SITE}/brand/tedxguc-lockup-white.png`;
+const INSTAGRAM = 'https://www.instagram.com/tedxguc__/';
 const RED = '#e62b1e';
 const INK = '#0c0c0c';
 const FONT = "'Helvetica Neue',Helvetica,Arial,sans-serif";
@@ -62,58 +63,59 @@ export type Layout = {
 };
 
 export function layout(m: Layout): { html: string; text: string } {
-  const p = (s: string) => `<p style="margin:0 0 14px;font:16px/1.55 ${FONT};color:#3a3835">${rich(s)}</p>`;
+  // Dark red-dot design: black canvas, logo + red dot, the stage dot with the TEDx x
+  // as hero, red kicker, big white title, grey copy, dark cards, red pill button.
+  const F = FONT, GREY = '#b6b2ab', MUTED = '#8a8580', CARD = '#161616', LINE = '#2b2b2b';
+  const p = (s: string) => `<p style="margin:16px 0 0;font:400 16px/1.6 ${F};color:${GREY}">${rich(s)}</p>`;
+  const row = (inner: string) => `<tr><td style="padding-top:24px">${inner}</td></tr>`;
   const details = m.details?.length && !m.detailsTextOnly
-    ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:6px 0 22px;border-collapse:separate;background:#f6f5f2;border-radius:14px">` +
-      m.details.map(([k, v], i) =>
-        `<tr><td style="padding:${i ? 10 : 16}px 18px ${i === m.details!.length - 1 ? 16 : 10}px;${i ? 'border-top:1px solid #e4e1dc;' : ''}font:700 11px/1.3 ${FONT};letter-spacing:.12em;text-transform:uppercase;color:#8a8580;width:34%;vertical-align:top">${escapeHtml(k)}</td>` +
-        `<td style="padding:${i ? 10 : 16}px 18px ${i === m.details!.length - 1 ? 16 : 10}px;${i ? 'border-top:1px solid #e4e1dc;' : ''}font:600 15px/1.4 ${FONT};color:${INK}">${rich(v)}</td></tr>`).join('') +
-      `</table>`
-    : '';
-  const qr = m.qr
-    ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:4px 0 22px"><tr><td align="center" style="padding:22px;border:2px dashed #dedbd6;border-radius:18px">` +
-      `<img src="cid:${m.qr.cid}" alt="${escapeHtml(m.qr.alt)}" width="220" height="220" style="display:block;width:220px;height:220px;border:0;background:#fff">` +
-      `<p style="margin:12px 0 0;font:600 13px/1.4 ${FONT};color:#5f5c58">${escapeHtml(m.qr.caption)}</p></td></tr></table>`
+    ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="${CARD}" style="background:${CARD};border-radius:14px;border:1px solid ${LINE}"><tr><td style="padding:6px 20px 8px"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">` +
+      m.details.map(([k, v], i) => {
+        const top = i ? `border-top:1px solid ${LINE};` : '';
+        return `<tr><td width="42%" style="padding:12px 0;${top}vertical-align:top"><span style="font:700 11px/1.4 ${F};letter-spacing:.1em;text-transform:uppercase;color:${MUTED}">${escapeHtml(k)}</span></td>` +
+          `<td width="58%" style="padding:12px 0;${top}text-align:right"><span style="font:600 15px/1.4 ${F};color:#ffffff">${rich(v)}</span></td></tr>`;
+      }).join('') + `</table></td></tr></table>`
     : '';
   const ticket = m.ticket
-    ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:4px 0 22px"><tr><td align="center">` +
-      `<img src="cid:${m.ticket.cid}" alt="${escapeHtml(m.ticket.alt)}" width="380" style="display:block;width:100%;max-width:380px;height:auto;border:0;border-radius:22px">` +
-      `<p style="margin:12px 0 0;font:600 13px/1.4 ${FONT};color:#5f5c58">${escapeHtml(m.ticket.caption)}</p></td></tr></table>`
+    ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td align="center"><img src="cid:${m.ticket.cid}" width="380" alt="${escapeHtml(m.ticket.alt)}" style="width:100%;max-width:380px;height:auto;border-radius:18px;display:block;border:1px solid ${LINE}"><p style="margin:12px 0 0;font:400 13px/1.5 ${F};color:${MUTED}">${escapeHtml(m.ticket.caption)}</p></td></tr></table>`
+    : '';
+  const qr = m.qr
+    ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td align="center"><table role="presentation" cellpadding="0" cellspacing="0" border="0" bgcolor="#ffffff" style="background:#ffffff;border-radius:16px"><tr><td style="padding:14px"><img src="cid:${m.qr.cid}" width="220" height="220" alt="${escapeHtml(m.qr.alt)}" style="display:block;width:220px;height:220px"></td></tr></table><p style="margin:12px 0 0;font:400 13px/1.5 ${F};color:${MUTED}">${escapeHtml(m.qr.caption)}</p></td></tr></table>`
     : '';
   const button = m.button
-    ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:6px 0 24px"><tr><td style="border-radius:999px;background:${RED}">` +
-      `<a href="${escapeHtml(m.button.url)}" style="display:inline-block;padding:14px 28px;font:700 15px/1 ${FONT};color:#ffffff;text-decoration:none;border-radius:999px">${escapeHtml(m.button.label)} &rarr;</a></td></tr></table>`
+    ? `<!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${escapeHtml(m.button.url)}" style="height:48px;v-text-anchor:middle;width:300px;" arcsize="50%" strokecolor="${RED}" fillcolor="${RED}"><w:anchorlock/><center style="color:#ffffff;font-family:Arial,sans-serif;font-size:16px;font-weight:bold;">${escapeHtml(m.button.label)}</center></v:roundrect><![endif]-->` +
+      `<!--[if !mso]><!-- --><table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto"><tr><td align="center" bgcolor="${RED}" style="border-radius:999px"><a href="${escapeHtml(m.button.url)}" style="display:inline-block;padding:15px 32px;font:700 16px/1 ${F};color:#ffffff;text-decoration:none;border-radius:999px">${escapeHtml(m.button.label)}&nbsp;&rarr;</a></td></tr></table><!--<![endif]-->`
     : '';
+  const after = (m.after ?? []).map((s) => `<p style="margin:0 0 8px;font:400 13px/1.6 ${F};color:${MUTED}">${rich(s)}</p>`).join('');
+  const blocks = [details, ticket, qr, button, after].filter(Boolean).map(row).join('');
   const html =
-    `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light only"><meta name="supported-color-schemes" content="light"><title>${escapeHtml(m.title)}</title></head>` +
-    `<body style="margin:0;padding:0;background:#eeece8">` +
-    (m.preheader ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0">${escapeHtml(m.preheader)}</div>` : '') +
-    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eeece8"><tr><td align="center" style="padding:28px 12px">` +
-    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:22px;overflow:hidden">` +
-    // Header: black band, logo, the red dot peeking in.
-    `<tr><td style="background:${INK};padding:26px 28px 24px;position:relative">` +
-    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>` +
-    `<td><a href="${SITE}"><img src="${LOGO}" alt="TEDxGUC" height="26" style="display:block;height:26px;border:0"></a></td>` +
-    `<td align="right"><span style="display:inline-block;width:18px;height:18px;border-radius:50%;background:${RED}"></span></td>` +
-    `</tr></table></td></tr>` +
-    `<tr><td style="height:6px;background:${RED};font-size:0;line-height:0">&nbsp;</td></tr>` +
-    // Body
-    `<tr><td style="padding:30px 28px 8px">` +
-    `<p style="margin:0 0 8px;font:700 12px/1.3 ${FONT};letter-spacing:.16em;text-transform:uppercase;color:${RED}">${escapeHtml(m.kicker)}</p>` +
-    `<h1 style="margin:0 0 20px;font:800 28px/1.1 ${FONT};letter-spacing:-.01em;color:${INK}">${escapeHtml(m.title)}</h1>` +
-    (m.greeting ? p(m.greeting) : '') +
-    (m.intro ?? []).map(p).join('') +
-    details + ticket + qr + button +
-    (m.after ?? []).map(p).join('') +
-    `</td></tr>` +
+    `<!doctype html><html lang="en" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="color-scheme" content="dark light"><meta name="supported-color-schemes" content="dark light"><title>${escapeHtml(m.title)}</title>` +
+    `<!--[if mso]><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml><![endif]-->` +
+    `<style>@media only screen and (max-width:600px){.container{width:100%!important}.px{padding-left:24px!important;padding-right:24px!important}.title{font-size:32px!important}.dot{width:116px!important;height:116px!important}}@media (prefers-color-scheme:dark){.bg{background:#0c0c0c!important}.txt{color:#ffffff!important}}[data-ogsc] .bg{background:#0c0c0c!important}[data-ogsc] .txt{color:#ffffff!important}</style></head>` +
+    `<body class="bg" style="margin:0;padding:0;background:${INK};-webkit-text-size-adjust:100%">` +
+    (m.preheader ? `<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:${INK};opacity:0">${escapeHtml(m.preheader)}${'&nbsp;&zwnj;'.repeat(60)}</div>` : '') +
+    `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="${INK}" class="bg" style="background:${INK}"><tr><td align="center" style="padding:24px 12px 40px">` +
+    `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" class="container" style="width:600px;max-width:600px">` +
+    // Header: logo and the red dot
+    `<tr><td class="px" style="padding:8px 40px 28px"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr>` +
+    `<td align="left" valign="middle"><a href="${SITE}"><img src="${LOGO}" width="165" height="34" alt="TEDxGUC" style="display:block;border:0;height:34px;width:165px"></a></td>` +
+    `<td align="right" valign="middle"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td width="14" height="14" bgcolor="${RED}" style="background:${RED};border-radius:50%;font-size:0;line-height:0">&nbsp;</td></tr></table></td></tr></table></td></tr>` +
+    // Body: the stage dot with the x, then kicker, title and copy
+    `<tr><td class="px" style="padding:0 40px"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">` +
+    `<tr><td align="center" style="padding:4px 0 24px"><table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto"><tr><td align="center" valign="middle" width="128" height="128" bgcolor="${RED}" class="dot" style="width:128px;height:128px;background:${RED};border-radius:50%;text-align:center"><!--[if mso]><v:oval xmlns:v="urn:schemas-microsoft-com:vml" style="width:128px;height:128px;" fillcolor="${RED}" stroke="f"><center><![endif]--><span style="font:800 54px/1 ${F};color:#ffffff;letter-spacing:-.04em">&times;</span><!--[if mso]></center></v:oval><![endif]--></td></tr></table></td></tr>` +
+    `<tr><td><p style="margin:0;font:700 12px/1.3 ${F};letter-spacing:.14em;text-transform:uppercase;color:${RED}">${escapeHtml(m.kicker)}</p>` +
+    `<h1 class="title txt" style="margin:10px 0 0;font:800 40px/1 ${F};letter-spacing:-.02em;color:#ffffff">${escapeHtml(m.title)}</h1>` +
+    (m.greeting ? p(m.greeting) : '') + (m.intro ?? []).map(p).join('') +
+    `</td></tr>` + blocks + `</table></td></tr>` +
     // Footer
-    `<tr><td style="padding:18px 28px 26px;border-top:1px solid #eeece8">` +
-    `<p style="margin:0 0 6px;font:700 12px/1.4 ${FONT};letter-spacing:.14em;text-transform:uppercase;color:${INK}">Ideas worth spreading</p>` +
-    `<p style="margin:0;font:12px/1.5 ${FONT};color:#8a8580">${escapeHtml(DISCLAIMER)}<br><a href="${SITE}" style="color:#8a8580">tedxguc.org</a></p>` +
-    `</td></tr></table></td></tr></table></body></html>`;
+    `<tr><td class="px" style="padding:40px 40px 8px"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-top:1px solid ${LINE}"><tr><td style="padding-top:24px">` +
+    `<p style="margin:0;font:800 15px/1.2 ${F};letter-spacing:-.01em;color:#ffffff">Ideas worth spreading</p>` +
+    `<p style="margin:12px 0 0;font:400 12px/1.6 ${F};color:${MUTED}">${escapeHtml(DISCLAIMER)}</p>` +
+    `<p style="margin:12px 0 0;font:400 12px/1.6 ${F};color:${MUTED}"><a href="${SITE}" style="color:${GREY};text-decoration:underline">tedxguc.org</a>&nbsp;&middot;&nbsp;<a href="${INSTAGRAM}" style="color:${GREY};text-decoration:underline">@tedxguc__</a></p>` +
+    `</td></tr></table></td></tr></table></td></tr></table></body></html>`;
 
   const text = [
-    m.title.toUpperCase(),
+    m.title,
     '',
     ...(m.greeting ? [m.greeting, ''] : []),
     ...(m.intro ?? []),
@@ -124,8 +126,9 @@ export function layout(m: Layout): { html: string; text: string } {
     ...(m.after?.length ? ['', ...m.after] : []),
     '',
     '—',
+    'Ideas worth spreading',
     DISCLAIMER,
-    SITE,
+    `${SITE} · instagram.com/tedxguc__`,
   ].join('\n');
   return { html, text };
 }
