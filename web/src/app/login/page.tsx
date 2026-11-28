@@ -40,7 +40,8 @@ function LoginInner() {
     try {
       if (mode === 'reset') {
         await api.sendPasswordReset(email.trim());
-        setNotice('If this email has a portal account, a "Choose a new password" email is on its way from no-reply@tedxguc.org. You can open it on any device. Check spam too.');
+        // If the email has an account, a 6-digit code is on its way; type it on the next page.
+        router.push(`/auth/code?type=recovery&email=${encodeURIComponent(email.trim().toLowerCase())}`);
         return;
       }
       await api.signInWithEmail(email.trim(), password);
@@ -81,7 +82,7 @@ function LoginInner() {
           <div className="login-card">
             <div className="login-card-top"><TedxMark size={34} /><span><LockKeyhole size={12} />{DEMO ? 'DEMO ACCESS' : 'MEMBER ACCESS'}</span></div>
             <h2 id="login-title">{DEMO ? 'Meet your portal.' : mode === 'reset' ? 'Let\'s get you back in.' : 'Welcome back.'}</h2>
-            <p className="login-card-intro">{DEMO ? 'Explore the team workspace. Choose a demo role to see it in action.' : mode === 'reset' ? 'Enter your account email and we\'ll email you a link to choose a new password.' : 'Sign in to your TEDxGUC team workspace.'}</p>
+            <p className="login-card-intro">{DEMO ? 'Explore the team workspace. Choose a demo role to see it in action.' : mode === 'reset' ? 'Enter your account email and we\'ll email you a 6-digit code to choose a new password.' : 'Sign in to your TEDxGUC team workspace.'}</p>
             {error && <div className="login-message is-error" role="alert">{error}</div>}
             {notice && <div className="login-message" role="status"><Check size={18} /><span>{notice}</span></div>}
             {DEMO ? <>
@@ -100,9 +101,9 @@ function LoginInner() {
                   {capsLock && <p className="login-field-note" role="status">Caps Lock is on.</p>}
                   {mode === 'signin' && <button type="button" className="login-text-button login-forgot" disabled={!!busy} onClick={() => changeMode('reset')}>Forgot password?</button>}
                 </>}
-                <Button block type="submit" loading={busy === 'email'} disabled={!!busy}>{mode === 'reset' ? 'Email me a link' : 'Sign in'}<ArrowRight size={18} aria-hidden="true" /></Button>
+                <Button block type="submit" loading={busy === 'email'} disabled={!!busy}>{mode === 'reset' ? 'Email me a code' : 'Sign in'}<ArrowRight size={18} aria-hidden="true" /></Button>
               </form>
-              <div className="login-switch">{mode === 'signin' ? <>First time here? Open the <b>Set up my account</b> email you were sent.</> : <button className="login-text-button" disabled={!!busy} onClick={() => changeMode('signin')}><ArrowLeft size={14} />Back to sign in</button>}</div>
+              <div className="login-switch">{mode === 'signin' ? <>First time here? Use the code in your <b>invite email</b>: <Link href="/auth/code?type=invite" className="login-text-button">enter my code</Link></> : <button className="login-text-button" disabled={!!busy} onClick={() => changeMode('signin')}><ArrowLeft size={14} />Back to sign in</button>}</div>
               <p className="login-invite-note"><LockKeyhole size={13} />Invite-only. Curators are added by the Chairman, Executives by their Curator, Associates by their Executive.</p>
             </>}
           </div>

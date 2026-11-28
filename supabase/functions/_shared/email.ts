@@ -149,7 +149,7 @@ export async function sendPlain(to: string, subject: string, text: string, kicke
 }
 
 // A short notice with an explicit button (account emails: invites, password links).
-export async function sendNotice(to: string, subject: string, n: { kicker: string; title: string; paragraphs: string[]; button?: { label: string; url: string }; after?: string[] }) {
-  const mail = layout({ kicker: n.kicker, title: n.title, intro: n.paragraphs, button: n.button, after: n.after });
+export async function sendNotice(to: string, subject: string, n: { kicker: string; title: string; paragraphs: string[]; code?: string; button?: { label: string; url: string }; after?: string[] }) {
+  const mail = layout({ kicker: n.kicker, title: n.title, intro: n.paragraphs, code: n.code, button: n.button, after: n.after });
   await send(to, subject, mail.html, mail.text);
 }

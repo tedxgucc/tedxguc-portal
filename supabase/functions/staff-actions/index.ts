@@ -14,7 +14,7 @@ import { fromDbError, handle, HttpError, json } from '../_shared/http.ts';
 import {
   sendApplicationNotice, sendNotice, sendOrderConfirmed, sendOrderRejected, sendTicket,
 } from '../_shared/email.ts';
-import { accountLink, passwordLink } from '../_shared/auth-links.ts';
+import { accountCode, passwordCode } from '../_shared/auth-links.ts';
 import type { ApplicationNotice } from '../_shared/templates.ts';
 
 const siteUrl = Deno.env.get('SITE_URL') ?? 'http://localhost:3000';
@@ -43,32 +43,31 @@ async function sendInvite(db: Db, inviteId: string, applicantName?: string) {
   }
   // New member: creating the account (through the invite link) applies their role.
   // The email carries a link that works from any email app; they choose a password there.
-  const link = await accountLink(invite.email, applicantName);
+  const c = await accountCode(invite.email, applicantName);
   await sendNotice(invite.email, applicantName ? 'Welcome to the TEDxGUC team' : "You're invited to the TEDxGUC portal", {
     kicker: applicantName ? 'Welcome' : 'Portal invite',
     title: "You're on the team.",
-    paragraphs: ["You've been added to this season's TEDxGUC team. Tap the button, then choose your password."],
-    button: { label: 'Set up my account', url: link.url },
-    after: ['The link works once. If it stops working, use "Forgot password" on the sign-in page with this email.'],
+    paragraphs: ["You've been added to this season's TEDxGUC team. Tap the button, type this code, then choose your password."],
+    code: c.code,
+    button: { label: 'Set up my account', url: c.url },
+    after: ['The code works once and expires in an hour. Expired? Use "Forgot password" on the sign-in page with this email to get a new one.'],
   });
   return { existing_member: false };
 }
 
-// Chairman: sign a member out everywhere, remove their authenticator, and email them
-// a fresh "choose a password" link.
+// Chairman: sign a member out everywhere and email them a code to choose a new password.
 async function resetLogin(db: Db, userId: string) {
   const { error } = await db.rpc('reset_member_login', { p_user_id: userId }); // checks the Chairman
   if (error) throw fromDbError(error);
   const { data, error: userError } = await admin.auth.admin.getUserById(userId);
   if (userError || !data.user?.email) throw new HttpError(404, 'not_found', 'Member not found.');
-  // A lost phone: remove their authenticator too, so they set it up again.
-  for (const f of data.user.factors ?? []) await admin.auth.admin.mfa.deleteFactor({ userId, id: f.id }).catch(() => {});
-  const url = await passwordLink(data.user.email);
+  const c = await passwordCode(data.user.email);
   await sendNotice(data.user.email, 'Choose a new TEDxGUC portal password', {
     kicker: 'Login reset', title: 'Choose a new password.',
-    paragraphs: ['The TEDxGUC board reset your portal login. Tap the button to choose a new password.'],
-    button: { label: 'Choose a new password', url },
-    after: ['The link works once. If it stops working, use "Forgot password" on the sign-in page.'],
+    paragraphs: ['The TEDxGUC board reset your portal login. Tap the button, type this code, then choose a new password.'],
+    code: c.code,
+    button: { label: 'Enter my code', url: c.url },
+    after: ['The code works once and expires in an hour. Expired? Use "Forgot password" on the sign-in page.'],
   });
   return { email_sent: true };
 }

@@ -11,7 +11,7 @@
 //   POST { action: 'apply', cycle_id, name, email, phone?, team_ids, answers?, cv_path?, consent: true, turnstile_token }
 //   Orientation (before an associates round; GUC student emails only)
 //   POST { action: 'orientation', day_id, name, guc_id, email, team_ids, consent: true, turnstile_token }
-//   Portal access: email a "choose a new password" link (works from any email app)
+//   Portal access: email a 6-digit code to choose a new password
 //   POST { action: 'password_reset', email }
 //   Packages (FR-16)
 //   POST { action: 'submit_proof', status_token, proof_path?, reference? }
@@ -28,7 +28,7 @@ import {
   sendApplicationNotice, sendPlain, sendStatusLink, sendTicket, sendWaitlisted,
 } from '../_shared/email.ts';
 import { sendNotice } from '../_shared/email.ts';
-import { passwordLink } from '../_shared/auth-links.ts';
+import { passwordCode } from '../_shared/auth-links.ts';
 
 const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
@@ -180,12 +180,12 @@ Deno.serve(handle(async (req) => {
       await limit(`reset:${email}`, 4, 3600);
       const { data: id } = await admin.rpc('account_id_for_email', { p_email: email });
       if (id) {
-        const url = await passwordLink(email);
-        await sendNotice(email, 'Reset your TEDxGUC portal password', {
-          kicker: 'Password reset', title: 'Choose a new password.',
-          paragraphs: ['Someone asked to reset the password for your TEDxGUC portal account. If that was you, tap the button.'],
-          button: { label: 'Choose a new password', url },
-          after: ["Didn't ask for this? Ignore this email: your password stays the same.", 'The link works once and expires in an hour.'],
+        const c = await passwordCode(email);
+        await sendNotice(email, `${c.code} is your TEDxGUC code`, {
+          kicker: 'Password reset', title: 'Your code is below.',
+          paragraphs: ['Type this code on the sign-in page to choose a new password.'],
+          code: c.code,
+          after: ["Didn't ask for this? Ignore this email: your password stays the same.", 'The code works once and expires in an hour.'],
         });
       }
       return json({ ok: true });

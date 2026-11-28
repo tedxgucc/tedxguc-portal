@@ -76,7 +76,6 @@ export type EventInput = Omit<TxEvent, 'id'> & { id?: string };
 export type OfflineScan = { ticket_code: string; scanned_at: string; device_id: string };
 
 export type EmailLinkType = 'invite' | 'recovery' | 'email_change' | 'signup' | 'magiclink' | 'email';
-export type TwoStepState = { enrolled: boolean; verified: boolean; factorId: string | null };
 
 export interface Api {
   // ----- Public site -----
@@ -112,11 +111,8 @@ export interface Api {
   changeEmail(email: string): Promise<void>;
   /** Finishes an emailed account link (invite, password, email change) after the person taps Continue. */
   verifyEmailLink(tokenHash: string, type: EmailLinkType): Promise<void>;
-  /** Two-step sign-in (authenticator app). */
-  twoStep(): Promise<TwoStepState>;
-  startTwoStepSetup(): Promise<{ factorId: string; qr: string; secret: string }>;
-  confirmTwoStep(factorId: string, code: string): Promise<void>;
-  removeTwoStep(factorId: string): Promise<void>;
+  /** Checks a 6-digit code from an account email (invite, password reset, email change) and signs the person in. */
+  verifyEmailCode(email: string, code: string, type: 'invite' | 'recovery' | 'email_change'): Promise<void>;
   rotateCalendarToken(): Promise<string>;
 
   // ----- Structure -----

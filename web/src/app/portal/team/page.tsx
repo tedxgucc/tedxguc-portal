@@ -171,7 +171,7 @@ export default function TeamPage() {
           try { await api.resetMemberLogin(resetting.user_id); toast('ok', 'Login reset.', `${resetting.name} was signed out everywhere and got a “Choose a new password” email.`); setResetting(null); }
           catch (e) { toast('bad', 'Couldn’t reset.', (e as Error).message); } finally { setResetBusy(false); }
         }}>Reset login</Button></>}>
-        <p>Their password stops working, they're signed out everywhere and their two-step app is removed. They get an email with a link to choose a new password. Their role, teams and work stay as they are.</p>
+        <p>Their password stops working, and they're signed out everywhere. They get an email with a link to choose a new password. Their role, teams and work stay as they are.</p>
       </Modal>
       {canInvite && <InviteModal open={inviting} onClose={() => setInviting(false)} onSent={() => { setInviting(false); loadInvites(); }} />}
     </>

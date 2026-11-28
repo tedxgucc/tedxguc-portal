@@ -57,6 +57,8 @@ export type Layout = {
   qr?: { cid: string; alt: string; caption: string };
   /** Keep the details in the plain-text version only (the ticket image already shows them). */
   detailsTextOnly?: boolean;
+  /** A one-time code, shown large in a dashed box. */
+  code?: string;
   /** A full ticket image (cid), shown large instead of the QR box. */
   ticket?: { cid: string; alt: string; caption: string };
   after?: string[];
@@ -86,8 +88,11 @@ export function layout(m: Layout): { html: string; text: string } {
     ? `<!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${escapeHtml(m.button.url)}" style="height:48px;v-text-anchor:middle;width:300px;" arcsize="50%" strokecolor="${RED}" fillcolor="${RED}"><w:anchorlock/><center style="color:#ffffff;font-family:Arial,sans-serif;font-size:16px;font-weight:bold;">${escapeHtml(m.button.label)}</center></v:roundrect><![endif]-->` +
       `<!--[if !mso]><!-- --><table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto"><tr><td align="center" bgcolor="${RED}" style="border-radius:999px"><a href="${escapeHtml(m.button.url)}" style="display:inline-block;padding:15px 28px;font:700 16px/1.25 ${F};color:#ffffff;text-decoration:none;border-radius:999px">${escapeHtml(m.button.label)}&nbsp;&rarr;</a></td></tr></table><!--<![endif]-->`
     : '';
+  const codeBox = m.code
+    ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td align="center" style="padding:18px 12px;border:2px dashed ${LINE};border-radius:16px;background:${CARD}"><p style="margin:0 0 6px;font:700 11px/1.3 ${F};letter-spacing:.16em;text-transform:uppercase;color:${MUTED}">Your code</p><p style="margin:0;font:800 36px/1 'Courier New',Courier,monospace;letter-spacing:.28em;color:${INK}">${escapeHtml(m.code)}</p></td></tr></table>`
+    : '';
   const after = (m.after ?? []).map((s) => `<p style="margin:0 0 8px;font:400 13px/1.6 ${F};color:${MUTED}">${rich(s)}</p>`).join('');
-  const blocks = [details, ticket, qr, button, after].filter(Boolean).map(row).join('');
+  const blocks = [details, codeBox, ticket, qr, button, after].filter(Boolean).map(row).join('');
   const html =
     `<!doctype html><html lang="en" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="color-scheme" content="light only"><meta name="supported-color-schemes" content="light"><title>${escapeHtml(m.title)}</title>` +
     `<!--[if mso]><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml><![endif]-->` +
@@ -121,6 +126,7 @@ export function layout(m: Layout): { html: string; text: string } {
     ...(m.intro ?? []),
     ...(m.details?.length ? ['', ...m.details.map(([k, v]) => `${k}: ${v}`)] : []),
     ...(m.qr ? ['', m.qr.caption] : []),
+    ...(m.code ? ['', `Your code: ${m.code}`] : []),
     ...(m.ticket ? ['', m.ticket.caption] : []),
     ...(m.button ? ['', `${m.button.label}: ${m.button.url}`] : []),
     ...(m.after?.length ? ['', ...m.after] : []),

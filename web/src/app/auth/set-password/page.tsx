@@ -1,13 +1,11 @@
 'use client';
-// After an invite or "choose a new password" link: pick the password. The
-// Chairman and Curators then set up two-step sign-in.
+// After an invite or "choose a new password" link: pick the password.
 import { ArrowRight, Eye, EyeOff, LockKeyhole } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 import { AuthCard } from '@/components/AuthCard';
 import { Button } from '@/components/ui';
 import { api } from '@/lib/api';
-import { needsTwoStep } from '@/lib/two-step';
 
 function SetPasswordInner() {
   const router = useRouter();
@@ -37,8 +35,7 @@ function SetPasswordInner() {
     setBusy(true); setError(null);
     try {
       await api.changePassword(pw);
-      const me = await api.getMe();
-      router.replace(me && needsTwoStep(me.role) ? `/auth/two-step?next=${encodeURIComponent(next)}` : next);
+      router.replace(next);
     } catch (x) { setError((x as Error).message); setBusy(false); }
   };
 

@@ -1,45 +1,41 @@
-// Account links that work on any device and in any email app.
-// Supabase's default links finish sign-in with a secret kept in the browser that
-// asked for them, so a link opened from the Gmail app (another browser) "expired".
-// These links carry a one-time token hash instead; the site's /auth/confirm page
-// verifies it only after the person taps Continue, so email scanners that pre-open
-// links can't use it up.
+// Account emails carry a 6-digit code instead of a sign-in link. The person types
+// the code on the site, so it works from any email app or device, and email
+// scanners that pre-open links can't use it up.
 import { admin } from './clients.ts';
 import { HttpError } from './http.ts';
 
 const siteUrl = Deno.env.get('SITE_URL') ?? 'http://localhost:3000';
 
-export type LinkKind = 'invite' | 'recovery';
+export type CodeKind = 'invite' | 'recovery';
 
-export function confirmUrl(tokenHash: string, type: LinkKind, next = '/auth/set-password') {
-  const q = new URLSearchParams({ token_hash: tokenHash, type, next });
-  return `${siteUrl}/auth/confirm?${q}`;
+/** The page where the code is typed, with the email filled in. */
+export function codePage(email: string, type: CodeKind) {
+  return `${siteUrl}/auth/code?${new URLSearchParams({ email, type })}`;
 }
 
 /**
- * A "set up / choose your password" link for this email.
- * New people get an invite link (creating the account applies their invite);
- * people who already have an account get a password link.
+ * A set-up code for this email. New people get an invite code (creating the
+ * account applies their invite); people who already have an account get a
+ * password code.
  */
-export async function accountLink(email: string, fullName?: string): Promise<{ url: string; kind: LinkKind }> {
+export async function accountCode(email: string, fullName?: string): Promise<{ code: string; url: string; kind: CodeKind }> {
   const invite = await admin.auth.admin.generateLink({
-    type: 'invite', email,
-    options: { redirectTo: `${siteUrl}/auth/confirm`, ...(fullName ? { data: { full_name: fullName } } : {}) },
+    type: 'invite', email, ...(fullName ? { options: { data: { full_name: fullName } } } : {}),
   });
-  if (!invite.error) return { url: confirmUrl(invite.data.properties.hashed_token, 'invite'), kind: 'invite' };
+  if (!invite.error) return { code: invite.data.properties.email_otp, url: codePage(email, 'invite'), kind: 'invite' };
   if (!/already|registered|exists/i.test(invite.error.message)) {
-    console.error('Invite link failed', invite.error);
-    throw new HttpError(502, 'link_failed', 'Could not create the setup link. Please try again.');
+    console.error('Invite code failed', invite.error);
+    throw new HttpError(502, 'code_failed', 'Could not create the set-up code. Please try again.');
   }
-  return { url: await passwordLink(email), kind: 'recovery' };
+  return { ...(await passwordCode(email)), kind: 'recovery' };
 }
 
-/** A "choose a new password" link for an existing account. */
-export async function passwordLink(email: string): Promise<string> {
-  const { data, error } = await admin.auth.admin.generateLink({ type: 'recovery', email, options: { redirectTo: `${siteUrl}/auth/confirm` } });
+/** A "choose a new password" code for an existing account. */
+export async function passwordCode(email: string): Promise<{ code: string; url: string }> {
+  const { data, error } = await admin.auth.admin.generateLink({ type: 'recovery', email });
   if (error) {
-    console.error('Password link failed', error);
-    throw new HttpError(502, 'link_failed', 'Could not create the password link. Please try again.');
+    console.error('Password code failed', error);
+    throw new HttpError(502, 'code_failed', 'Could not create the code. Please try again.');
   }
-  return confirmUrl(data.properties.hashed_token, 'recovery');
+  return { code: data.properties.email_otp, url: codePage(email, 'recovery') };
 }

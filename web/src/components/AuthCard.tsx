@@ -1,6 +1,6 @@
 'use client';
-// The card the account pages share (emailed links, choosing a password, two-step
-// sign-in), in the same style as the sign-in page.
+// The card the account pages share (emailed links, choosing a password), in the
+// same style as the sign-in page.
 import { LockKeyhole } from 'lucide-react';
 import Link from 'next/link';
 import { Lockup, TedxMark } from '@/components/Brand';

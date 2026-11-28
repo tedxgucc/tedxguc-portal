@@ -22,7 +22,7 @@ const TEMPLATES: Record<string, T> = {
   'invite-user': { subject: "You're invited to the TEDxGUC portal", kicker: 'Portal invite', title: "You're on the team.", intro: "You've been added to this season's TEDxGUC team. Tap the button to set up your portal access.", button: 'Set up my account', after: 'The link works once and expires soon.' },
   'magic-link': { subject: 'Your TEDxGUC portal sign-in link', kicker: 'Sign in', title: 'Your sign-in link.', intro: 'Tap the button to sign in to the TEDxGUC portal.', button: 'Sign in', after: "The link works once. Didn't ask for it? Ignore this email." },
   'confirm-signup': { subject: 'Confirm your TEDxGUC portal email', kicker: 'Confirm your email', title: 'One last step.', intro: 'Tap the button to confirm your email and finish setting up your TEDxGUC portal account.', button: 'Confirm my email', after: "Didn't sign up? Ignore this email." },
-  'change-email': { subject: 'Confirm your new email for the TEDxGUC portal', kicker: 'Email change', title: 'Confirm your new email.', intro: 'Tap the button to confirm the new email address for your TEDxGUC portal account.', button: 'Confirm new email', after: "Didn't ask for this? Tell the TEDxGUC board." },
+  'change-email': { subject: 'Your TEDxGUC code to confirm your new email', kicker: 'Email change', title: 'Confirm your new email.', intro: 'Type this code on your Profile page to switch your portal account to this email.', code: true, after: "Didn't ask for this? Ignore this email: nothing changes." },
   'reauthentication': { subject: 'Your TEDxGUC confirmation code', kicker: 'Confirmation code', title: 'Your code.', intro: 'Enter this code to confirm it’s you.', code: true, after: "Didn't ask for it? Ignore this email." },
 };
 
