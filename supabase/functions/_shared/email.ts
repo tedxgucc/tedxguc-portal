@@ -2,6 +2,9 @@
 // RESEND_API_KEY the email is printed to the function log instead, for
 // local development.
 import QRCode from 'npm:qrcode@1.5.4';
+import { initWasm, Resvg } from 'npm:@resvg/resvg-wasm@2.6.2';
+import { ticketSvg } from './ticket-svg.ts';
+import { ticketTier } from './event-registration.ts';
 import {
   applicationEmail, noticeEmail, orderConfirmedEmail, orderPlacedEmail, orderRejectedEmail,
   statusLinkEmail, ticketEmail, waitlistEmail,
@@ -39,10 +42,51 @@ async function qrAttachment(code: string, filename = 'ticket-qr.png'): Promise<A
   return { filename, content: dataUrl.split(',')[1], content_id: 'ticket-qr' };
 }
 
+// ---------------------------------------------------------------------
+// The ticket as an image: the site's "Your place around the dot" design,
+// drawn as SVG and rasterised with resvg. Fonts and logos come from the site.
+// ---------------------------------------------------------------------
+let artReady: Promise<{ fonts: Uint8Array[]; logos: Record<'white' | 'black', string> }> | null = null;
+function artAssets() {
+  artReady ??= (async () => {
+    await initWasm(fetch('https://cdn.jsdelivr.net/npm/@resvg/resvg-wasm@2.6.2/index_bg.wasm'));
+    const get = async (p: string) => { const r = await fetch(`${siteUrl}${p}`); if (!r.ok) throw new Error(`asset ${p}: ${r.status}`); return new Uint8Array(await r.arrayBuffer()); };
+    const b64 = (u: Uint8Array) => { let s = ''; for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode(...u.subarray(i, i + 0x8000)); return btoa(s); };
+    const [f5, f6, f8, lw, lb] = await Promise.all([get('/brand/fonts/archivo-500.ttf'), get('/brand/fonts/archivo-600.ttf'), get('/brand/fonts/archivo-800.ttf'), get('/brand/tedxguc-lockup-white.png'), get('/brand/tedxguc-lockup-black.png')]);
+    return { fonts: [f5, f6, f8], logos: { white: `data:image/png;base64,${b64(lw)}`, black: `data:image/png;base64,${b64(lb)}` } };
+  })().catch((e) => { artReady = null; throw e; });
+  return artReady;
+}
+const cairo = (iso: string, o: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat('en-GB', { timeZone: 'Africa/Cairo', ...o }).format(new Date(iso));
+
+async function ticketImage(t: TicketDetails, code: string): Promise<Attachment> {
+  const { fonts, logos } = await artAssets();
+  const q = QRCode.create(code, { errorCorrectionLevel: 'M' });
+  const n = q.modules.size;
+  const qr = Array.from({ length: n }, (_, r) => Array.from({ length: n }, (_, c) => !!q.modules.get(r, c)));
+  const vip = ticketTier(t.guest_type) === 'VIP';
+  const { svg } = ticketSvg({
+    eventTitle: t.event_title, eventKind: 'TEDxGUC', guestName: t.guest_name, vip,
+    date: cairo(t.starts_at, { weekday: 'short', day: 'numeric', month: 'short' }).replace(',', ''),
+    doors: cairo(t.starts_at, { hour: 'numeric', minute: '2-digit', hour12: true }).toLowerCase(),
+    venue: t.venue, ticketNo: t.ticket_no ?? '', qr, logoDataUrl: vip ? logos.white : logos.black,
+  });
+  const png = new Resvg(svg, { fitTo: { mode: 'width', value: 760 }, font: { fontBuffers: fonts, defaultFontFamily: 'Archivo', loadSystemFonts: false } }).render().asPng();
+  return { filename: `ticket-${t.ticket_no ?? 'tedxguc'}.png`, content: b64png(png), content_id: 'ticket-art' };
+}
+function b64png(u: Uint8Array) { let s = ''; for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode(...u.subarray(i, i + 0x8000)); return btoa(s); }
+
+// The ticket image when it can be drawn, else the plain QR (the email always goes out).
+async function ticketAttachments(t: TicketDetails, code: string): Promise<{ art: boolean; files: Attachment[] }> {
+  try { return { art: true, files: [await ticketImage(t, code)] }; }
+  catch (e) { console.error('Ticket image failed, sending the plain QR', e); return { art: false, files: [await qrAttachment(code)] }; }
+}
+
 // Event tickets
 export async function sendTicket(t: TicketDetails & { ticket_code: string }, token?: string) {
-  const mail = ticketEmail(t, token ? statusUrl(token) : undefined);
-  await send(t.guest_email, mail.subject, mail.html, mail.text, [await qrAttachment(t.ticket_code)]);
+  const { art, files } = await ticketAttachments(t, t.ticket_code);
+  const mail = ticketEmail(t, token ? statusUrl(token) : undefined, art);
+  await send(t.guest_email, mail.subject, mail.html, mail.text, files);
 }
 
 export async function sendWaitlisted(t: TicketDetails & { waitlist_position: number }, token: string) {
@@ -51,9 +95,10 @@ export async function sendWaitlisted(t: TicketDetails & { waitlist_position: num
 }
 
 export async function sendStatusLink(t: TicketDetails & { ticket_code?: string | null; status: string }, token: string) {
-  const mail = statusLinkEmail(t, statusUrl(token));
-  const attachments = t.status === 'registered' && t.ticket_code ? [await qrAttachment(t.ticket_code)] : [];
-  await send(t.guest_email, mail.subject, mail.html, mail.text, attachments);
+  const withTicket = t.status === 'registered' && !!t.ticket_code;
+  const { art, files } = withTicket ? await ticketAttachments(t, t.ticket_code!) : { art: false, files: [] };
+  const mail = statusLinkEmail(t, statusUrl(token), art);
+  await send(t.guest_email, mail.subject, mail.html, mail.text, files);
 }
 
 // Recruitment

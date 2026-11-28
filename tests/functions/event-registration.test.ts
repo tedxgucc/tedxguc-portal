@@ -51,3 +51,17 @@ test('initial and resent ticket emails identify the ticket tier', () => {
   assert.match(ticketEmail({ ...t, guest_type: 'attendee' }).text, /Ticket type: Regular/);
   assert.match(statusLinkEmail({ ...t, status: 'registered' }, 'private-link').text, /Ticket type: VIP/);
 });
+
+test('ticket image: same design as the site, VIP on dark paper, the x on a seat, QR on white', async () => {
+  const { ticketSvg } = await import('../../supabase/functions/_shared/ticket-svg.ts');
+  const qr = Array.from({ length: 21 }, (_, r) => Array.from({ length: 21 }, (_, c) => (r + c) % 3 === 0));
+  const base = { eventTitle: 'Loose Ends', eventKind: 'TEDxGUC', guestName: 'Salma <Hany>', date: 'Thu 17 Dec', doors: '6:30 pm', venue: 'GUC', ticketNo: 'LE-0042', qr };
+  const guest = ticketSvg({ ...base, vip: false }).svg, vip = ticketSvg({ ...base, vip: true }).svg;
+  assert.match(guest, /Salma &lt;Hany&gt;/);
+  assert.match(guest, /fill="#ffffff"/);
+  assert.match(vip, /fill="#0c0c0c"/);
+  assert.match(vip, />VIP</);
+  assert.match(guest, /<polygon points="[\d., ]+" fill="#e62b1e"\/>/);
+  assert.match(guest, /<rect x="20" y="[\d.]+" width="132" height="132" rx="14" fill="#fff"/);
+  assert.equal(ticketSvg({ ...base, vip: false, ticketNo: 'LE-0042' }).svg, guest);
+});

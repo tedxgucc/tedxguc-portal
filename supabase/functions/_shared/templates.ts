@@ -54,12 +54,16 @@ export type Layout = {
   button?: { label: string; url: string };
   /** cid of an attached QR image, shown framed like the ticket. */
   qr?: { cid: string; alt: string; caption: string };
+  /** Keep the details in the plain-text version only (the ticket image already shows them). */
+  detailsTextOnly?: boolean;
+  /** A full ticket image (cid), shown large instead of the QR box. */
+  ticket?: { cid: string; alt: string; caption: string };
   after?: string[];
 };
 
 export function layout(m: Layout): { html: string; text: string } {
   const p = (s: string) => `<p style="margin:0 0 14px;font:16px/1.55 ${FONT};color:#3a3835">${rich(s)}</p>`;
-  const details = m.details?.length
+  const details = m.details?.length && !m.detailsTextOnly
     ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:6px 0 22px;border-collapse:separate;background:#f6f5f2;border-radius:14px">` +
       m.details.map(([k, v], i) =>
         `<tr><td style="padding:${i ? 10 : 16}px 18px ${i === m.details!.length - 1 ? 16 : 10}px;${i ? 'border-top:1px solid #e4e1dc;' : ''}font:700 11px/1.3 ${FONT};letter-spacing:.12em;text-transform:uppercase;color:#8a8580;width:34%;vertical-align:top">${escapeHtml(k)}</td>` +
@@ -70,6 +74,11 @@ export function layout(m: Layout): { html: string; text: string } {
     ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:4px 0 22px"><tr><td align="center" style="padding:22px;border:2px dashed #dedbd6;border-radius:18px">` +
       `<img src="cid:${m.qr.cid}" alt="${escapeHtml(m.qr.alt)}" width="220" height="220" style="display:block;width:220px;height:220px;border:0;background:#fff">` +
       `<p style="margin:12px 0 0;font:600 13px/1.4 ${FONT};color:#5f5c58">${escapeHtml(m.qr.caption)}</p></td></tr></table>`
+    : '';
+  const ticket = m.ticket
+    ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:4px 0 22px"><tr><td align="center">` +
+      `<img src="cid:${m.ticket.cid}" alt="${escapeHtml(m.ticket.alt)}" width="380" style="display:block;width:100%;max-width:380px;height:auto;border:0;border-radius:22px">` +
+      `<p style="margin:12px 0 0;font:600 13px/1.4 ${FONT};color:#5f5c58">${escapeHtml(m.ticket.caption)}</p></td></tr></table>`
     : '';
   const button = m.button
     ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:6px 0 24px"><tr><td style="border-radius:999px;background:${RED}">` +
@@ -94,7 +103,7 @@ export function layout(m: Layout): { html: string; text: string } {
     `<h1 style="margin:0 0 20px;font:800 28px/1.1 ${FONT};letter-spacing:-.01em;color:${INK}">${escapeHtml(m.title)}</h1>` +
     (m.greeting ? p(m.greeting) : '') +
     (m.intro ?? []).map(p).join('') +
-    details + qr + button +
+    details + ticket + qr + button +
     (m.after ?? []).map(p).join('') +
     `</td></tr>` +
     // Footer
@@ -110,6 +119,7 @@ export function layout(m: Layout): { html: string; text: string } {
     ...(m.intro ?? []),
     ...(m.details?.length ? ['', ...m.details.map(([k, v]) => `${k}: ${v}`)] : []),
     ...(m.qr ? ['', m.qr.caption] : []),
+    ...(m.ticket ? ['', m.ticket.caption] : []),
     ...(m.button ? ['', `${m.button.label}: ${m.button.url}`] : []),
     ...(m.after?.length ? ['', ...m.after] : []),
     '',
@@ -128,18 +138,21 @@ function eventDetails(t: TicketDetails): [string, string][] {
   ];
 }
 
-export function ticketEmail(t: TicketDetails, statusUrl?: string) {
+export function ticketEmail(t: TicketDetails, statusUrl?: string, art = false) {
   const { text, html } = layout({
     kicker: 'Your ticket',
     title: `You're in, ${t.guest_name.split(' ')[0]}.`,
     preheader: `Your ticket for ${t.event_title}: show the QR code at the door.`,
     intro: [`Here is your ticket for ${t.event_title}. See you around the red dot.`],
+    detailsTextOnly: art,
     details: [
       ...eventDetails(t),
       ['Ticket number', t.ticket_no ?? ''],
       ['Ticket type', ticketTier(t.guest_type)],
     ],
-    qr: { cid: 'ticket-qr', alt: `Ticket QR code ${t.ticket_no ?? ''}`, caption: 'Show this QR code at the door. Each ticket can be scanned once.' },
+    ...(art
+      ? { ticket: { cid: 'ticket-art', alt: `TEDxGUC ticket ${t.ticket_no ?? ''} for ${t.guest_name}, with QR code`, caption: 'Show this ticket at the door. Each ticket can be scanned once. Tip: screenshot it.' } }
+      : { qr: { cid: 'ticket-qr', alt: `Ticket QR code ${t.ticket_no ?? ''}`, caption: 'Show this QR code at the door. Each ticket can be scanned once.' } }),
     button: statusUrl ? { label: 'View or cancel your ticket', url: statusUrl } : undefined,
   });
   return { subject: `Your ticket: ${t.event_title} (${t.ticket_no})`, text, html };
@@ -159,7 +172,7 @@ export function waitlistEmail(t: TicketDetails & { waitlist_position: number }, 
   return { subject: `You're on the waitlist: ${t.event_title}`, text, html };
 }
 
-export function statusLinkEmail(t: TicketDetails & { status: string }, statusUrl: string) {
+export function statusLinkEmail(t: TicketDetails & { status: string }, statusUrl: string, art = false) {
   const registered = t.status === 'registered';
   const { text, html } = layout({
     kicker: registered ? 'Your ticket, again' : 'Your waitlist place',
@@ -167,7 +180,8 @@ export function statusLinkEmail(t: TicketDetails & { status: string }, statusUrl
     greeting: `Hi ${t.guest_name},`,
     intro: [registered ? `Here is your ticket for ${t.event_title} again (${t.ticket_no}).` : `Here is the link to your waitlist place for ${t.event_title}.`],
     details: [...eventDetails(t), ['Ticket type', ticketTier(t.guest_type)]],
-    qr: registered ? { cid: 'ticket-qr', alt: 'Ticket QR code', caption: 'Show this QR code at the door.' } : undefined,
+    ...(registered && art ? { ticket: { cid: 'ticket-art', alt: `TEDxGUC ticket ${t.ticket_no ?? ''}, with QR code`, caption: 'Show this ticket at the door.' } } : {}),
+    qr: registered && !art ? { cid: 'ticket-qr', alt: 'Ticket QR code', caption: 'Show this QR code at the door.' } : undefined,
     button: { label: registered ? 'Open your ticket' : 'Open your place', url: statusUrl },
     after: ['Older links you received no longer work.'],
   });
