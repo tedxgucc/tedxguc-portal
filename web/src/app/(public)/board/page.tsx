@@ -7,8 +7,8 @@ import { api } from '@/lib/api';
 import type { BoardMember, Division, Team } from '@/lib/types';
 import './board.css';
 
-const divisionOrder = ['talks', 'operations', 'org_development', 'marketing'];
-const teamOrder = ['coaching', 'research_production', 'logistics_planning', 'partnerships', 'associates_experience', 'associates_development', 'campaigns_copyrights', 'media_design'];
+const divisionOrder = ['org_development', 'talks', 'marketing', 'operations'];
+const teamOrder = ['associates_experience', 'associates_development', 'coaching', 'research_production', 'campaigns_copyrights', 'media_design', 'logistics_planning', 'partnerships'];
 type BoardData = { members: BoardMember[]; divisions: Division[]; teams: Team[] };
 type Person = BoardMember & { title: string; unit: string | null };
 
