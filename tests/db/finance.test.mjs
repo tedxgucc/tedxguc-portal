@@ -244,3 +244,25 @@ test('finance admins correct imported bank statement rows; they stay opening bal
   assert.equal((await db.one('select status from transactions where id = $1', [row.id])).status, 'void');
   await db.as(chair, ({ q }) => q("select void_transaction($1, 'cleanup')", [fixed.id]));
 });
+
+test('cash in: no VAT, numbered CI, recorded by L&P; partnerships cannot', async () => {
+  const t = await db.as(lpExec, ({ one }) => one(`insert into transactions (kind, method, amount_gross, item, created_by) values ('cash_in','bank',500,'Merch sold at the booth',$1) returning *`, [lpExec]));
+  assert.match(t.doc_number, /^CI-/);
+  assert.equal(t.method, 'cash'); assert.equal(t.account, 'cash'); assert.equal(t.direction, 'in');
+  assert.equal(Number(t.vat_amount), 0); assert.equal(Number(t.amount_net), 500);
+  await rejects(db.as(pExec, ({ one }) => one(`insert into transactions (kind, method, amount_gross, item, created_by) values ('cash_in','cash',10,'x',$1) returning id`, [pExec])), /row-level security/);
+});
+
+test('bank out to cash adds the matching cash in; voiding the bank out voids both', async () => {
+  const before = await db.one(`select private.book_balance(private.active_season_id(), 'cash', current_date + 1) as cash, private.book_balance(private.active_season_id(), 'bank', current_date + 1) as bank`);
+  const bo = await db.as(chairman, ({ one }) => one(`insert into transactions (kind, method, amount_gross, item, to_cash, created_by) values ('bank_out','bank',2000,'Petty cash',true,$1) returning *`, [chairman]));
+  const ci = await db.one(`select * from transactions where linked_id = $1`, [bo.id]);
+  assert.equal(ci.kind, 'cash_in'); assert.equal(Number(ci.amount_net), 2000);
+  const after = await db.one(`select private.book_balance(private.active_season_id(), 'cash', current_date + 1) as cash, private.book_balance(private.active_season_id(), 'bank', current_date + 1) as bank`);
+  assert.equal(Number(after.cash) - Number(before.cash), 2000);
+  assert.equal(Number(before.bank) - Number(after.bank), 2000);
+  await rejects(db.as(chairman, ({ q }) => q(`select void_transaction($1,'oops')`, [ci.id])), /void_the_bank_out/);
+  await db.as(chairman, ({ q }) => q(`select void_transaction($1,'Entered twice')`, [bo.id]));
+  const both = await db.q(`select status from transactions where id in ($1,$2)`, [bo.id, ci.id]);
+  assert.deepEqual(both.map((r) => r.status), ['void', 'void']);
+});

@@ -213,7 +213,7 @@ export type Excuse = { id: string; meeting_id: string; user_id: string; note: st
 export type RateRow = { user_id: string; name: string; team: string | null; sessions: number; attended: number; late: number; absent: number; excused: number; rate: number | null; level: number };
 
 // ----- Finance (Phase 2, FR-12) -----
-export type TxnKind = 'cash_out' | 'bank_deposit' | 'sponsorship' | 'package_sale' | 'refund' | 'opening_balance' | 'bank_out';
+export type TxnKind = 'cash_out' | 'cash_in' | 'bank_deposit' | 'sponsorship' | 'package_sale' | 'refund' | 'opening_balance' | 'bank_out';
 export type PayMethod = 'cash' | 'bank' | 'instapay' | 'telda';
 export type MoneyAccount = 'cash' | 'bank' | 'telda';
 export type Transaction = {
@@ -237,6 +237,9 @@ export type Transaction = {
   fatora_path: string | null;
   expense_form_path: string | null;
   memo_path: string | null;
+  /** Bank out that became cash (a withdrawal); its cash side links back with linked_id. */
+  to_cash?: boolean;
+  linked_id?: string | null;
   status: 'approved' | 'void';
   void_reason: string | null;
   created_by: string | null;

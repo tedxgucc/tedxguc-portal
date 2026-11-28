@@ -18,10 +18,12 @@ export type NewMeeting = {
 export type Mark = { user_id: string; status: AttendanceStatus; note?: string };
 export type NewExpenseRequest = { team_id: string; item: string; amount_egp: number; reason?: string; event_id?: string | null };
 export type NewTransaction = {
-  kind: Extract<TxnKind, 'cash_out' | 'bank_deposit' | 'sponsorship' | 'bank_out'>;
+  kind: Extract<TxnKind, 'cash_out' | 'cash_in' | 'bank_deposit' | 'sponsorship' | 'bank_out'>;
   method: PayMethod; amount_gross: number; item?: string; supplier?: string; description?: string;
   team_id?: string | null; event_id?: string | null; expense_request_id?: string | null; sponsorship_id?: string | null;
   occurred_on?: string; vat_applies?: boolean;
+  /** Bank out only: the money became cash (adds a linked Cash in). */
+  to_cash?: boolean;
 };
 
 export interface AttendanceApi {

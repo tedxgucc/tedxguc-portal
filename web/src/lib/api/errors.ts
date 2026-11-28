@@ -3,6 +3,8 @@ import { ApiError } from './types';
 // Database error codes → microcopy in the design system's voice
 // (short, no exclamation marks, says how to fix it).
 const messages: Record<string, string> = {
+  void_the_bank_out: 'This cash came from a bank out. Void that bank out instead: both sides go together.',
+  withdrawal_locked: 'A bank-to-cash withdrawal can’t be edited. Void it and record it again.',
   cannot_reset_yourself: 'Change your own password from your profile.',
   no_invite: 'This member has no active invite, so they can’t set a new password from the login page. Invite them again first.',
   orientation_not_found: 'We could not find that orientation day.',

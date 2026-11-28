@@ -1,8 +1,9 @@
 'use client';
-// Cash out (FR-12.2, FR-12.3, FR-12.8), for L&P Executives and finance admins.
-// Every entry gets a number (CO-2027-0001), a fatora (flagged if missing),
-// and one-tap paperwork: the numbered expense form and memo PDFs.
-import { Ban, FileText, Plus } from 'lucide-react';
+// Cash (FR-12.2, FR-12.3, FR-12.8), for L&P Executives and finance admins.
+// Cash out: every entry gets a number (CO-2027-0001), a fatora (flagged if
+// missing) and one-tap paperwork. Cash in: money received in cash (CI-…), no VAT.
+// Cash taken out of the bank shows here as Cash in automatically.
+import { ArrowDownLeft, ArrowUpRight, Ban, FileText } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { usePortal } from '@/components/portal/PortalContext';
 import { useToast } from '@/components/Toast';
@@ -17,12 +18,14 @@ export function CashOutTab() {
   const { team } = usePortal();
   const toast = useToast();
   const [list, setList] = useState<Transaction[] | null>(null);
+  const [view, setView] = useState<'out' | 'in'>('out');
   const [filter, setFilter] = useState<'all' | 'missing'>('all');
   const [adding, setAdding] = useState(false);
+  const [receiving, setReceiving] = useState(false);
   const [docs, setDocs] = useState<Record<string, { expense_form_url: string | null; memo_url: string | null }>>({});
   const [voiding, setVoiding] = useState<Transaction | null>(null);
 
-  const load = useCallback(() => financeApi.listTransactions().then((x) => setList(x.filter((t) => t.kind === 'cash_out'))).catch(() => setList([])), []);
+  const load = useCallback(() => financeApi.listTransactions().then((x) => setList(x.filter((t) => t.kind === 'cash_out' || t.kind === 'cash_in'))).catch(() => setList([])), []);
   useEffect(() => { load(); }, [load]);
 
   const paperwork = async (t: Transaction) => {
@@ -34,39 +37,47 @@ export function CashOutTab() {
     } catch (e) { toast('bad', 'Couldn’t make the paperwork.', (e as Error).message); }
   };
 
-  const shown = (list ?? []).filter((t) => filter === 'all' || (!t.fatora_path && t.status !== 'void'));
-  const missing = (list ?? []).filter((t) => !t.fatora_path && t.status !== 'void').length;
-  const total = (list ?? []).filter((t) => t.status !== 'void').reduce((a, t) => a + t.amount_net, 0);
+  const outs = (list ?? []).filter((t) => t.kind === 'cash_out');
+  const ins = (list ?? []).filter((t) => t.kind === 'cash_in');
+  const sum = (xs: Transaction[]) => xs.filter((t) => t.status !== 'void').reduce((a, t) => a + t.amount_net, 0);
+  const missing = outs.filter((t) => !t.fatora_path && t.status !== 'void').length;
+  const shown = view === 'in' ? ins : outs.filter((t) => filter === 'all' || (!t.fatora_path && t.status !== 'void'));
 
   return (
     <div className="grid gap-s5">
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-s2">
-        <div className="tx-card tx-kpi"><span className="tx-label">Cash out this season</span><span className="money"><Money value={-total} /></span></div>
+        <div className="tx-card tx-kpi"><span className="tx-label">Cash in this season</span><span className="money"><Money value={sum(ins)} /></span></div>
+        <div className="tx-card tx-kpi"><span className="tx-label">Cash out this season</span><span className="money"><Money value={-sum(outs)} /></span></div>
         <div className="tx-card tx-kpi"><span className="tx-label">Missing fatora</span><span className={`stat tx-num ${missing ? 'text-bad' : ''}`}>{missing}</span><span className="caption tx-faint">{missing ? 'Upload them before the month closes' : 'All receipts in'}</span></div>
       </div>
       <div className="flex flex-wrap items-center gap-s3">
-        <Button onClick={() => setAdding(true)}><Plus aria-hidden="true" />Record cash out</Button>
-        <div className="w-[260px]"><Segmented label="Show" value={filter} onChange={setFilter} options={[{ value: 'all', label: 'All' }, { value: 'missing', label: `No fatora ${missing}` }]} /></div>
+        <Button onClick={() => setReceiving(true)}><ArrowDownLeft aria-hidden="true" />Cash in</Button>
+        <Button variant="secondary" onClick={() => setAdding(true)}><ArrowUpRight aria-hidden="true" />Cash out</Button>
+        <div className="w-[240px]"><Segmented label="Show" value={view} onChange={setView} options={[{ value: 'out', label: 'Cash out' }, { value: 'in', label: 'Cash in' }]} /></div>
+        {view === 'out' && <div className="w-[240px]"><Segmented label="Fatora" value={filter} onChange={setFilter} options={[{ value: 'all', label: 'All' }, { value: 'missing', label: `No fatora ${missing}` }]} /></div>}
       </div>
 
-      {list === null ? <Skeleton h={240} /> : shown.length === 0 ? <EmptyState title="No money moved.">Cash outs and their fatoras appear here.</EmptyState> : (
+      {list === null ? <Skeleton h={240} /> : shown.length === 0 ? <EmptyState title="No money moved.">{view === 'in' ? 'Cash received, and cash taken out of the bank, appears here.' : 'Cash outs and their fatoras appear here.'}</EmptyState> : (
         <ul className="grid gap-s2">
           {shown.map((t) => (
             <li key={t.id} className="tx-card grid gap-s3" style={t.status === 'void' ? { opacity: 0.6 } : undefined}>
               <div className="flex flex-wrap items-start justify-between gap-s2">
                 <div className="grid min-w-0">
                   <span className="code text-ink-3">{t.doc_number}</span>
-                  <span className="font-semibold">{t.item ?? 'Cash out'}</span>
+                  <span className="font-semibold">{t.item ?? (t.kind === 'cash_in' ? 'Cash in' : 'Cash out')}</span>
                   <span className="text-caption text-ink-3">{t.supplier ?? 'No supplier'} · {team(t.team_id)?.name ?? 'No team'} · {fmtShortDate(t.occurred_on)}</span>
                 </div>
-                <span className="money"><Money value={-t.amount_net} /></span>
+                <span className="money"><Money value={t.kind === 'cash_in' ? t.amount_net : -t.amount_net} /></span>
               </div>
               <div className="flex flex-wrap items-center gap-s2">
-                {t.status === 'void' ? <Chip kind="void">Void · {t.void_reason}</Chip> : <FatoraChip t={t} />}
+                {t.status === 'void' ? <Chip kind="void">Void · {t.void_reason}</Chip> : t.kind === 'cash_out' ? <FatoraChip t={t} /> : t.linked_id ? <span className="tx-chip tx-chip--soft">From the bank</span> : <span className="tx-chip tx-chip--soft">No VAT</span>}
                 {t.expense_request_id && <span className="tx-chip tx-chip--soft">From a request</span>}
                 {t.expense_form_path && <span className="tx-chip tx-chip--soft">Paperwork made</span>}
               </div>
-              {t.status !== 'void' && (
+              {t.status !== 'void' && t.kind === 'cash_in' && !t.linked_id && (
+                <div className="flex flex-wrap gap-s2"><Button small variant="ghost" onClick={() => setVoiding(t)}><Ban aria-hidden="true" />Void</Button></div>
+              )}
+              {t.status !== 'void' && t.kind === 'cash_out' && (
                 <div className="flex flex-wrap gap-s2">
                   {!t.fatora_path && <FatoraUpload onFile={async (f) => { await financeApi.attachFatora(t.id, f); load(); }} />}
                   <Button small variant="secondary" onClick={() => paperwork(t)}><FileText aria-hidden="true" />{t.expense_form_path ? 'Make again' : 'Expense form + memo'}</Button>
@@ -80,6 +91,7 @@ export function CashOutTab() {
       )}
 
       <NewCashOut open={adding} onClose={() => setAdding(false)} onSaved={(t, urls) => { setAdding(false); if (urls) setDocs((d) => ({ ...d, [t.id]: urls })); load(); }} />
+      <NewCashIn open={receiving} onClose={() => setReceiving(false)} onSaved={() => { setReceiving(false); setView('in'); load(); }} />
       <VoidModal txn={voiding} onClose={() => setVoiding(null)} onDone={() => { setVoiding(null); load(); }} />
     </div>
   );
@@ -136,7 +148,7 @@ function NewCashOut({ open, onClose, onSaved }: { open: boolean; onClose: () => 
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="Record cash out"
+    <Modal open={open} onClose={onClose} title="Cash out"
       actions={<><Button variant="secondary" onClick={onClose}>Cancel</Button><Button onClick={save} loading={busy}>Save</Button></>}>
       <div className="grid gap-s4">
         {requests.length > 0 && (
@@ -163,6 +175,58 @@ function NewCashOut({ open, onClose, onSaved }: { open: boolean; onClose: () => 
         <UploadArea file={fatora} onPick={setFatora} />
         <TextArea label="Notes (optional)" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
         <label className="tx-check"><input type="checkbox" checked={makeDocs} onChange={(e) => setMakeDocs(e.target.checked)} /><span>Make the expense form and memo now</span></label>
+        {error && <p className="tx-help" style={{ color: 'var(--bad)' }} role="alert">{error}</p>}
+      </div>
+    </Modal>
+  );
+}
+
+function NewCashIn({ open, onClose, onSaved }: { open: boolean; onClose: () => void; onSaved: () => void }) {
+  const { teams } = usePortal();
+  const toast = useToast();
+  const [events, setEvents] = useState<TxEvent[]>([]);
+  const [what, setWhat] = useState('');
+  const [from, setFrom] = useState('');
+  const [amount, setAmount] = useState('');
+  const [teamId, setTeamId] = useState('');
+  const [eventId, setEventId] = useState('');
+  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [notes, setNotes] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => { if (open) api.listEvents('all').then(setEvents).catch(() => {}); }, [open]);
+  const save = async () => {
+    const n = Number(amount);
+    if (!what.trim() || !(n > 0)) { setError('Add what the money is for and the amount.'); return; }
+    setBusy(true);
+    try {
+      const t = await financeApi.createTransaction({
+        kind: 'cash_in', method: 'cash', amount_gross: n, item: what.trim(), supplier: from.trim() || undefined,
+        description: notes.trim() || undefined, team_id: teamId || null, event_id: eventId || null, occurred_on: date,
+      });
+      toast('ok', `${t.doc_number} recorded.`, `EGP ${n.toLocaleString('en-US', { minimumFractionDigits: 2 })} added to cash. No VAT on cash.`);
+      setWhat(''); setFrom(''); setAmount(''); setNotes(''); setError(null);
+      onSaved();
+    } catch (e) { setError((e as Error).message); } finally { setBusy(false); }
+  };
+  return (
+    <Modal open={open} onClose={onClose} title="Cash in"
+      actions={<><Button variant="secondary" onClick={onClose}>Cancel</Button><Button onClick={save} loading={busy}>Save</Button></>}>
+      <div className="grid gap-s4">
+        <TextInput label="What for" value={what} onChange={(e) => setWhat(e.target.value)} placeholder="e.g. Merch sold at the booth" />
+        <div className="grid gap-s4 sm:grid-cols-2">
+          <TextInput label="Amount (EGP)" type="number" inputMode="decimal" min={1} value={amount} onChange={(e) => setAmount(e.target.value)} />
+          <TextInput label="Received from (optional)" value={from} onChange={(e) => setFrom(e.target.value)} />
+          <TextInput label="Date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+          <Select label="Team" value={teamId} onChange={(e) => setTeamId(e.target.value)}>
+            <option value="">No team</option>{teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+          </Select>
+          <Select label="Event" value={eventId} onChange={(e) => setEventId(e.target.value)}>
+            <option value="">No event</option>{events.map((e) => <option key={e.id} value={e.id}>{e.title}</option>)}
+          </Select>
+        </div>
+        <TextArea label="Notes (optional)" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
+        <p className="text-caption text-ink-3">Cash in has no VAT. Cash taken out of the bank is added here automatically when you record a Bank out “to cash”.</p>
         {error && <p className="tx-help" style={{ color: 'var(--bad)' }} role="alert">{error}</p>}
       </div>
     </Modal>

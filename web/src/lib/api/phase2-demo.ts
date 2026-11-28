@@ -315,7 +315,7 @@ export const demoAttendanceApi: AttendanceApi = {
 const isAdmin = (u: Me) => u.role === 'chairman' || (u.role === 'curator' && u.division_kind === 'operations');
 const isLp = (u: Me) => u.role === 'executive' && u.team_kind === 'logistics_planning';
 const isP = (u: Me) => u.role === 'executive' && u.team_kind === 'partnerships';
-const canWriteKind = (u: Me, k: string) => (k === 'cash_out' ? isAdmin(u) || isLp(u) : ['bank_deposit', 'sponsorship'].includes(k) ? isAdmin(u) || isP(u) : k === 'bank_out' ? isAdmin(u) : false);
+const canWriteKind = (u: Me, k: string) => (k === 'cash_out' || k === 'cash_in' ? isAdmin(u) || isLp(u) : ['bank_deposit', 'sponsorship'].includes(k) ? isAdmin(u) || isP(u) : k === 'bank_out' ? isAdmin(u) : false);
 // Only L&P Executives ask; only they, the Ops Curator and the Chairman see requests.
 const canSeeRequest = (u: Me, r: ExpenseRequest) => r.requested_by === u.id || isAdmin(u) || isLp(u);
 const nextDoc = (prefix: string) => { const st = s(); st.counters[prefix] = (st.counters[prefix] ?? 0) + 1; return `${prefix}-2027-${String(st.counters[prefix]).padStart(4, '0')}`; };
@@ -386,17 +386,24 @@ export const demoFinanceApi: FinanceApi = {
       if (!r || r.status !== 'approved') fail('expense_request_not_approved', 'That request isn’t approved yet.');
       teamId = teamId ?? r!.team_id;
     }
-    const vatApplies = input.kind === 'bank_out' ? false : input.vat_applies ?? input.kind !== 'cash_out';
+    const vatApplies = input.kind === 'bank_out' || input.kind === 'cash_in' ? false : input.vat_applies ?? input.kind !== 'cash_out';
     if (input.kind === 'bank_out') input = { ...input, method: 'bank' };
+    if (input.kind === 'cash_in') input = { ...input, method: 'cash' };
     const t = txn({
       id: id('t'), kind: input.kind, method: input.method, amount_gross: input.amount_gross,
-      doc_number: nextDoc(input.kind === 'cash_out' ? 'CO' : input.kind === 'bank_deposit' ? 'DEP' : input.kind === 'bank_out' ? 'BO' : 'SP'),
+      doc_number: nextDoc(input.kind === 'cash_out' ? 'CO' : input.kind === 'cash_in' ? 'CI' : input.kind === 'bank_deposit' ? 'DEP' : input.kind === 'bank_out' ? 'BO' : 'SP'),
       item: input.item ?? null, supplier: input.supplier ?? null, description: input.description ?? null, team_id: teamId,
       event_id: input.event_id ?? null, expense_request_id: input.expense_request_id ?? null, sponsorship_id: input.sponsorship_id ?? null,
       occurred_on: input.occurred_on ?? new Date().toISOString().slice(0, 10), created_by: u.id, created_at: new Date().toISOString(),
     });
     if (!vatApplies) { t.vat_amount = 0; t.amount_net = t.amount_gross; }
     st.txns.unshift(t);
+    if (input.kind === 'bank_out' && input.to_cash) {
+      t.to_cash = true;
+      const c = txn({ id: id('t'), kind: 'cash_in', method: 'cash', amount_gross: input.amount_gross, doc_number: nextDoc('CI'), item: `From the bank (${t.doc_number})`, description: input.item ?? 'Cash withdrawal', team_id: teamId, event_id: input.event_id ?? null, expense_request_id: null, sponsorship_id: null, occurred_on: t.occurred_on, created_by: u.id, created_at: new Date().toISOString() });
+      c.vat_amount = 0; c.amount_net = c.amount_gross; c.linked_id = t.id;
+      st.txns.unshift(c);
+    }
     if (input.expense_request_id) {
       const r = st.requests.find((x) => x.id === input.expense_request_id)!;
       r.status = 'purchased';
@@ -440,8 +447,10 @@ export const demoFinanceApi: FinanceApi = {
     if (!(isAdmin(u) || (t!.created_by === u.id && canWriteKind(u, t!.kind)))) fail('not_allowed');
     if (!reason.trim()) fail('reason_required', 'Write why you’re voiding it.');
     if (t!.status === 'void') fail('already_void', 'Already void.');
+    if (t!.linked_id) fail('void_the_bank_out', 'This cash came from a bank out. Void that bank out instead; both sides go together.');
     t!.status = 'void';
     t!.void_reason = reason.trim();
+    for (const c of s().txns) if (c.linked_id === tid && c.status !== 'void') { c.status = 'void'; c.void_reason = reason.trim(); }
     for (const r of s().requests) if (r.transaction_id === tid) { r.status = 'approved'; r.transaction_id = null; }
     save();
   },

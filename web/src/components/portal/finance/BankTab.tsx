@@ -150,17 +150,20 @@ function BankOutModal({ open, onClose, onSaved }: { open: boolean; onClose: () =
   const [to, setTo] = useState('');
   const [what, setWhat] = useState('');
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [toCash, setToCash] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const save = async () => {
     const n = Number(amount);
     if (!(n > 0)) { setError('Enter the amount that left the bank.'); return; }
-    if (!what.trim()) { setError('Say what it was for.'); return; }
+    const item = what.trim() || (toCash ? 'Cash withdrawal' : '');
+    if (!item) { setError('Say what it was for.'); return; }
     setBusy(true);
     try {
-      const t = await financeApi.createTransaction({ kind: 'bank_out', method: 'bank', amount_gross: n, item: what.trim(), supplier: to.trim() || undefined, occurred_on: date });
-      toast('ok', `${t.doc_number} recorded.`, `EGP ${n.toLocaleString('en-US', { minimumFractionDigits: 2 })} taken out of the bank.`);
-      setAmount(''); setTo(''); setWhat(''); setError(null);
+      const t = await financeApi.createTransaction({ kind: 'bank_out', method: 'bank', amount_gross: n, item, supplier: toCash ? undefined : to.trim() || undefined, occurred_on: date, to_cash: toCash });
+      const egp = `EGP ${n.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+      toast('ok', `${t.doc_number} recorded.`, toCash ? `${egp} moved from the bank to cash. It shows under Cash → Cash in.` : `${egp} taken out of the bank.`);
+      setAmount(''); setTo(''); setWhat(''); setToCash(false); setError(null);
       onSaved();
     } catch (e) { setError((e as Error).message); } finally { setBusy(false); }
   };
@@ -169,12 +172,13 @@ function BankOutModal({ open, onClose, onSaved }: { open: boolean; onClose: () =
       actions={<><Button variant="secondary" onClick={onClose}>Cancel</Button><Button onClick={save} loading={busy}>Save</Button></>}>
       <div className="grid gap-s4">
         <TextInput label="Amount (EGP)" type="number" inputMode="decimal" min={1} value={amount} onChange={(e) => setAmount(e.target.value)} />
-        <TextInput label="What for" value={what} onChange={(e) => setWhat(e.target.value)} placeholder="e.g. Venue deposit, bank fees" />
+        <label className="tx-check"><input type="checkbox" checked={toCash} onChange={(e) => setToCash(e.target.checked)} /><span><b>Take it out as cash</b>: the money goes into the club’s cash (adds a Cash in for the same amount)</span></label>
+        <TextInput label="What for" value={what} onChange={(e) => setWhat(e.target.value)} placeholder={toCash ? 'e.g. Petty cash for the event week' : 'e.g. Venue deposit, bank fees'} />
         <div className="grid gap-s4 grid-cols-1 sm:grid-cols-2">
-          <TextInput label="Paid to (optional)" value={to} onChange={(e) => setTo(e.target.value)} />
+          {!toCash && <TextInput label="Paid to (optional)" value={to} onChange={(e) => setTo(e.target.value)} />}
           <TextInput label="Date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
         </div>
-        <p className="text-caption text-ink-3">Money paid straight from the bank: transfers, cheques, bank fees. Cash bought by L&P goes under Cash out.</p>
+        <p className="text-caption text-ink-3">{toCash ? 'The bank goes down and cash goes up by the same amount. Voiding this bank out undoes both.' : 'Money paid straight from the bank: transfers, cheques, bank fees. Things bought with cash go under Cash.'}</p>
         {error && <p className="tx-help" style={{ color: 'var(--bad)' }} role="alert">{error}</p>}
       </div>
     </Modal>
