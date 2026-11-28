@@ -99,7 +99,7 @@ export function layout(m: Layout): { html: string; text: string } {
     `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" class="container" style="width:100%;max-width:600px;margin:0 auto">` +
     // Header: small logo over a thin line
     `<tr><td class="px" style="padding:4px 24px 18px;border-bottom:1px solid ${LINE}"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr>` +
-    `<td align="left" valign="middle"><a href="${SITE}"><img src="${LOGO}" width="112" height="23" alt="TEDxGUC" style="display:block;border:0;height:23px;width:112px"></a></td>` +
+    `<td align="left" valign="middle"><a href="${SITE}"><img src="${LOGO}" width="150" height="24" alt="TEDxGUC" style="display:block;border:0;height:24px;width:150px"></a></td>` +
     `</tr></table></td></tr>` +
     // Body: kicker, title and copy
     `<tr><td class="px" style="padding:0 24px"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">` +
